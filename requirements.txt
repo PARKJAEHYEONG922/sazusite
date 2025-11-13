@@ -1,0 +1,25 @@
+# FastAPI 및 서버
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# 템플릿 및 정적 파일
+jinja2==3.1.2
+python-multipart==0.0.6
+
+# 데이터베이스
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# 검증
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 환경 변수
+python-dotenv==1.0.0
+
+# 보안
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# AI
+google-generativeai==0.3.1

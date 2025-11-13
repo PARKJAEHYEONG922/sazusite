@@ -1,0 +1,46 @@
+# 환경 변수 (API 키 포함)
+.env
+.env.local
+.env.*.local
+
+# 데이터베이스
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# 캐시
+cache/
+*.log
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 임시 파일
+*.tmp
+*.bak
+*.backup
+
+# 구버전 파일 (참고용)
+api/
+public/
+logs/
