@@ -329,18 +329,34 @@ nav {
 
 .section-title {
     text-align: left;
-    font-size: 2rem;
+    font-size: 1.5rem;  /* 모바일에서 줄임 */
     font-weight: 700;
     color: var(--primary-color);
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+}
+
+/* PC에서 제목 크기 복원 */
+@media (min-width: 768px) {
+    .section-title {
+        font-size: 2rem;
+        margin-bottom: 3rem;
+    }
 }
 
 .services-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    max-width: 900px;
+    max-width: 900px;  /* 모바일 기본값 */
     margin: 0 auto;
+}
+
+/* PC에서 서브배너 크기 증가 */
+@media (min-width: 768px) {
+    .services-grid {
+        max-width: 1200px;  /* PC에서 더 크게 */
+        gap: 1.5rem;
+    }
 }
 
 .service-card {

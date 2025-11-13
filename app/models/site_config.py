@@ -58,7 +58,7 @@ class SiteConfig(Base):
     sub_banner_title_1 = Column(String(100), default="월하소녀 2026 신년운세")
     sub_banner_subtitle_1 = Column(String(200), default="월하소녀 2026 신년운세")
     sub_banner_description_1 = Column(Text, default="이번 신년, 당신의 운명은?")
-    sub_banner_link_1 = Column(String(500), default="/fortune/today")
+    sub_banner_link_1 = Column(String(500), default="/fortune/newyear2026")
 
     # 서브배너 2
     sub_banner_image_2 = Column(String(500), nullable=True)
