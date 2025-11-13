@@ -32,6 +32,7 @@ templates = Jinja2Templates(directory="app/templates")
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, db: Session = Depends(get_db)):
     """메인 페이지"""
+    from datetime import date
     site_service = SiteService(db)
     site_config = site_service.get_site_config()
     services = site_service.get_active_services()
@@ -41,7 +42,8 @@ async def index(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "site_config": site_config,
-            "services": services
+            "services": services,
+            "today": date.today().isoformat()
         }
     )
 

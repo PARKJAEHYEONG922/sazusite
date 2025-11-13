@@ -116,24 +116,28 @@ async def update_site_settings(
     footer_text: str = Form(...),
     # 배너 1
     banner_file_1: Optional[UploadFile] = File(None),
+    banner_pc_file_1: Optional[UploadFile] = File(None),
     banner_title_1: Optional[str] = Form(None),
     banner_subtitle_1: Optional[str] = Form(None),
     banner_description_1: Optional[str] = Form(None),
     banner_link_1: Optional[str] = Form(None),
     # 배너 2
     banner_file_2: Optional[UploadFile] = File(None),
+    banner_pc_file_2: Optional[UploadFile] = File(None),
     banner_title_2: Optional[str] = Form(None),
     banner_subtitle_2: Optional[str] = Form(None),
     banner_description_2: Optional[str] = Form(None),
     banner_link_2: Optional[str] = Form(None),
     # 배너 3
     banner_file_3: Optional[UploadFile] = File(None),
+    banner_pc_file_3: Optional[UploadFile] = File(None),
     banner_title_3: Optional[str] = Form(None),
     banner_subtitle_3: Optional[str] = Form(None),
     banner_description_3: Optional[str] = Form(None),
     banner_link_3: Optional[str] = Form(None),
     # 배너 4
     banner_file_4: Optional[UploadFile] = File(None),
+    banner_pc_file_4: Optional[UploadFile] = File(None),
     banner_title_4: Optional[str] = Form(None),
     banner_subtitle_4: Optional[str] = Form(None),
     banner_description_4: Optional[str] = Form(None),
@@ -211,7 +215,7 @@ async def update_site_settings(
         # 배너 설정 처리
         banner_updates = {}
         for i in range(1, 5):
-            # 파일 업로드 처리
+            # 모바일 배너 파일 업로드 처리
             banner_file = locals().get(f"banner_file_{i}")
             if banner_file and banner_file.filename:
                 # 파일 확장자 확인
@@ -235,6 +239,31 @@ async def update_site_settings(
                     existing_value = getattr(current_config, f"banner_image_{i}", None)
                     if existing_value:
                         banner_updates[f"banner_image_{i}"] = existing_value
+
+            # PC 배너 파일 업로드 처리
+            banner_pc_file = locals().get(f"banner_pc_file_{i}")
+            if banner_pc_file and banner_pc_file.filename:
+                # 파일 확장자 확인
+                file_ext = os.path.splitext(banner_pc_file.filename)[1].lower()
+                if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                    raise ValueError(f"PC 배너 {i}: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+
+                # 파일명 생성 (banner_pc_1.jpg 형식)
+                new_filename = f"banner_pc_{i}{file_ext}"
+                file_path = upload_dir / new_filename
+
+                # 파일 저장
+                with file_path.open("wb") as buffer:
+                    shutil.copyfileobj(banner_pc_file.file, buffer)
+
+                # URL 경로 저장
+                banner_updates[f"banner_image_pc_{i}"] = f"/static/uploads/{new_filename}"
+            else:
+                # 파일 업로드가 없으면 기존 값 유지
+                if current_config:
+                    existing_value = getattr(current_config, f"banner_image_pc_{i}", None)
+                    if existing_value:
+                        banner_updates[f"banner_image_pc_{i}"] = existing_value
 
             # 텍스트 필드 업데이트
             banner_title = locals().get(f"banner_title_{i}")

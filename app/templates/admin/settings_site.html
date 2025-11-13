@@ -298,10 +298,18 @@
                 <div id="banner-1" class="tab-content active">
                     <div class="banner-card">
                         <div class="form-group">
-                            <label>이미지 업로드</label>
+                            <label>모바일 이미지 (4:3 비율)</label>
                             <input type="file" name="banner_file_1" accept="image/*">
                             {% if config and config.banner_image_1 %}
                             <p class="current-image">✓ 현재: {{ config.banner_image_1 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>PC 이미지 (21:9 비율)</label>
+                            <input type="file" name="banner_pc_file_1" accept="image/*">
+                            {% if config and config.banner_image_pc_1 %}
+                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_1 }}</p>
                             {% endif %}
                         </div>
 
@@ -331,10 +339,18 @@
                 <div id="banner-2" class="tab-content">
                     <div class="banner-card">
                         <div class="form-group">
-                            <label>이미지 업로드</label>
+                            <label>모바일 이미지 (4:3 비율)</label>
                             <input type="file" name="banner_file_2" accept="image/*">
                             {% if config and config.banner_image_2 %}
                             <p class="current-image">✓ 현재: {{ config.banner_image_2 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>PC 이미지 (21:9 비율)</label>
+                            <input type="file" name="banner_pc_file_2" accept="image/*">
+                            {% if config and config.banner_image_pc_2 %}
+                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_2 }}</p>
                             {% endif %}
                         </div>
 
@@ -364,10 +380,18 @@
                 <div id="banner-3" class="tab-content">
                     <div class="banner-card">
                         <div class="form-group">
-                            <label>이미지 업로드</label>
+                            <label>모바일 이미지 (4:3 비율)</label>
                             <input type="file" name="banner_file_3" accept="image/*">
                             {% if config and config.banner_image_3 %}
                             <p class="current-image">✓ 현재: {{ config.banner_image_3 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>PC 이미지 (21:9 비율)</label>
+                            <input type="file" name="banner_pc_file_3" accept="image/*">
+                            {% if config and config.banner_image_pc_3 %}
+                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_3 }}</p>
                             {% endif %}
                         </div>
 
@@ -397,10 +421,18 @@
                 <div id="banner-4" class="tab-content">
                     <div class="banner-card">
                         <div class="form-group">
-                            <label>이미지 업로드</label>
+                            <label>모바일 이미지 (4:3 비율)</label>
                             <input type="file" name="banner_file_4" accept="image/*">
                             {% if config and config.banner_image_4 %}
                             <p class="current-image">✓ 현재: {{ config.banner_image_4 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>PC 이미지 (21:9 비율)</label>
+                            <input type="file" name="banner_pc_file_4" accept="image/*">
+                            {% if config and config.banner_image_pc_4 %}
+                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_4 }}</p>
                             {% endif %}
                         </div>
 

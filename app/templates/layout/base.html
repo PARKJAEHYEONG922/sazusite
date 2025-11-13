@@ -73,9 +73,29 @@
         <p>{{ site_config.footer_text if site_config else "© 2025 명월헌. All rights reserved." }}</p>
     </footer>
 
+    <!-- 모바일 하단 고정 광고 -->
+    {% if site_config and site_config.adsense_client_id %}
+    <div class="mobile-bottom-ad" id="mobileBottomAd">
+        <button class="ad-close-btn" onclick="closeMobileAd()" aria-label="광고 닫기">&times;</button>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="{{ site_config.adsense_client_id }}"
+             data-ad-slot="{{ site_config.adsense_slot_main if site_config.adsense_slot_main else '' }}"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    {% endif %}
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% if site_config and site_config.adsense_client_id %}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site_config.adsense_client_id }}"
+            crossorigin="anonymous"></script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

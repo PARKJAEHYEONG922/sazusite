@@ -77,12 +77,15 @@ class FortuneService:
         # Gemini API 호출
         result_text = gemini_service.generate_content(prompt)
 
+        # request_data를 JSON 직렬화 가능하게 변환 (date 객체를 문자열로)
+        serializable_data = self._make_json_serializable(request_data)
+
         # DB 저장
         fortune_result = FortuneResult(
             service_code=service_code,
             user_key=user_key,
             date=date.today(),
-            request_payload=request_data,
+            request_payload=serializable_data,
             result_text=result_text,
             is_from_cache=False
         )
@@ -92,6 +95,26 @@ class FortuneService:
         self.db.refresh(fortune_result)
 
         return fortune_result
+
+    def _make_json_serializable(self, data: dict) -> dict:
+        """
+        딕셔너리의 date/datetime 객체를 문자열로 변환
+
+        Args:
+            data: 원본 딕셔너리
+
+        Returns:
+            JSON 직렬화 가능한 딕셔너리
+        """
+        result = {}
+        for key, value in data.items():
+            if isinstance(value, (date, datetime)):
+                result[key] = value.isoformat()
+            elif isinstance(value, dict):
+                result[key] = self._make_json_serializable(value)
+            else:
+                result[key] = value
+        return result
 
     def get_or_create_fortune(
         self,
