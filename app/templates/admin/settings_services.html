@@ -30,6 +30,14 @@
         text-align: center;
     }
 
+    .service-image {
+        width: 80px;
+        height: 107px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .service-info h3 {
         font-size: 22px;
         margin-bottom: 8px;
@@ -179,6 +187,71 @@
         }
     }
 
+    /* 탭 스타일 */
+    .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .tab-button {
+        padding: 12px 24px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #718096;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: -2px;
+    }
+
+    .tab-button:hover {
+        color: #4a5568;
+        background: #f7fafc;
+    }
+
+    .tab-button.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .form-start-image {
+        width: 120px;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .form-result-image {
+        width: 90px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
     .alert {
         padding: 16px 20px;
         border-radius: 10px;
@@ -217,7 +290,13 @@
     {% for service in services %}
     <div class="service-card">
         <div class="service-header">
-            <div class="service-emoji">{{ service.character_emoji }}</div>
+            <div class="service-emoji">
+                {% if service.character_image %}
+                    <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="service-image">
+                {% else %}
+                    {{ service.character_emoji }}
+                {% endif %}
+            </div>
             <div class="service-info">
                 <h3>{{ service.title }}</h3>
                 <p class="service-subtitle">{{ service.subtitle }}</p>
@@ -228,43 +307,89 @@
         </div>
 
         <div id="edit-{{ service.code }}" class="edit-form">
-            <form method="POST" action="/admin/settings/services/{{ service.code }}">
-                <div class="form-grid">
-                    <div class="form-row">
-                        <label>제목</label>
-                        <input type="text" name="title" value="{{ service.title }}" required>
-                    </div>
+            <form method="POST" action="/admin/settings/services/{{ service.code }}" enctype="multipart/form-data">
+                <!-- 탭 버튼 -->
+                <div class="tab-buttons">
+                    <button type="button" class="tab-button active" onclick="switchTab(event, '{{ service.code }}', 'start')">
+                        🏠 시작 페이지
+                    </button>
+                    <button type="button" class="tab-button" onclick="switchTab(event, '{{ service.code }}', 'result')">
+                        📄 결과 페이지
+                    </button>
+                </div>
 
-                    <div class="form-row">
-                        <label>부제목</label>
-                        <input type="text" name="subtitle" value="{{ service.subtitle }}" required>
-                    </div>
+                <!-- 시작 페이지 탭 -->
+                <div id="tab-start-{{ service.code }}" class="tab-content active">
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label>제목</label>
+                            <input type="text" name="title" value="{{ service.title }}" required>
+                        </div>
 
-                    <div class="form-row">
-                        <label>설명</label>
-                        <textarea name="description" required>{{ service.description }}</textarea>
-                    </div>
+                        <div class="form-row">
+                            <label>부제목</label>
+                            <input type="text" name="subtitle" value="{{ service.subtitle }}" required>
+                        </div>
 
-                    <div class="form-row">
-                        <label>캐릭터 이름</label>
-                        <input type="text" name="character_name" value="{{ service.character_name }}" required>
-                    </div>
+                        <div class="form-row">
+                            <label>설명</label>
+                            <textarea name="description" required>{{ service.description }}</textarea>
+                        </div>
 
-                    <div class="form-row">
-                        <label>이모지</label>
-                        <input type="text" name="character_emoji" value="{{ service.character_emoji }}" required>
-                    </div>
-
-                    <div class="form-row">
-                        <label>활성화</label>
-                        <div class="checkbox-row">
-                            <input type="checkbox" name="is_active" {% if service.is_active %}checked{% endif %}>
-                            <span>이 서비스를 활성화합니다</span>
+                        <div class="form-row">
+                            <label>시작 페이지 캐릭터 이미지</label>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="file" name="character_form_image_file" accept="image/*">
+                                <small style="color: #718096;">3:4 비율 이미지 권장 (예: 300x400px). 시작 페이지 상단에 표시됩니다.</small>
+                                {% if service.character_form_image %}
+                                    <div style="margin-top: 10px;">
+                                        <img src="{{ service.character_form_image }}" alt="현재 시작 페이지 이미지" class="form-start-image">
+                                        <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 시작 페이지 이미지</p>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-
-                    <button type="submit" class="btn-save">💾 저장</button>
                 </div>
+
+                <!-- 결과 페이지 탭 -->
+                <div id="tab-result-{{ service.code }}" class="tab-content">
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label>캐릭터 이름</label>
+                            <input type="text" name="character_name" value="{{ service.character_name }}" required>
+                        </div>
+
+                        <div class="form-row">
+                            <label>이모지</label>
+                            <input type="text" name="character_emoji" value="{{ service.character_emoji }}" required>
+                        </div>
+
+                        <div class="form-row">
+                            <label>결과 페이지 캐릭터 이미지</label>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="file" name="character_image_file" accept="image/*">
+                                <small style="color: #718096;">3:4 비율 이미지 권장 (예: 300x400px). 결과 페이지 상단에 이모지 대신 표시됩니다.</small>
+                                {% if service.character_image %}
+                                    <div style="margin-top: 10px;">
+                                        <img src="{{ service.character_image }}" alt="현재 결과 페이지 이미지" class="form-result-image">
+                                        <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 결과 페이지 이미지</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <label>활성화</label>
+                            <div class="checkbox-row">
+                                <input type="checkbox" name="is_active" {% if service.is_active %}checked{% endif %}>
+                                <span>이 서비스를 활성화합니다</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save" style="margin-top: 20px;">💾 저장</button>
             </form>
         </div>
     </div>
@@ -275,6 +400,26 @@
 function toggleEdit(code) {
     const form = document.getElementById('edit-' + code);
     form.classList.toggle('active');
+}
+
+function switchTab(event, serviceCode, tabName) {
+    // 현재 서비스의 모든 탭 버튼 비활성화
+    const form = document.getElementById('edit-' + serviceCode);
+    const tabButtons = form.querySelectorAll('.tab-button');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+
+    // 현재 서비스의 모든 탭 콘텐츠 숨기기
+    const tabContents = form.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+
+    // 클릭한 탭 활성화
+    event.currentTarget.classList.add('active');
+
+    // 해당 탭 콘텐츠 표시
+    const targetTab = document.getElementById('tab-' + tabName + '-' + serviceCode);
+    if (targetTab) {
+        targetTab.classList.add('active');
+    }
 }
 </script>
 {% endblock %}

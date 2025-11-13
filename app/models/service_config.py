@@ -21,6 +21,8 @@ class FortuneServiceConfig(Base):
     # 캐릭터
     character_name = Column(String(50))  # "야광묘"
     character_emoji = Column(String(20))  # "🐱✨"
+    character_image = Column(String(200), nullable=True)  # "/static/uploads/character_saju.png" (결과 페이지용)
+    character_form_image = Column(String(200), nullable=True)  # "/static/uploads/character_form_saju.png" (시작 페이지용)
 
     # 활성화
     is_active = Column(Boolean, default=True)

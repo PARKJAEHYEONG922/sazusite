@@ -124,6 +124,7 @@ class FortuneService:
             birth_time = request_data.get("birth_time")
             calendar_type = request_data.get("calendar", "solar")
             gender = request_data["gender"]
+            name = request_data.get("name", "고객")
 
             saju_data = calculator.calculate_saju(
                 birthdate=birthdate,
@@ -131,6 +132,9 @@ class FortuneService:
                 calendar_type=calendar_type,
                 gender=gender
             )
+
+            # 이름을 사주 데이터에 추가
+            saju_data["name"] = name
 
             # 사주 데이터를 request_data에 추가
             request_data["saju_data"] = saju_data
@@ -219,13 +223,42 @@ class FortuneService:
                 birth_time = request_data.get("birth_time")
                 calendar_type = request_data.get("calendar", "solar")
                 gender = request_data["gender"]
+                name = request_data.get("name", "고객")
 
-                result["saju_data"] = calculator.calculate_saju(
+                saju_data = calculator.calculate_saju(
                     birthdate=birthdate,
                     birth_time=birth_time,
                     calendar_type=calendar_type,
                     gender=gender
                 )
+
+                # 이름을 사주 데이터에 추가
+                saju_data["name"] = name
+
+                result["saju_data"] = saju_data
+
+            # 오늘의 운세인 경우 daily_fortune_info 추가 (캐시에서도 계산)
+            if service_code == "today":
+                calculator = SajuCalculator()
+                daily_info = calculator.get_daily_fortune_info(today)
+                result["daily_fortune_info"] = daily_info
+
+            # 궁합인 경우 compatibility_info 추가 (캐시에서도 계산)
+            if service_code == "match":
+                calculator = SajuCalculator()
+                birthdate_obj = datetime.fromisoformat(str(request_data["birthdate"])).date()
+                partner_birthdate_obj = datetime.fromisoformat(str(request_data["partner_birthdate"])).date()
+                compatibility = calculator.calculate_compatibility(
+                    birthdate_obj, request_data["gender"],
+                    partner_birthdate_obj, request_data["partner_gender"]
+                )
+                result["compatibility_info"] = compatibility
+
+            # 신년운세인 경우 year_fortune_info 추가 (캐시에서도 계산)
+            if service_code == "newyear2026":
+                calculator = SajuCalculator()
+                year_info = calculator.get_year_fortune_info(2026)
+                result["year_fortune_info"] = year_info
 
             return result
 
@@ -241,6 +274,18 @@ class FortuneService:
 
         if saju_data:
             result["saju_data"] = saju_data
+
+        # 오늘의 운세인 경우 daily_fortune_info 추가
+        if service_code == "today" and "daily_fortune_info" in request_data:
+            result["daily_fortune_info"] = request_data["daily_fortune_info"]
+
+        # 궁합인 경우 compatibility_info 추가
+        if service_code == "match" and "compatibility_info" in request_data:
+            result["compatibility_info"] = request_data["compatibility_info"]
+
+        # 신년운세인 경우 year_fortune_info 추가
+        if service_code == "newyear2026" and "year_fortune_info" in request_data:
+            result["year_fortune_info"] = request_data["year_fortune_info"]
 
         return result
 
@@ -318,6 +363,13 @@ class FortuneService:
         zodiac = get_zodiac(year)
         today_str = date.today().strftime("%Y년 %m월 %d일")
 
+        # 오늘의 길흉일 정보 계산
+        calculator = SajuCalculator()
+        daily_info = calculator.get_daily_fortune_info(date.today())
+
+        # 계산된 데이터를 data에 추가 (결과 화면에서 사용)
+        data['daily_fortune_info'] = daily_info
+
         return template.format(
             character_name=config.character_name,
             character_emoji=config.character_emoji,
@@ -326,7 +378,14 @@ class FortuneService:
             gender=gender,
             birth_time=birth_time,
             zodiac=zodiac,
-            today=today_str
+            today=today_str,
+            today_ganzhi=daily_info['ganzhi_kr'],
+            today_ganzhi_hanja=daily_info['ganzhi_full'],
+            today_ohang=daily_info['ohang'],
+            today_sinsal=daily_info['sinsal'],
+            today_luck=daily_info['luck_level'],
+            good_activities=', '.join(daily_info['good_activities']),
+            bad_activities=', '.join(daily_info['bad_activities'])
         )
 
     def build_saju_prompt(self, data: dict, config: FortuneServiceConfig) -> str:
@@ -395,6 +454,19 @@ class FortuneService:
         partner_birthdate = data["partner_birthdate"]
         partner_gender = "남성" if data["partner_gender"] == "male" else "여성"
 
+        # 궁합 분석 계산
+        calculator = SajuCalculator()
+        birthdate_obj = datetime.fromisoformat(str(birthdate)).date()
+        partner_birthdate_obj = datetime.fromisoformat(str(partner_birthdate)).date()
+
+        compatibility = calculator.calculate_compatibility(
+            birthdate_obj, data["gender"],
+            partner_birthdate_obj, data["partner_gender"]
+        )
+
+        # 계산된 데이터를 data에 추가 (결과 화면에서 사용)
+        data['compatibility_info'] = compatibility
+
         return template.format(
             character_name=config.character_name,
             name=name,
@@ -402,7 +474,19 @@ class FortuneService:
             gender=gender,
             partner_name=partner_name,
             partner_birthdate=partner_birthdate,
-            partner_gender=partner_gender
+            partner_gender=partner_gender,
+            compatibility_score=compatibility['score'],
+            compatibility_level=compatibility['level'],
+            person1_ilju=compatibility['person1']['day_pillar'],
+            person1_ohang=compatibility['person1']['ohang'],
+            person2_ilju=compatibility['person2']['day_pillar'],
+            person2_ohang=compatibility['person2']['ohang'],
+            ohang_relation_type=compatibility['ohang_relation']['type'],
+            ohang_relation_desc=compatibility['ohang_relation']['description'],
+            ilju_relation=compatibility['ilju_compatibility']['gan_relation'],
+            ilju_desc=compatibility['ilju_compatibility']['description'],
+            jiji_relation_type=compatibility['jiji_relation']['type'],
+            jiji_relation_desc=compatibility['jiji_relation']['description']
         )
 
     def build_dream_prompt(self, data: dict, config: FortuneServiceConfig) -> str:
@@ -428,11 +512,22 @@ class FortuneService:
         year = int(str(birthdate)[:4])
         zodiac = get_zodiac(year)
 
+        # 2026년 간지 및 길일 정보 계산
+        calculator = SajuCalculator()
+        year_info = calculator.get_year_fortune_info(2026)
+
+        # 계산된 데이터를 data에 추가 (결과 화면에서 사용)
+        data['year_fortune_info'] = year_info
+
         return template.format(
             name=name,
             birthdate=birthdate,
             gender=gender,
-            zodiac=zodiac
+            zodiac=zodiac,
+            year_ganzhi_kr=year_info['ganzhi_kr'],
+            year_ganzhi_hanja=year_info['ganzhi_hanja'],
+            year_ohang=year_info['ohang'],
+            year_description=year_info['description']
         )
 
     def format_custom_prompt(self, template: str, data: dict) -> str:

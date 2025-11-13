@@ -16,36 +16,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-@router.get("/fortune/newyear2026", response_class=HTMLResponse)
-async def newyear2026_form(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    """2026 신년운세 입력 폼 페이지"""
-    site_service = SiteService(db)
-    site_config = site_service.get_site_config()
-
-    # 2026 신년운세용 가상 서비스 객체 생성
-    class NewYear2026Service:
-        service_code = "newyear2026"
-        service_name = "2026 신년운세"
-        character_name = "야광묘"
-        character_image = "/static/images/character_newyear.png"
-        description = "2026년 한 해의 운세를 상세히 알려드립니다"
-        is_active = True
-
-    service = NewYear2026Service()
-
-    return templates.TemplateResponse(
-        "public/fortune_form.html",
-        {
-            "request": request,
-            "site_config": site_config,
-            "service": service
-        }
-    )
-
-
 @router.get("/fortune/{service_code}", response_class=HTMLResponse)
 async def fortune_form(
     request: Request,
@@ -76,66 +46,6 @@ async def fortune_form(
             "service": service
         }
     )
-
-
-@router.post("/fortune/newyear2026", response_class=HTMLResponse)
-async def newyear2026_result(
-    request: Request,
-    name: Optional[str] = Form(None),
-    birthdate: date = Form(...),
-    gender: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    """2026 신년운세 생성 및 결과 페이지"""
-    site_service = SiteService(db)
-    site_config = site_service.get_site_config()
-
-    # 2026 신년운세용 가상 서비스 객체 생성
-    class NewYear2026Service:
-        service_code = "newyear2026"
-        service_name = "2026 신년운세"
-        character_name = "야광묘"
-        character_image = "/static/images/character_newyear.png"
-        description = "2026년 한 해의 운세를 상세히 알려드립니다"
-        is_active = True
-
-    service = NewYear2026Service()
-
-    # 요청 데이터 구성
-    request_data = {
-        "name": name,
-        "birthdate": birthdate,
-        "gender": gender
-    }
-
-    # 운세 생성
-    fortune_service = FortuneService(db)
-
-    try:
-        result = fortune_service.get_or_create_fortune("newyear2026", request_data)
-
-        return templates.TemplateResponse(
-            "public/fortune_result.html",
-            {
-                "request": request,
-                "site_config": site_config,
-                "service": service,
-                "result": result,
-                "is_cached": result["is_cached"],
-                "today": result["date"]
-            }
-        )
-
-    except Exception as e:
-        return templates.TemplateResponse(
-            "public/error.html",
-            {
-                "request": request,
-                "site_config": site_config,
-                "message": f"운세 생성 중 오류가 발생했습니다: {str(e)}"
-            },
-            status_code=500
-        )
 
 
 @router.post("/fortune/{service_code}", response_class=HTMLResponse)

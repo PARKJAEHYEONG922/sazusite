@@ -425,3 +425,445 @@ class SajuCalculator:
             'heesin': ohang_kr.get(heesin_ohang, '금'),
             'gisin': ohang_kr.get(gisin_ohang, '토')
         }
+
+    def get_daily_fortune_info(self, target_date: date) -> Dict:
+        """
+        특정 날짜의 길흉일 정보 계산
+
+        Args:
+            target_date: 조회할 날짜
+
+        Returns:
+            {
+                'ganzhi': (천간, 지지),
+                'ganzhi_kr': '갑자',
+                'ohang': '木',
+                'luck_level': '대길' | '중길' | '소길' | '평' | '소흉' | '중흉' | '대흉',
+                'good_activities': ['이사', '계약', ...],
+                'bad_activities': ['결혼', '개업', ...],
+                'description': '설명'
+            }
+        """
+        year = target_date.year
+        month = target_date.month
+        day = target_date.day
+
+        # 일주 간지 계산
+        base_date = datetime(1900, 1, 1)
+        target_datetime = datetime(year, month, day)
+        days_diff = (target_datetime - base_date).days
+        day_index = (days_diff + 16) % 60
+        day_gan = self.CHEONGAN[day_index % 10]
+        day_ji = self.JIJI[day_index % 12]
+
+        # 한글 간지
+        gan_kr = self.CHEONGAN_KR[day_index % 10]
+        ji_kr = self.JIJI_KR[day_index % 12]
+        ganzhi_kr = f'{gan_kr}{ji_kr}'
+
+        # 오행
+        day_ohang = self.OHANG[day_gan]
+
+        # 12신살 계산 (지지 기반)
+        ji_index = self.JIJI.index(day_ji)
+
+        # 12신살 순서: 청룡, 명당, 천형, 주작, 금궤, 천덕, 백호, 옥당, 천뢰, 현무, 사명, 구진
+        sinsals = ['청룡', '명당', '천형', '주작', '금궤', '천덕',
+                   '백호', '옥당', '천뢰', '현무', '사명', '구진']
+
+        # 월건 기준으로 12신살 시작점 조정 (간략화)
+        start_index = (month - 1) % 12
+        sinsal_index = (ji_index + start_index) % 12
+        sinsal = sinsals[sinsal_index]
+
+        # 길흉 판단
+        luck_level = self._determine_luck_level(sinsal, day_gan, day_ji)
+
+        # 좋은 일 / 나쁜 일
+        good_activities, bad_activities = self._get_activities(sinsal, day_ji)
+
+        # 설명
+        description = self._get_luck_description(sinsal, luck_level)
+
+        return {
+            'ganzhi': (day_gan, day_ji),
+            'ganzhi_kr': ganzhi_kr,
+            'ganzhi_full': f'{day_gan}{day_ji}',
+            'ohang': day_ohang,
+            'sinsal': sinsal,
+            'luck_level': luck_level,
+            'good_activities': good_activities,
+            'bad_activities': bad_activities,
+            'description': description
+        }
+
+    def _determine_luck_level(self, sinsal: str, gan: str, ji: str) -> str:
+        """길흉 등급 판단"""
+        # 대길일
+        if sinsal in ['청룡', '명당', '금궤', '천덕', '옥당']:
+            return '대길'
+        # 중길일
+        elif sinsal in ['사명']:
+            return '중길'
+        # 흉일
+        elif sinsal in ['천형', '백호', '천뢰', '현무']:
+            return '대흉'
+        # 소흉일
+        elif sinsal in ['주작', '구진']:
+            return '중흉'
+        else:
+            return '평'
+
+    def _get_activities(self, sinsal: str, ji: str) -> tuple[list, list]:
+        """좋은 일과 나쁜 일 판단"""
+        good = []
+        bad = []
+
+        # 신살별 좋은 일
+        if sinsal in ['청룡', '명당']:
+            good = ['이사', '입주', '계약', '거래', '여행', '상담']
+        elif sinsal in ['금궤', '천덕']:
+            good = ['재물관리', '투자', '저축', '구매']
+        elif sinsal in ['옥당']:
+            good = ['시험', '면접', '발표', '학업']
+        elif sinsal in ['사명']:
+            good = ['대인관계', '모임', '상담']
+
+        # 신살별 나쁜 일
+        if sinsal in ['천형', '백호']:
+            bad = ['수술', '소송', '분쟁', '이사', '개업']
+        elif sinsal in ['주작']:
+            bad = ['계약', '약속', '중요한 결정']
+        elif sinsal in ['천뢰', '현무']:
+            bad = ['여행', '이동', '새로운 시작']
+        elif sinsal in ['구진']:
+            bad = ['재물 거래', '투자', '대출']
+
+        # 기본값
+        if not good:
+            good = ['일상 업무', '휴식']
+        if not bad:
+            bad = ['무리한 일']
+
+        return good, bad
+
+    def _get_luck_description(self, sinsal: str, luck_level: str) -> str:
+        """길흉 설명"""
+        descriptions = {
+            '청룡': '청룡의 기운이 함께하는 날입니다. 만사형통하며 하는 일마다 길한 날입니다.',
+            '명당': '명당의 밝은 기운이 가득한 날입니다. 좋은 소식과 기회가 찾아올 수 있습니다.',
+            '천형': '천형살이 있는 날로 분쟁이나 구설수를 조심해야 합니다.',
+            '주작': '주작의 날로 말조심이 필요하며, 중요한 결정은 미루는 것이 좋습니다.',
+            '금궤': '금궤의 재물운이 함께하는 날입니다. 재물과 관련된 일이 길합니다.',
+            '천덕': '천덕의 복이 깃든 날입니다. 덕을 쌓는 일에 좋은 날입니다.',
+            '백호': '백호살이 있는 날로 급한 일이나 위험한 일은 피하는 것이 좋습니다.',
+            '옥당': '옥당의 학문 기운이 있는 날입니다. 공부나 시험에 좋은 날입니다.',
+            '천뢰': '천뢰의 기운이 있어 조심스러운 행동이 필요한 날입니다.',
+            '현무': '현무의 날로 은밀한 일은 좋으나 큰 일은 삼가는 것이 좋습니다.',
+            '사명': '사명의 날로 사람을 만나거나 인연을 맺기에 좋은 날입니다.',
+            '구진': '구진의 날로 재물 관리에 신중을 기해야 합니다.'
+        }
+        return descriptions.get(sinsal, '평범한 날입니다.')
+
+    def calculate_compatibility(self, birthdate1: date, gender1: str, birthdate2: date, gender2: str) -> Dict:
+        """
+        두 사람의 사주 궁합 분석
+
+        Args:
+            birthdate1: 첫 번째 사람 생년월일
+            gender1: 첫 번째 사람 성별
+            birthdate2: 두 번째 사람 생년월일
+            gender2: 두 번째 사람 성별
+
+        Returns:
+            궁합 분석 정보
+        """
+        # 각자의 사주 계산
+        saju1 = self.calculate_saju(birthdate1, None, 'solar', gender1)
+        saju2 = self.calculate_saju(birthdate2, None, 'solar', gender2)
+
+        # 일주 추출
+        day_gan1 = saju1['pillars']['cheongan'][2]
+        day_ji1 = saju1['pillars']['jiji'][2]
+        day_gan2 = saju2['pillars']['cheongan'][2]
+        day_ji2 = saju2['pillars']['jiji'][2]
+
+        # 일간(日干)의 오행 추출 (CHEONGAN은 이미 한자)
+        ohang1 = self.OHANG.get(day_gan1, '土')
+        ohang2 = self.OHANG.get(day_gan2, '土')
+
+        # 오행 상생상극 판단
+        ohang_relation = self._get_ohang_relation(ohang1, ohang2)
+
+        # 일주 궁합 판단
+        ilju_compatibility = self._get_ilju_compatibility(day_gan1, day_ji1, day_gan2, day_ji2)
+
+        # 지지 육합/삼합/충/형/해 판단
+        jiji_relation = self._get_jiji_relation(day_ji1, day_ji2)
+
+        # 총 궁합 점수 계산 (100점 만점)
+        score = self._calculate_compatibility_score(ohang_relation, ilju_compatibility, jiji_relation)
+
+        return {
+            'person1': {
+                'day_pillar': f'{day_gan1}{day_ji1}',
+                'ohang': ohang1
+            },
+            'person2': {
+                'day_pillar': f'{day_gan2}{day_ji2}',
+                'ohang': ohang2
+            },
+            'ohang_relation': ohang_relation,
+            'ilju_compatibility': ilju_compatibility,
+            'jiji_relation': jiji_relation,
+            'score': score,
+            'level': self._get_compatibility_level(score)
+        }
+
+    def _get_ohang_relation(self, ohang1: str, ohang2: str) -> Dict:
+        """오행 상생상극 관계"""
+        # 상생: 木生火, 火生土, 土生金, 金生水, 水生木
+        saengsaeng = {
+            '木': '火', '火': '土', '土': '金', '金': '水', '水': '木'
+        }
+
+        # 상극: 木克土, 土克水, 水克火, 火克金, 金克木
+        sanggeuk = {
+            '木': '土', '土': '水', '水': '火', '火': '金', '金': '木'
+        }
+
+        relation_type = '비화'  # 기본값: 같은 오행 (比和)
+        description = f'{ohang1}와 {ohang2}는 같은 오행으로 서로 비슷한 성향을 가집니다.'
+        score = 70
+
+        if ohang1 != ohang2:
+            if saengsaeng.get(ohang1) == ohang2:
+                relation_type = '상생'
+                description = f'{ohang1}가 {ohang2}를 생하는 관계입니다. 한 분이 다른 분을 도와주는 좋은 인연입니다.'
+                score = 90
+            elif saengsaeng.get(ohang2) == ohang1:
+                relation_type = '상생'
+                description = f'{ohang2}가 {ohang1}를 생하는 관계입니다. 서로 도움이 되는 좋은 인연입니다.'
+                score = 90
+            elif sanggeuk.get(ohang1) == ohang2:
+                relation_type = '상극'
+                description = f'{ohang1}가 {ohang2}를 극하는 관계입니다. 서로 다른 성향이지만 배려하면 좋은 관계가 됩니다.'
+                score = 50
+            elif sanggeuk.get(ohang2) == ohang1:
+                relation_type = '상극'
+                description = f'{ohang2}가 {ohang1}를 극하는 관계입니다. 차이를 이해하고 존중하는 것이 중요합니다.'
+                score = 50
+            else:
+                relation_type = '중립'
+                description = f'{ohang1}와 {ohang2}는 직접적인 상생상극 관계는 아니지만 조화를 이룰 수 있습니다.'
+                score = 65
+
+        return {
+            'type': relation_type,
+            'description': description,
+            'score': score
+        }
+
+    def _get_ilju_compatibility(self, gan1: str, ji1: str, gan2: str, ji2: str) -> Dict:
+        """일주 궁합 분석"""
+        # 천간 합: 갑기합토, 을경합금, 병신합수, 정임합목, 무계합화
+        cheongan_hap = {
+            ('甲', '己'): ('土', '좋은 궁합'),
+            ('乙', '庚'): ('金', '좋은 궁합'),
+            ('丙', '辛'): ('水', '좋은 궁합'),
+            ('丁', '壬'): ('木', '좋은 궁합'),
+            ('戊', '癸'): ('火', '좋은 궁합')
+        }
+
+        gan_relation = '일반'
+        gan_desc = '천간이 특별한 합을 이루지는 않지만 나쁘지 않은 관계입니다.'
+
+        for (g1, g2), (result, desc) in cheongan_hap.items():
+            if (gan1 == g1 and gan2 == g2) or (gan1 == g2 and gan2 == g1):
+                gan_relation = '천간합'
+                gan_desc = f'천간이 합을 이루어 {result}로 화합니다. {desc}입니다.'
+                break
+
+        if gan1 == gan2:
+            gan_relation = '천간동일'
+            gan_desc = '천간이 같아 비슷한 성향과 생각을 가지고 있습니다.'
+
+        return {
+            'gan_relation': gan_relation,
+            'description': gan_desc
+        }
+
+    def _get_jiji_relation(self, ji1: str, ji2: str) -> Dict:
+        """지지 관계 분석 (육합, 삼합, 충, 형, 해)"""
+        # 육합: 子丑, 寅亥, 卯戌, 辰酉, 巳申, 午未
+        yukhap = [
+            ('子', '丑'), ('寅', '亥'), ('卯', '戌'),
+            ('辰', '酉'), ('巳', '申'), ('午', '未')
+        ]
+
+        # 충: 子午, 丑未, 寅申, 卯酉, 辰戌, 巳亥
+        chung = [
+            ('子', '午'), ('丑', '未'), ('寅', '申'),
+            ('卯', '酉'), ('辰', '戌'), ('巳', '亥')
+        ]
+
+        relation_type = '일반'
+        description = '지지가 특별한 관계를 이루지는 않습니다.'
+        score = 70
+
+        # 육합 체크
+        for j1, j2 in yukhap:
+            if (ji1 == j1 and ji2 == j2) or (ji1 == j2 and ji2 == j1):
+                relation_type = '육합'
+                description = '지지가 육합을 이루어 서로를 잘 돕는 매우 좋은 관계입니다.'
+                score = 95
+                break
+
+        # 충 체크
+        for j1, j2 in chung:
+            if (ji1 == j1 and ji2 == j2) or (ji1 == j2 and ji2 == j1):
+                relation_type = '충'
+                description = '지지가 충을 이룹니다. 서로 다른 성향이 부딪힐 수 있으나 이해하면 보완관계가 됩니다.'
+                score = 45
+                break
+
+        # 같은 지지
+        if ji1 == ji2:
+            relation_type = '지지동일'
+            description = '지지가 같아 비슷한 생활 패턴과 가치관을 가집니다.'
+            score = 75
+
+        return {
+            'type': relation_type,
+            'description': description,
+            'score': score
+        }
+
+    def _calculate_compatibility_score(self, ohang_rel: Dict, ilju_comp: Dict, jiji_rel: Dict) -> int:
+        """궁합 총점 계산"""
+        # 오행 40%, 지지 관계 40%, 천간 20% 비중
+        score = int(
+            ohang_rel['score'] * 0.4 +
+            jiji_rel['score'] * 0.4 +
+            70 * 0.2  # 천간은 기본 70점
+        )
+
+        # 천간합이 있으면 +10점
+        if ilju_comp['gan_relation'] == '천간합':
+            score += 10
+
+        return min(100, max(0, score))
+
+    def _get_compatibility_level(self, score: int) -> str:
+        """궁합 레벨 판정"""
+        if score >= 90:
+            return '천생연분'
+        elif score >= 80:
+            return '매우 좋음'
+        elif score >= 70:
+            return '좋음'
+        elif score >= 60:
+            return '보통'
+        elif score >= 50:
+            return '노력 필요'
+        else:
+            return '많은 이해 필요'
+
+    def get_year_fortune_info(self, year: int) -> Dict:
+        """
+        특정 년도의 천간지지와 길일 정보
+
+        Args:
+            year: 년도 (예: 2026)
+
+        Returns:
+            년도 간지 정보 및 길일 목록
+        """
+        # 년 간지 계산 (1984년 = 갑자년 기준)
+        base_year = 1984
+        year_diff = year - base_year
+        year_index = year_diff % 60
+
+        year_gan = self.CHEONGAN[year_index % 10]
+        year_ji = self.JIJI[year_index % 12]
+        year_gan_kr = self.CHEONGAN_KR[year_index % 10]
+        year_ji_kr = self.JIJI_KR[year_index % 12]
+
+        # 년의 오행
+        ohang_map = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水'
+        }
+        year_ohang = ohang_map.get(year_gan, '土')
+
+        # 월별 간지 계산 (간단 버전 - 정월 기준)
+        monthly_ganzhi = self._calculate_monthly_ganzhi(year, year_gan)
+
+        # 대길일 찾기 (청룡, 명당, 금궤, 천덕 날)
+        lucky_days = self._find_lucky_days(year)
+
+        return {
+            'year': year,
+            'ganzhi_kr': f'{year_gan_kr}{year_ji_kr}',
+            'ganzhi_hanja': f'{year_gan}{year_ji}',
+            'ganzhi_full': f'{year_gan}{year_ji}({year_gan_kr}{year_ji_kr})년',
+            'ohang': year_ohang,
+            'monthly_ganzhi': monthly_ganzhi,
+            'lucky_days': lucky_days,
+            'description': f'{year}년은 {year_gan}{year_ji}년으로, {year_ohang}의 기운이 강한 해입니다.'
+        }
+
+    def _calculate_monthly_ganzhi(self, year: int, year_gan: str) -> list:
+        """월별 간지 계산"""
+        # 월건 계산 (갑기년은 병인월로 시작)
+        month_start_gan = {
+            '甲': 2, '己': 2,  # 병(丙)
+            '乙': 4, '庚': 4,  # 무(戊)
+            '丙': 6, '辛': 6,  # 경(庚)
+            '丁': 8, '壬': 8,  # 임(壬)
+            '戊': 0, '癸': 0   # 갑(甲)
+        }
+
+        start_gan_idx = month_start_gan.get(year_gan, 0)
+        month_ji_start = 2  # 인월(寅月)부터 시작
+
+        monthly = []
+        for month in range(1, 13):
+            gan_idx = (start_gan_idx + month - 1) % 10
+            ji_idx = (month_ji_start + month - 1) % 12
+
+            monthly.append({
+                'month': month,
+                'ganzhi_kr': f'{self.CHEONGAN_KR[gan_idx]}{self.JIJI_KR[ji_idx]}',
+                'ganzhi_hanja': f'{self.CHEONGAN[gan_idx]}{self.JIJI[ji_idx]}'
+            })
+
+        return monthly
+
+    def _find_lucky_days(self, year: int) -> list:
+        """년도의 대길일 찾기 (샘플)"""
+        from datetime import date as dt_date, timedelta
+
+        lucky_days = []
+        start_date = dt_date(year, 1, 1)
+
+        # 1년간 순회하며 청룡, 명당, 금궤, 천덕 날 찾기
+        for day_offset in range(0, 365, 10):  # 성능을 위해 10일마다만 체크
+            check_date = start_date + timedelta(days=day_offset)
+            if check_date.year != year:
+                break
+
+            daily_info = self.get_daily_fortune_info(check_date)
+
+            if daily_info['sinsal'] in ['청룡', '명당', '금궤', '천덕']:
+                if len(lucky_days) < 12:  # 최대 12개만
+                    lucky_days.append({
+                        'date': check_date.strftime('%m월 %d일'),
+                        'ganzhi': daily_info['ganzhi_kr'],
+                        'sinsal': daily_info['sinsal']
+                    })
+
+        return lucky_days

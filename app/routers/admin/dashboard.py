@@ -11,6 +11,7 @@ from typing import Optional
 import os
 import shutil
 from pathlib import Path
+from PIL import Image
 
 from app.database import get_db
 from app.models.fortune_result import FortuneResult
@@ -403,6 +404,8 @@ async def update_service_settings(
     description: str = Form(...),
     character_name: str = Form(...),
     character_emoji: str = Form(...),
+    character_image_file: Optional[UploadFile] = File(None),
+    character_form_image_file: Optional[UploadFile] = File(None),
     is_active: Optional[str] = Form(None)
 ):
     """서비스 설정 업데이트"""
@@ -412,12 +415,141 @@ async def update_service_settings(
 
     try:
         site_service = SiteService(db)
+
+        # 캐릭터 이미지 업로드 처리
+        character_image_url = None
+        if character_image_file and character_image_file.filename:
+            # 업로드 디렉토리 설정
+            upload_dir = Path("app/static/uploads")
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            # 파일 확장자 확인
+            file_ext = os.path.splitext(character_image_file.filename)[1].lower()
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                raise ValueError("지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+
+            # 임시 파일 저장
+            temp_filename = f"temp_character_{service_code}{file_ext}"
+            temp_path = upload_dir / temp_filename
+
+            with temp_path.open("wb") as buffer:
+                shutil.copyfileobj(character_image_file.file, buffer)
+
+            # 이미지 비율 검증 (3:4 비율 권장, ±10% 허용)
+            try:
+                img = Image.open(temp_path)
+                width, height = img.size
+                img.close()  # 파일 핸들 명시적으로 닫기
+
+                aspect_ratio = width / height
+                target_ratio = 3 / 4
+
+                # ±10% 허용 범위
+                if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
+                    if temp_path.exists():
+                        temp_path.unlink()  # 임시 파일 삭제
+                    raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
+            except ValueError:
+                # 비율 오류는 그대로 전달
+                raise
+            except Exception as e:
+                if temp_path.exists():
+                    try:
+                        temp_path.unlink()
+                    except:
+                        pass  # 삭제 실패는 무시
+                raise ValueError(f"이미지 검증 실패: {str(e)}")
+
+            # 최종 파일명 생성
+            final_filename = f"character_{service_code}{file_ext}"
+            final_path = upload_dir / final_filename
+
+            # 기존 파일이 있으면 삭제
+            if final_path.exists():
+                final_path.unlink()
+
+            # 임시 파일을 최종 경로로 이동
+            temp_path.rename(final_path)
+
+            # URL 경로 저장
+            character_image_url = f"/static/uploads/{final_filename}"
+        else:
+            # 파일 업로드가 없으면 기존 값 유지
+            current_service = site_service.get_service_by_code(service_code)
+            if current_service and current_service.character_image:
+                character_image_url = current_service.character_image
+
+        # 시작 페이지 캐릭터 이미지 업로드 처리
+        character_form_image_url = None
+        if character_form_image_file and character_form_image_file.filename:
+            # 업로드 디렉토리 설정
+            upload_dir = Path("app/static/uploads")
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            # 파일 확장자 확인
+            file_ext = os.path.splitext(character_form_image_file.filename)[1].lower()
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                raise ValueError("지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+
+            # 임시 파일 저장
+            temp_filename = f"temp_character_form_{service_code}{file_ext}"
+            temp_path = upload_dir / temp_filename
+
+            with temp_path.open("wb") as buffer:
+                shutil.copyfileobj(character_form_image_file.file, buffer)
+
+            # 이미지 비율 검증 (3:4 비율 권장, ±10% 허용)
+            try:
+                img = Image.open(temp_path)
+                width, height = img.size
+                img.close()  # 파일 핸들 명시적으로 닫기
+
+                aspect_ratio = width / height
+                target_ratio = 3 / 4
+
+                # ±10% 허용 범위
+                if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
+                    if temp_path.exists():
+                        temp_path.unlink()  # 임시 파일 삭제
+                    raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
+            except ValueError:
+                # 비율 오류는 그대로 전달
+                raise
+            except Exception as e:
+                if temp_path.exists():
+                    try:
+                        temp_path.unlink()
+                    except:
+                        pass  # 삭제 실패는 무시
+                raise ValueError(f"이미지 검증 실패: {str(e)}")
+
+            # 최종 파일명 생성
+            final_filename = f"character_form_{service_code}{file_ext}"
+            final_path = upload_dir / final_filename
+
+            # 기존 파일이 있으면 삭제
+            if final_path.exists():
+                final_path.unlink()
+
+            # 임시 파일을 최종 경로로 이동
+            temp_path.rename(final_path)
+
+            # URL 경로 저장
+            character_form_image_url = f"/static/uploads/{final_filename}"
+        else:
+            # 파일 업로드가 없으면 기존 값 유지
+            current_service = site_service.get_service_by_code(service_code)
+            if current_service and current_service.character_form_image:
+                character_form_image_url = current_service.character_form_image
+
         updates = {
             "title": title,
             "subtitle": subtitle,
             "description": description,
             "character_name": character_name,
             "character_emoji": character_emoji,
+            "character_image": character_image_url,
+            "character_form_image": character_form_image_url,
             "is_active": is_active == "on"
         }
         site_service.update_service_config(service_code, updates)
