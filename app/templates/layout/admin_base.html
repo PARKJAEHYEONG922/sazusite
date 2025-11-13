@@ -12,9 +12,9 @@
         }
 
         body {
-            font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
             min-height: 100vh;
         }
 
@@ -24,44 +24,53 @@
         }
 
         .sidebar {
-            width: 250px;
-            background: rgba(0, 0, 0, 0.3);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px 20px;
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 30px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
         }
 
         .sidebar h2 {
-            font-size: 24px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 22px;
+            color: #667eea;
+            padding: 0 24px;
             margin-bottom: 30px;
+            font-weight: 700;
         }
 
         .sidebar nav {
             display: flex;
             flex-direction: column;
-            gap: 10px;
         }
 
         .sidebar nav a {
-            color: #a0a0a0;
+            color: #4a5568;
             text-decoration: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
+            padding: 14px 24px;
+            transition: all 0.2s;
+            font-size: 15px;
+            border-left: 3px solid transparent;
         }
 
-        .sidebar nav a:hover,
+        .sidebar nav a:hover {
+            color: #667eea;
+            background: #f7fafc;
+            border-left-color: #667eea;
+        }
+
         .sidebar nav a.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
+            color: #667eea;
+            background: #edf2f7;
+            border-left-color: #667eea;
+            font-weight: 600;
         }
 
         .content {
             flex: 1;
-            padding: 30px;
+            padding: 40px;
             overflow-y: auto;
+            background: #f5f7fa;
         }
 
         .header {
@@ -70,16 +79,46 @@
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid #e2e8f0;
         }
 
         .header h1 {
             font-size: 28px;
+            color: #2d3748;
+            font-weight: 700;
         }
 
         .user-info {
-            color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #718096;
             font-size: 14px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info::before {
+            content: "👤";
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .content {
+                padding: 20px;
+            }
         }
 
         {% block extra_css %}{% endblock %}
@@ -88,20 +127,27 @@
 <body>
     <div class="admin-layout">
         <aside class="sidebar">
-            <h2>명월헌 관리</h2>
+            <h2>
+                {% if site_config and site_config.site_logo %}
+                <img src="{{ site_config.site_logo }}" alt="{{ site_config.site_name }}" style="height: 28px; vertical-align: middle; margin-right: 8px; object-fit: contain;">
+                {% else %}
+                ⚙️ {{ site_config.site_name if site_config else "명월헌" }}
+                {% endif %}
+                관리
+            </h2>
             <nav>
-                <a href="/admin/dashboard">대시보드</a>
-                <a href="/admin/settings/site">사이트 설정</a>
-                <a href="/admin/settings/services">서비스 설정</a>
-                <a href="/" target="_blank">사이트 보기</a>
-                <a href="/admin/logout">로그아웃</a>
+                <a href="/admin/dashboard" class="{% if request.url.path == '/admin/dashboard' %}active{% endif %}">📊 대시보드</a>
+                <a href="/admin/settings/site" class="{% if '/admin/settings/site' in request.url.path %}active{% endif %}">🎨 사이트 설정</a>
+                <a href="/admin/settings/services" class="{% if '/admin/settings/services' in request.url.path %}active{% endif %}">🔮 서비스 설정</a>
+                <a href="/" target="_blank">🌐 사이트 보기</a>
+                <a href="/admin/logout">🚪 로그아웃</a>
             </nav>
         </aside>
 
         <main class="content">
             <div class="header">
                 <h1>{% block page_title %}대시보드{% endblock %}</h1>
-                <div class="user-info">{{ username }}</div>
+                <div class="user-info">{{ username if username else 'Admin' }}</div>
             </div>
 
             {% block admin_content %}{% endblock %}

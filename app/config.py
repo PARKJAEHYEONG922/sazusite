@@ -19,10 +19,10 @@ class Settings(BaseSettings):
 
     # 관리자 초기 계정
     admin_username: str = "admin"
-    admin_password: str = "changeme123!"
+    admin_password: str = "admin123!"
 
     # Gemini API
-    gemini_api_key: str = "AIzaSyC_Nq5gxQUkZDZWcVFImuSRV0wc0jmGVso"
+    gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash-exp"
     gemini_api_url: str = "https://generativelanguage.googleapis.com/v1beta/models"
 

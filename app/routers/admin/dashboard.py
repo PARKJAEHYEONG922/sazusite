@@ -1,13 +1,16 @@
 """
 관리자 대시보드 라우터
 """
-from fastapi import APIRouter, Request, Depends, Cookie, Form
+from fastapi import APIRouter, Request, Depends, Cookie, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date
 from typing import Optional
+import os
+import shutil
+from pathlib import Path
 
 from app.database import get_db
 from app.models.fortune_result import FortuneResult
@@ -107,9 +110,63 @@ async def update_site_settings(
     db: Session = Depends(get_db),
     admin_token: Optional[str] = Cookie(None),
     site_name: str = Form(...),
+    site_logo_file: Optional[UploadFile] = File(None),
     main_title: str = Form(...),
     main_subtitle: str = Form(...),
     footer_text: str = Form(...),
+    # 배너 1
+    banner_file_1: Optional[UploadFile] = File(None),
+    banner_title_1: Optional[str] = Form(None),
+    banner_subtitle_1: Optional[str] = Form(None),
+    banner_description_1: Optional[str] = Form(None),
+    banner_link_1: Optional[str] = Form(None),
+    # 배너 2
+    banner_file_2: Optional[UploadFile] = File(None),
+    banner_title_2: Optional[str] = Form(None),
+    banner_subtitle_2: Optional[str] = Form(None),
+    banner_description_2: Optional[str] = Form(None),
+    banner_link_2: Optional[str] = Form(None),
+    # 배너 3
+    banner_file_3: Optional[UploadFile] = File(None),
+    banner_title_3: Optional[str] = Form(None),
+    banner_subtitle_3: Optional[str] = Form(None),
+    banner_description_3: Optional[str] = Form(None),
+    banner_link_3: Optional[str] = Form(None),
+    # 배너 4
+    banner_file_4: Optional[UploadFile] = File(None),
+    banner_title_4: Optional[str] = Form(None),
+    banner_subtitle_4: Optional[str] = Form(None),
+    banner_description_4: Optional[str] = Form(None),
+    banner_link_4: Optional[str] = Form(None),
+    # 서브배너 1
+    sub_banner_file_1: Optional[UploadFile] = File(None),
+    sub_banner_emoji_1: Optional[str] = Form(None),
+    sub_banner_title_1: Optional[str] = Form(None),
+    sub_banner_subtitle_1: Optional[str] = Form(None),
+    sub_banner_description_1: Optional[str] = Form(None),
+    sub_banner_link_1: Optional[str] = Form(None),
+    # 서브배너 2
+    sub_banner_file_2: Optional[UploadFile] = File(None),
+    sub_banner_emoji_2: Optional[str] = Form(None),
+    sub_banner_title_2: Optional[str] = Form(None),
+    sub_banner_subtitle_2: Optional[str] = Form(None),
+    sub_banner_description_2: Optional[str] = Form(None),
+    sub_banner_link_2: Optional[str] = Form(None),
+    # 서브배너 3
+    sub_banner_file_3: Optional[UploadFile] = File(None),
+    sub_banner_emoji_3: Optional[str] = Form(None),
+    sub_banner_title_3: Optional[str] = Form(None),
+    sub_banner_subtitle_3: Optional[str] = Form(None),
+    sub_banner_description_3: Optional[str] = Form(None),
+    sub_banner_link_3: Optional[str] = Form(None),
+    # 서브배너 4
+    sub_banner_file_4: Optional[UploadFile] = File(None),
+    sub_banner_emoji_4: Optional[str] = Form(None),
+    sub_banner_title_4: Optional[str] = Form(None),
+    sub_banner_subtitle_4: Optional[str] = Form(None),
+    sub_banner_description_4: Optional[str] = Form(None),
+    sub_banner_link_4: Optional[str] = Form(None),
+    # 애드센스
     adsense_client_id: Optional[str] = Form(None),
     adsense_slot_main: Optional[str] = Form(None),
     adsense_slot_result: Optional[str] = Form(None)
@@ -120,12 +177,134 @@ async def update_site_settings(
         return RedirectResponse(url="/admin/login", status_code=303)
 
     try:
+        # 업로드 디렉토리 설정
+        upload_dir = Path("app/static/uploads")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+
+        # 현재 설정 가져오기
         site_service = SiteService(db)
+        current_config = site_service.get_site_config()
+
+        # 사이트 로고 처리
+        site_logo_url = None
+        if site_logo_file and site_logo_file.filename:
+            # 파일 확장자 확인
+            file_ext = os.path.splitext(site_logo_file.filename)[1].lower()
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']:
+                raise ValueError("로고: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp, svg만 가능)")
+
+            # 파일명 생성
+            new_filename = f"site_logo{file_ext}"
+            file_path = upload_dir / new_filename
+
+            # 파일 저장
+            with file_path.open("wb") as buffer:
+                shutil.copyfileobj(site_logo_file.file, buffer)
+
+            # URL 경로 저장
+            site_logo_url = f"/static/uploads/{new_filename}"
+        else:
+            # 파일 업로드가 없으면 기존 값 유지
+            if current_config and current_config.site_logo:
+                site_logo_url = current_config.site_logo
+
+        # 배너 설정 처리
+        banner_updates = {}
+        for i in range(1, 5):
+            # 파일 업로드 처리
+            banner_file = locals().get(f"banner_file_{i}")
+            if banner_file and banner_file.filename:
+                # 파일 확장자 확인
+                file_ext = os.path.splitext(banner_file.filename)[1].lower()
+                if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                    raise ValueError(f"배너 {i}: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+
+                # 파일명 생성 (banner_1.jpg 형식)
+                new_filename = f"banner_{i}{file_ext}"
+                file_path = upload_dir / new_filename
+
+                # 파일 저장
+                with file_path.open("wb") as buffer:
+                    shutil.copyfileobj(banner_file.file, buffer)
+
+                # URL 경로 저장
+                banner_updates[f"banner_image_{i}"] = f"/static/uploads/{new_filename}"
+            else:
+                # 파일 업로드가 없으면 기존 값 유지
+                if current_config:
+                    existing_value = getattr(current_config, f"banner_image_{i}", None)
+                    if existing_value:
+                        banner_updates[f"banner_image_{i}"] = existing_value
+
+            # 텍스트 필드 업데이트
+            banner_title = locals().get(f"banner_title_{i}")
+            banner_subtitle = locals().get(f"banner_subtitle_{i}")
+            banner_description = locals().get(f"banner_description_{i}")
+            banner_link = locals().get(f"banner_link_{i}")
+
+            if banner_title:
+                banner_updates[f"banner_title_{i}"] = banner_title
+            if banner_subtitle:
+                banner_updates[f"banner_subtitle_{i}"] = banner_subtitle
+            if banner_description:
+                banner_updates[f"banner_description_{i}"] = banner_description
+            if banner_link:
+                banner_updates[f"banner_link_{i}"] = banner_link
+
+        # 서브배너 설정 처리
+        sub_banner_updates = {}
+        for i in range(1, 5):
+            # 파일 업로드 처리
+            sub_banner_file = locals().get(f"sub_banner_file_{i}")
+            if sub_banner_file and sub_banner_file.filename:
+                # 파일 확장자 확인
+                file_ext = os.path.splitext(sub_banner_file.filename)[1].lower()
+                if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                    raise ValueError(f"서브배너 {i}: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+
+                # 파일명 생성 (sub_banner_1.jpg 형식)
+                new_filename = f"sub_banner_{i}{file_ext}"
+                file_path = upload_dir / new_filename
+
+                # 파일 저장
+                with file_path.open("wb") as buffer:
+                    shutil.copyfileobj(sub_banner_file.file, buffer)
+
+                # URL 경로 저장
+                sub_banner_updates[f"sub_banner_image_{i}"] = f"/static/uploads/{new_filename}"
+            else:
+                # 파일 업로드가 없으면 기존 값 유지
+                if current_config:
+                    existing_value = getattr(current_config, f"sub_banner_image_{i}", None)
+                    if existing_value:
+                        sub_banner_updates[f"sub_banner_image_{i}"] = existing_value
+
+            # 텍스트 필드 업데이트
+            sub_banner_emoji = locals().get(f"sub_banner_emoji_{i}")
+            sub_banner_title = locals().get(f"sub_banner_title_{i}")
+            sub_banner_subtitle = locals().get(f"sub_banner_subtitle_{i}")
+            sub_banner_description = locals().get(f"sub_banner_description_{i}")
+            sub_banner_link = locals().get(f"sub_banner_link_{i}")
+
+            if sub_banner_emoji:
+                sub_banner_updates[f"sub_banner_emoji_{i}"] = sub_banner_emoji
+            if sub_banner_title:
+                sub_banner_updates[f"sub_banner_title_{i}"] = sub_banner_title
+            if sub_banner_subtitle:
+                sub_banner_updates[f"sub_banner_subtitle_{i}"] = sub_banner_subtitle
+            if sub_banner_description:
+                sub_banner_updates[f"sub_banner_description_{i}"] = sub_banner_description
+            if sub_banner_link:
+                sub_banner_updates[f"sub_banner_link_{i}"] = sub_banner_link
+
         updates = {
             "site_name": site_name,
+            "site_logo": site_logo_url,
             "main_title": main_title,
             "main_subtitle": main_subtitle,
             "footer_text": footer_text,
+            **banner_updates,
+            **sub_banner_updates,
             "adsense_client_id": adsense_client_id if adsense_client_id else None,
             "adsense_slot_main": adsense_slot_main if adsense_slot_main else None,
             "adsense_slot_result": adsense_slot_result if adsense_slot_result else None

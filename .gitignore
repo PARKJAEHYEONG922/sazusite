@@ -44,3 +44,16 @@ desktop.ini
 api/
 public/
 logs/
+
+# 업로드 파일
+app/static/uploads/
+
+# 마이그레이션 스크립트
+migrate_*.py
+reset_*.py
+
+# Claude Code 설정
+.claude/settings.local.json
+
+# 임시 파일
+nul
