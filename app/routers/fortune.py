@@ -107,6 +107,8 @@ async def fortune_result(
     elif service_code == "saju":
         request_data["birth_time"] = birth_time
         request_data["calendar"] = calendar
+    elif service_code == "newyear2026":
+        request_data["birth_time"] = birth_time
     elif service_code == "match":
         request_data["partner_name"] = partner_name
         request_data["partner_birthdate"] = partner_birthdate

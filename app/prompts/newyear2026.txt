@@ -4,6 +4,7 @@
 - 이름: {name}
 - 생년월일: {birthdate}
 - 성별: {gender}
+- 태어난 시간: {birth_time}
 - 띠: {zodiac}
 
 [2026년 천간지지 정보] - 자동 계산됨

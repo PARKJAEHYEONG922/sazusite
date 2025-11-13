@@ -509,6 +509,7 @@ class FortuneService:
         name = data.get("name", "고객")
         birthdate = data["birthdate"]
         gender = "남성" if data["gender"] == "male" else "여성"
+        birth_time = data.get("birth_time", "모름")
         year = int(str(birthdate)[:4])
         zodiac = get_zodiac(year)
 
@@ -523,6 +524,7 @@ class FortuneService:
             name=name,
             birthdate=birthdate,
             gender=gender,
+            birth_time=birth_time,
             zodiac=zodiac,
             year_ganzhi_kr=year_info['ganzhi_kr'],
             year_ganzhi_hanja=year_info['ganzhi_hanja'],
