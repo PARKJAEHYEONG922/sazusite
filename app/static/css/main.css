@@ -445,62 +445,72 @@ nav {
 }
 
 .quick-fortune-form {
-    background: var(--bg-white);
-    border-radius: var(--radius-lg);
-    padding: 2.5rem;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 40px;
     max-width: 600px;
     margin: 0 auto;
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
 }
 
 .form-group label {
     display: block;
     font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    color: #333333;
+    margin-bottom: 8px;
+    font-size: 14px;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 0.8rem;
-    background: var(--bg-white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    color: var(--text-primary);
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333333;
     transition: all 0.3s;
 }
 
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: var(--secondary-color);
+    border-color: #3498db;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
 }
 
 .btn-primary {
     width: 100%;
-    padding: 1rem;
-    background: var(--secondary-color);
+    padding: 16px;
+    background: #3498db;
     color: white;
     border: none;
-    border-radius: var(--radius-sm);
-    font-size: 1.1rem;
+    border-radius: 8px;
+    font-size: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+    margin-top: 8px;
 }
 
 .btn-primary:hover {
-    background: var(--primary-color);
+    background: #8e44ad;
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
 }
 
 /* ======================================
