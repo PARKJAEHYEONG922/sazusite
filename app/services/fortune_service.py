@@ -212,6 +212,13 @@ class FortuneService:
         Returns:
             SHA256 해시 문자열
         """
+        # 꿈해몽은 꿈 내용으로 키 생성
+        if service_code == "dream":
+            dream_content = request_data.get("dream_content", "")
+            # 꿈 내용을 해시화하여 user_key로 사용
+            import hashlib
+            return hashlib.sha256(dream_content.encode()).hexdigest()
+
         name = request_data.get("name")
         birthdate = datetime.fromisoformat(str(request_data["birthdate"])).date()
         gender = request_data["gender"]

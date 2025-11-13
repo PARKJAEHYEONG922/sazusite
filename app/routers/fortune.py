@@ -143,13 +143,14 @@ async def fortune_result(
     request: Request,
     service_code: str,
     name: Optional[str] = Form(None),
-    birthdate: date = Form(...),
-    gender: str = Form(...),
+    birthdate: Optional[date] = Form(None),
+    gender: Optional[str] = Form(None),
     birth_time: Optional[str] = Form(None),
     calendar: str = Form("solar"),
     partner_name: Optional[str] = Form(None),
     partner_birthdate: Optional[date] = Form(None),
     partner_gender: Optional[str] = Form(None),
+    partner_calendar: str = Form("solar"),
     dream_content: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
@@ -169,6 +170,19 @@ async def fortune_result(
             status_code=404
         )
 
+    # 꿈해몽이 아닌 서비스는 생년월일과 성별 필수
+    if service_code != "dream":
+        if not birthdate or not gender:
+            return templates.TemplateResponse(
+                "public/error.html",
+                {
+                    "request": request,
+                    "site_config": site_config,
+                    "message": "생년월일과 성별은 필수 입력 항목입니다."
+                },
+                status_code=400
+            )
+
     # 요청 데이터 구성
     request_data = {
         "name": name,
@@ -179,6 +193,7 @@ async def fortune_result(
     # 서비스별 추가 데이터
     if service_code == "today":
         request_data["birth_time"] = birth_time
+        request_data["calendar"] = calendar
     elif service_code == "saju":
         request_data["birth_time"] = birth_time
         request_data["calendar"] = calendar
@@ -186,6 +201,8 @@ async def fortune_result(
         request_data["partner_name"] = partner_name
         request_data["partner_birthdate"] = partner_birthdate
         request_data["partner_gender"] = partner_gender
+        request_data["calendar"] = calendar
+        request_data["partner_calendar"] = partner_calendar
     elif service_code == "dream":
         request_data["dream_content"] = dream_content
 
