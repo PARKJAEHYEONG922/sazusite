@@ -132,6 +132,9 @@ class FortuneService:
                 gender=gender
             )
 
+            # 사주 데이터를 request_data에 추가
+            request_data["saju_data"] = saju_data
+
         # 프롬프트 생성
         prompt = self.build_prompt(service_code, service_config, request_data)
 
@@ -336,6 +339,41 @@ class FortuneService:
         calendar = "양력" if data.get("calendar", "solar") == "solar" else "음력"
         birth_time = data.get("birth_time", "모름")
 
+        # 사주 계산 데이터 포맷팅
+        saju_info = ""
+        if "saju_data" in data:
+            sd = data["saju_data"]
+            pillars = sd.get("pillars", {})
+
+            # 사주팔자
+            cheongan = pillars.get("cheongan", [])
+            jiji = pillars.get("jiji", [])
+            sipsung = pillars.get("sipsung", [])
+            sipiunsung = pillars.get("sipiunsung", [])
+
+            saju_info += f"\n[사주 정보]\n"
+            saju_info += f"- 사주팔자: 시주({cheongan[0]}{jiji[0]}) 일주({cheongan[1]}{jiji[1]}) 월주({cheongan[2]}{jiji[2]}) 년주({cheongan[3]}{jiji[3]})\n"
+            saju_info += f"- 일간: {sd.get('day_gan')}\n"
+            saju_info += f"- 십성: 시({sipsung[0]}) 일({sipsung[1]}) 월({sipsung[2]}) 년({sipsung[3]})\n"
+            saju_info += f"- 십이운성: 시({sipiunsung[0]}) 일({sipiunsung[1]}) 월({sipiunsung[2]}) 년({sipiunsung[3]})\n"
+
+            # 오행 분석
+            ohang = sd.get("ohang", {})
+            saju_info += f"\n[오행 분석]\n"
+            for elem, name in [('木', '목'), ('火', '화'), ('土', '토'), ('金', '금'), ('水', '수')]:
+                if elem in ohang:
+                    info = ohang[elem]
+                    saju_info += f"- {name}({elem}): {info['count']}개 ({info['percent']:.1f}%) - {info['status']}\n"
+
+            # 신강신약 및 용신
+            strength = sd.get("strength", {})
+            yongsin = sd.get("yongsin", {})
+            saju_info += f"\n[신강신약 & 용신]\n"
+            saju_info += f"- 신강신약: {strength.get('level', '중화')}\n"
+            saju_info += f"- 용신: {yongsin.get('yongsin')}\n"
+            saju_info += f"- 희신: {yongsin.get('heesin')}\n"
+            saju_info += f"- 기신: {yongsin.get('gisin')}\n"
+
         return template.format(
             character_name=config.character_name,
             name=name,
@@ -343,7 +381,7 @@ class FortuneService:
             gender=gender,
             calendar=calendar,
             birth_time=birth_time
-        )
+        ) + saju_info
 
     def build_match_prompt(self, data: dict, config: FortuneServiceConfig) -> str:
         """사주궁합 프롬프트"""
