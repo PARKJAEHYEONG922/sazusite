@@ -212,13 +212,17 @@ async def fortune_result(
     try:
         result = fortune_service.get_or_create_fortune(service_code, request_data)
 
+        # 사주 서비스인 경우 전용 템플릿 사용
+        template_name = "public/saju_result.html" if service_code == "saju" else "public/fortune_result.html"
+
         return templates.TemplateResponse(
-            "public/fortune_result.html",
+            template_name,
             {
                 "request": request,
                 "site_config": site_config,
                 "service": service,
                 "result": result,
+                "request_data": request_data,
                 "is_cached": result["is_cached"],
                 "today": result["date"]
             }

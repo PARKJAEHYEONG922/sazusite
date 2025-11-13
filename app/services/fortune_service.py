@@ -10,6 +10,7 @@ from app.models.fortune_result import FortuneResult
 from app.models.service_config import FortuneServiceConfig
 from app.utils.hashing import build_user_key, get_zodiac
 from app.services.gemini_service import gemini_service
+from app.services.saju_calculator import SajuCalculator
 from app.config import get_settings
 
 settings = get_settings()
@@ -72,7 +73,7 @@ class FortuneService:
         service_code: str,
         user_key: str,
         request_data: dict
-    ) -> FortuneResult:
+    ) -> tuple[FortuneResult, Optional[Dict]]:
         """
         새로운 운세 생성
 
@@ -82,8 +83,10 @@ class FortuneService:
             request_data: 요청 데이터
 
         Returns:
-            생성된 운세 결과
+            (생성된 운세 결과, 사주 데이터 또는 None)
         """
+        saju_data = None
+
         # 2026 신년운세는 별도 처리
         if service_code == "newyear2026":
             prompt = self.build_newyear2026_prompt(request_data)
@@ -104,7 +107,7 @@ class FortuneService:
             self.db.commit()
             self.db.refresh(fortune_result)
 
-            return fortune_result
+            return fortune_result, saju_data
 
         # 서비스 설정 조회
         service_config = self.db.query(FortuneServiceConfig).filter(
@@ -113,6 +116,21 @@ class FortuneService:
 
         if not service_config or not service_config.is_active:
             raise ValueError(f"서비스를 찾을 수 없거나 비활성화되었습니다: {service_code}")
+
+        # 사주 서비스인 경우 사주 계산
+        if service_code == "saju":
+            calculator = SajuCalculator()
+            birthdate = datetime.fromisoformat(str(request_data["birthdate"])).date()
+            birth_time = request_data.get("birth_time")
+            calendar_type = request_data.get("calendar", "solar")
+            gender = request_data["gender"]
+
+            saju_data = calculator.calculate_saju(
+                birthdate=birthdate,
+                birth_time=birth_time,
+                calendar_type=calendar_type,
+                gender=gender
+            )
 
         # 프롬프트 생성
         prompt = self.build_prompt(service_code, service_config, request_data)
@@ -137,7 +155,7 @@ class FortuneService:
         self.db.commit()
         self.db.refresh(fortune_result)
 
-        return fortune_result
+        return fortune_result, saju_data
 
     def _make_json_serializable(self, data: dict) -> dict:
         """
@@ -172,7 +190,7 @@ class FortuneService:
             request_data: 요청 데이터
 
         Returns:
-            운세 결과 딕셔너리
+            운세 결과 딕셔너리 (사주인 경우 saju_data 포함)
         """
         # user_key 생성
         user_key = self.generate_user_key(service_code, request_data)
@@ -184,22 +202,44 @@ class FortuneService:
         cached = self.find_cached_result(service_code, user_key, today)
 
         if cached:
-            return {
+            result = {
                 "service_code": service_code,
                 "is_cached": True,
                 "result_text": cached.result_text,
                 "date": cached.date
             }
 
-        # 새로 생성
-        new_result = self.create_fortune_result(service_code, user_key, request_data)
+            # 캐시된 결과의 경우 사주 서비스면 다시 계산
+            if service_code == "saju":
+                calculator = SajuCalculator()
+                birthdate = datetime.fromisoformat(str(request_data["birthdate"])).date()
+                birth_time = request_data.get("birth_time")
+                calendar_type = request_data.get("calendar", "solar")
+                gender = request_data["gender"]
 
-        return {
+                result["saju_data"] = calculator.calculate_saju(
+                    birthdate=birthdate,
+                    birth_time=birth_time,
+                    calendar_type=calendar_type,
+                    gender=gender
+                )
+
+            return result
+
+        # 새로 생성
+        new_result, saju_data = self.create_fortune_result(service_code, user_key, request_data)
+
+        result = {
             "service_code": service_code,
             "is_cached": False,
             "result_text": new_result.result_text,
             "date": new_result.date
         }
+
+        if saju_data:
+            result["saju_data"] = saju_data
+
+        return result
 
     def generate_user_key(self, service_code: str, request_data: dict) -> str:
         """
