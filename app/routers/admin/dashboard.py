@@ -581,8 +581,8 @@ async def create_page(
         # 새 페이지 생성
         service_data = {
             "code": code,
-            "url_path": f"/fortune/{code}",  # 기본 URL 경로
-            "result_url_path": f"/fortune/{code}",  # 결과 페이지 URL (기본값은 시작페이지와 동일)
+            "url_path": f"/pages/{code}",  # 입력 페이지 경로
+            "result_url_path": f"/results/{code}",  # 결과 페이지 경로
             "title": title,
             "subtitle": subtitle,
             "description": description,
@@ -592,8 +592,8 @@ async def create_page(
         }
         site_service.create_service(service_data)
 
-        # 템플릿 파일 자동 생성
-        template_dir = Path("app/templates/fortune")
+        # 템플릿 파일 자동 생성 (pages 폴더에)
+        template_dir = Path("app/templates/pages")
         template_dir.mkdir(parents=True, exist_ok=True)
 
         template_file = template_dir / f"{code}.html"
@@ -629,7 +629,7 @@ async def create_page(
     <div class="custom-content max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 mt-8">
         <div class="text-center text-gray-500">
             <p class="text-lg mb-4">🛠️ 이 영역은 커스텀 코드를 작성하는 공간입니다</p>
-            <p class="text-sm">템플릿 파일: <code class="bg-gray-100 px-2 py-1 rounded">app/templates/fortune/{code}.html</code></p>
+            <p class="text-sm">템플릿 파일: <code class="bg-gray-100 px-2 py-1 rounded">app/templates/pages/{code}.html</code></p>
             <p class="text-sm mt-2">이 파일을 수정하여 입력 폼이나 기능을 추가하세요.</p>
         </div>
     </div>
@@ -641,11 +641,11 @@ async def create_page(
             with template_file.open("w", encoding="utf-8") as f:
                 f.write(template_content)
 
-        # 2. 결과 페이지 템플릿 생성
-        public_dir = Path("app/templates/public")
-        public_dir.mkdir(parents=True, exist_ok=True)
+        # 2. 결과 페이지 템플릿 생성 (results 폴더에)
+        results_dir = Path("app/templates/results")
+        results_dir.mkdir(parents=True, exist_ok=True)
 
-        result_template_file = public_dir / f"{code}_result.html"
+        result_template_file = results_dir / f"{code}.html"
         if not result_template_file.exists():
             result_template_content = f'''{{%% extends "layout/base.html" %%}}
 
