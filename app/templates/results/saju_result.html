@@ -754,39 +754,7 @@
         color: #444;
     }
 
-    .actions {
-        text-align: center;
-        margin: 40px 0;
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .btn {
-        padding: 12px 30px;
-        border-radius: 25px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: all 0.3s;
-        display: inline-block;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-    }
-
-    .btn-secondary {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(245, 87, 108, 0.3);
-    }
+    /* 버튼 스타일은 main.css에서 공용으로 관리 */
 
     @media (max-width: 768px) {
         .result-container {
@@ -1032,22 +1000,12 @@
         <!-- JavaScript로 동적 생성 -->
     </div>
 
-    <!-- SNS 공유 버튼 -->
-    <div class="share-buttons">
-        <button class="share-btn share-btn-kakao" onclick="shareKakao()">
-            <img src="{{ url_for('static', path='/icons/kakao.svg') }}" width="20" alt="카카오톡">
-            카카오톡 공유
-        </button>
-        <button class="share-btn share-btn-link" id="copyLinkBtn" onclick="copyLink()">
-            <img src="{{ url_for('static', path='/icons/link.svg') }}" width="20" alt="링크 복사">
-            링크 복사
-        </button>
-    </div>
+{% include "components/share_buttons.html" %}
 </div>
 
 <div class="actions">
-    <a href="/fortune/{{ service.code }}" class="btn btn-primary">사주 보러가기</a>
-    <a href="/" class="btn btn-secondary">메인으로</a>
+    <a href="/" class="btn btn-primary">메인으로</a>
+    <a href="/fortune/{{ service.code }}" class="btn btn-secondary">다시 보기</a>
 </div>
 
 <script>
@@ -1571,96 +1529,6 @@
     renderFortune();
 
     // ===== SNS 공유 기능 =====
-
-    // 공유 가능한 고유 URL 생성
-    function getShareUrl() {
-        // 현재 URL을 그대로 사용 (이미 share_code 기반 URL)
-        return window.location.href;
-    }
-
-    // 카카오톡 공유
-    function shareKakao() {
-        if (typeof Kakao === 'undefined') {
-            alert('카카오톡 공유 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-            return;
-        }
-
-        const pageUrl = getShareUrl();
-        const pageTitle = `${sajuData.name}님의 {{ service.title }} 결과`;
-        const pageDescription = `{{ service.character_name }}이 자세히 풀어드린 {{ service.title }} 결과를 확인하세요.`;
-        const imageUrl = '{{ service.character_image if service.character_image else url_for("static", path="/uploads/banner_1.webp") }}';
-
-        Kakao.Share.sendDefault({
-            objectType: 'feed',
-            content: {
-                title: pageTitle,
-                description: pageDescription,
-                imageUrl: imageUrl.startsWith('http') ? imageUrl : window.location.origin + imageUrl,
-                link: {
-                    mobileWebUrl: pageUrl,
-                    webUrl: pageUrl
-                }
-            },
-            buttons: [
-                {
-                    title: '결과 보기',
-                    link: {
-                        mobileWebUrl: pageUrl,
-                        webUrl: pageUrl
-                    }
-                }
-            ]
-        });
-    }
-
-    // URL 복사
-    function copyLink() {
-        const pageUrl = getShareUrl();
-        const btn = document.getElementById('copyLinkBtn');
-
-        if (navigator.clipboard && window.isSecureContext) {
-            // 최신 브라우저 (HTTPS 환경)
-            navigator.clipboard.writeText(pageUrl).then(() => {
-                btn.classList.add('copied');
-                btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 복사 완료!';
-
-                setTimeout(() => {
-                    btn.classList.remove('copied');
-                    btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 링크 복사';
-                }, 2000);
-            }).catch(err => {
-                alert('링크 복사 실패: ' + err);
-            });
-        } else {
-            // 구형 브라우저 또는 HTTP 환경 (폴백)
-            const textarea = document.createElement('textarea');
-            textarea.value = pageUrl;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
-
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    btn.classList.add('copied');
-                    btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 복사 완료!';
-
-                    setTimeout(() => {
-                        btn.classList.remove('copied');
-                        btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 링크 복사';
-                    }, 2000);
-                } else {
-                    alert('링크 복사에 실패했습니다. 수동으로 복사해주세요:\n' + pageUrl);
-                }
-            } catch (err) {
-                alert('링크 복사에 실패했습니다. 수동으로 복사해주세요:\n' + pageUrl);
-            } finally {
-                document.body.removeChild(textarea);
-            }
-        }
-    }
 
 </script>
 {% endblock %}

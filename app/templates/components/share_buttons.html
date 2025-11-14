@@ -1,75 +1,84 @@
 <!-- SNS 공유 버튼 컴포넌트 -->
 <div class="share-buttons">
-    <button class="share-btn share-btn-kakao" onclick="shareKakao()">
-        <img src="{{ url_for('static', path='/icons/kakao.svg') }}" width="20" alt="카카오톡">
-        카카오톡 공유
-    </button>
-    <button class="share-btn share-btn-link" id="copyLinkBtn" onclick="copyLink()">
-        <img src="{{ url_for('static', path='/icons/link.svg') }}" width="20" alt="링크 복사">
-        링크 복사
-    </button>
+    <div class="share-item" onclick="shareKakao()">
+        <img src="{{ url_for('static', path='/icons/kakao.svg') }}" class="share-icon" alt="카카오톡">
+        <span class="share-label">카카오톡 공유</span>
+    </div>
+    <div class="share-item" id="copyLinkBtn" onclick="copyLink()">
+        <svg class="share-icon share-icon-link" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        <span class="share-label">URL 복사</span>
+    </div>
 </div>
 
 <style>
 /* 공유 버튼 스타일 */
 .share-buttons {
     display: flex;
-    gap: 15px;
+    gap: 40px;
     justify-content: center;
+    align-items: center;
     margin: 30px 0;
-    flex-wrap: wrap;
 }
 
-.share-btn {
+.share-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
+    gap: 12px;
     cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.share-item:hover {
+    transform: translateY(-5px);
+}
+
+.share-icon {
+    width: 70px;
+    height: 70px;
     transition: all 0.3s;
+}
+
+.share-icon-link {
+    background: #ffffff;
+    border-radius: 50%;
+    padding: 15px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.share-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.share-item:hover .share-icon-link {
+    stroke: #5568d3;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
 }
 
-.share-btn-kakao {
-    background: #FEE500;
-    color: #000000;
+.share-item.copied .share-icon-link {
+    stroke: #4CAF50;
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.5);
 }
 
-.share-btn-kakao:hover {
-    background: #F5DC00;
-}
-
-.share-btn-link {
-    background: #667eea;
-    color: white;
-}
-
-.share-btn-link:hover {
-    background: #5568d3;
-}
-
-.share-btn-link.copied {
-    background: #4CAF50;
+.share-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    white-space: nowrap;
 }
 
 @media (max-width: 768px) {
     .share-buttons {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0 20px;
+        flex-direction: row;
+        gap: 30px;
     }
 
-    .share-btn {
-        justify-content: center;
+    .share-icon {
+        width: 65px;
+        height: 65px;
+    }
+
+    .share-label {
+        font-size: 13px;
     }
 }
 </style>
@@ -122,16 +131,17 @@ function shareKakao() {
 function copyLink() {
     const pageUrl = getShareUrl();
     const btn = document.getElementById('copyLinkBtn');
+    const label = btn.querySelector('.share-label');
 
     if (navigator.clipboard && window.isSecureContext) {
         // 최신 브라우저 (HTTPS 환경)
         navigator.clipboard.writeText(pageUrl).then(() => {
             btn.classList.add('copied');
-            btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 복사 완료!';
+            label.textContent = '복사 완료!';
 
             setTimeout(() => {
                 btn.classList.remove('copied');
-                btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 링크 복사';
+                label.textContent = 'URL 복사';
             }, 2000);
         }).catch(err => {
             alert('링크 복사 실패: ' + err);
@@ -150,11 +160,11 @@ function copyLink() {
             const successful = document.execCommand('copy');
             if (successful) {
                 btn.classList.add('copied');
-                btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 복사 완료!';
+                label.textContent = '복사 완료!';
 
                 setTimeout(() => {
                     btn.classList.remove('copied');
-                    btn.innerHTML = '<img src="{{ url_for("static", path="/icons/link.svg") }}" width="20" alt="링크 복사"> 링크 복사';
+                    label.textContent = 'URL 복사';
                 }, 2000);
             } else {
                 alert('링크 복사에 실패했습니다. 수동으로 복사해주세요:\n' + pageUrl);
