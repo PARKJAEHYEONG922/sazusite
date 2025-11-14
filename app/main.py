@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services.site_service import SiteService
 from app.routers import fortune
-from app.routers.admin import auth, dashboard, logs
+from app.routers.admin import auth, dashboard, logs, account
 from app.middleware.logging_middleware import LoggingMiddleware
 
 # FastAPI 앱 생성
@@ -28,6 +28,7 @@ app.include_router(fortune.router)
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(logs.router)
+app.include_router(account.router)
 
 # 정적 파일 및 템플릿 설정
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -70,9 +71,15 @@ async def api_test():
 
 
 @app.get("/robots.txt", response_class=Response)
-async def robots_txt():
-    """robots.txt 제공"""
-    content = """# robots.txt for 명월헌 (myeongwolheon.kr)
+async def robots_txt(db: Session = Depends(get_db)):
+    """robots.txt 제공 (동적 도메인 적용)"""
+    site_service = SiteService(db)
+    site_config = site_service.get_site_config()
+
+    # DB에서 도메인 가져오기 (관리자 페이지에서 설정한 값 사용)
+    base_url = site_config.site_url if site_config and site_config.site_url else "https://myeongwolheon.kr"
+
+    content = f"""# robots.txt for 명월헌
 # 검색엔진 크롤러 설정
 
 # 모든 검색엔진 허용
@@ -83,13 +90,18 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin
 
-# API 엔드포인트 차단 (검색 결과에 노출 불필요)
+# API 엔드포인트 차단
 Disallow: /api/
 
-# 사이트맵 위치
-Sitemap: https://myeongwolheon.kr/sitemap.xml
+# 사이트맵 위치 (동적 도메인)
+Sitemap: {base_url}/sitemap.xml
 
-# 크롤링 속도 제한 (서버 부하 방지)
+# 구글은 Crawl-delay 무시하므로 설정 안 함
+# Bing/네이버만 크롤링 속도 제한
+User-agent: Bingbot
+Crawl-delay: 1
+
+User-agent: Yeti
 Crawl-delay: 1
 """
     return Response(content=content, media_type="text/plain")

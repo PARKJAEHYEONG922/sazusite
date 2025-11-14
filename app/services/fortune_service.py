@@ -5,6 +5,8 @@ from datetime import date, datetime
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from pathlib import Path
+import random
+import string
 
 from app.models.fortune_result import FortuneResult
 from app.models.service_config import FortuneServiceConfig
@@ -26,6 +28,36 @@ class FortuneService:
         self.db = db
         self.client_ip = client_ip
         self._prompt_cache = {}
+
+    def _generate_unique_share_code(self, length=8, max_attempts=100) -> str:
+        """
+        중복되지 않는 고유한 공유 코드 생성
+
+        Args:
+            length: 코드 길이 (기본 8자)
+            max_attempts: 최대 시도 횟수
+
+        Returns:
+            고유한 share_code 문자열
+
+        Raises:
+            RuntimeError: max_attempts 초과 시
+        """
+        chars = string.ascii_letters + string.digits  # a-z, A-Z, 0-9 (62가지)
+
+        for attempt in range(max_attempts):
+            code = ''.join(random.choices(chars, k=length))
+
+            # DB에서 중복 체크
+            existing = self.db.query(FortuneResult).filter(
+                FortuneResult.share_code == code
+            ).first()
+
+            if not existing:
+                return code
+
+        # 100번 시도해도 중복이면 길이를 늘려서 재시도
+        return self._generate_unique_share_code(length + 1, max_attempts)
 
     def _load_prompt_template(self, service_code: str) -> str:
         """프롬프트 템플릿 파일 로드"""
@@ -95,9 +127,13 @@ class FortuneService:
 
             serializable_data = self._make_json_serializable(request_data)
 
+            # 고유한 share_code 생성
+            share_code = self._generate_unique_share_code()
+
             fortune_result = FortuneResult(
                 service_code=service_code,
                 user_key=user_key,
+                share_code=share_code,
                 date=date.today(),
                 request_payload=serializable_data,
                 result_text=result_text,
@@ -149,10 +185,14 @@ class FortuneService:
         # request_data를 JSON 직렬화 가능하게 변환 (date 객체를 문자열로)
         serializable_data = self._make_json_serializable(request_data)
 
+        # 고유한 share_code 생성
+        share_code = self._generate_unique_share_code()
+
         # DB 저장
         fortune_result = FortuneResult(
             service_code=service_code,
             user_key=user_key,
+            share_code=share_code,
             date=date.today(),
             request_payload=serializable_data,
             result_text=result_text,
@@ -211,6 +251,8 @@ class FortuneService:
 
         if cached:
             result = {
+                "id": cached.id,
+                "share_code": cached.share_code,
                 "service_code": service_code,
                 "is_cached": True,
                 "result_text": cached.result_text,
@@ -267,6 +309,8 @@ class FortuneService:
         new_result, saju_data = self.create_fortune_result(service_code, user_key, request_data)
 
         result = {
+            "id": new_result.id,
+            "share_code": new_result.share_code,
             "service_code": service_code,
             "is_cached": False,
             "result_text": new_result.result_text,

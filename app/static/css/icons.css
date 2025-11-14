@@ -1,0 +1,135 @@
+/**
+ * 명월헌 아이콘 시스템
+ * SVG 아이콘이 없을 때 대체용 CSS 아이콘
+ */
+
+/* 기본 아이콘 스타일 */
+.icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    vertical-align: middle;
+}
+
+.icon-lg {
+    width: 32px;
+    height: 32px;
+}
+
+.icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+/* 카카오톡 아이콘 */
+.icon-kakao {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FEE500' d='M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z'/%3E%3C/svg%3E");
+}
+
+/* 링크 복사 아이콘 */
+.icon-link {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");
+}
+
+/* 정통 사주 아이콘 */
+.icon-saju {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' font-size='18' text-anchor='middle' fill='%23d4af37'%3E📜%3C/text%3E%3C/svg%3E");
+}
+
+/* 사주궁합 아이콘 */
+.icon-match {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' font-size='18' text-anchor='middle' fill='%23ff69b4'%3E💝%3C/text%3E%3C/svg%3E");
+}
+
+/* 오늘의 운세 아이콘 */
+.icon-today {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' font-size='18' text-anchor='middle' fill='%23ffd700'%3E✨%3C/text%3E%3C/svg%3E");
+}
+
+/* 신년운세 아이콘 */
+.icon-newyear {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' font-size='18' text-anchor='middle' fill='%235a9fd4'%3E🌙%3C/text%3E%3C/svg%3E");
+}
+
+/* 꿈해몽 아이콘 */
+.icon-dream {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='18' font-size='18' text-anchor='middle' fill='%239370db'%3E💭%3C/text%3E%3C/svg%3E");
+}
+
+/* SNS 공유 버튼 스타일 */
+.share-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 30px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.share-btn:active {
+    transform: translateY(0);
+}
+
+/* 카카오톡 공유 버튼 */
+.share-btn-kakao {
+    background-color: #FEE500;
+    color: #000;
+}
+
+.share-btn-kakao:hover {
+    background-color: #fada0a;
+}
+
+/* URL 복사 버튼 */
+.share-btn-link {
+    background-color: #fff;
+    color: #333;
+    border: 2px solid #ddd;
+}
+
+.share-btn-link:hover {
+    background-color: #f8f9fa;
+    border-color: #999;
+}
+
+.share-btn-link.copied {
+    background-color: #4caf50;
+    color: white;
+    border-color: #4caf50;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 600px) {
+    .share-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .share-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -18,6 +18,9 @@ class FortuneResult(Base):
     # 사용자 식별
     user_key = Column(String(64), index=True)  # SHA256 해시
 
+    # 공유용 랜덤 코드 (URL에 사용)
+    share_code = Column(String(12), unique=True, index=True, nullable=False)  # 예: xK9mP2wQ
+
     # 날짜
     date = Column(Date, index=True)  # 운세 기준 날짜
 

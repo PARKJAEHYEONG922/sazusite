@@ -172,4 +172,14 @@ class RateLimiter:
 
 
 # 전역 Rate Limiter 인스턴스
-rate_limiter = RateLimiter(per_minute=5, per_day=20)
+# 일반 사용자용 - 사주 서비스 특성에 맞춘 설정
+rate_limiter = RateLimiter(
+    per_minute=6,   # 1분에 6회 (5~6개 서비스 + 재시도 여유)
+    per_day=30      # 하루 30회 (정상 사용자는 5~10회면 충분, 여유 있게 30회)
+)
+
+# 관리자 페이지용 - 엄격한 설정 (로그인 시도, 설정 변경)
+admin_rate_limiter = RateLimiter(
+    per_minute=3,   # 1분에 3회 (무차별 대입 공격 방지)
+    per_day=50      # 하루 50회 (관리 작업)
+)

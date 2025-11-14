@@ -9,7 +9,7 @@
     <meta name="description" content="{% block meta_description %}{{ site_config.seo_description if site_config and site_config.seo_description else '명월헌 - 전통 사주팔자, 2026년 신년운세, 궁합, 오늘의 운세, 꿈해몽까지. 30년 경력 명리학자의 정확한 운세 풀이를 AI로 만나보세요.' }}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}{{ site_config.seo_keywords if site_config and site_config.seo_keywords else '사주, 사주팔자, 신년운세, 2026년 운세, 궁합, 꿈해몽, 오늘의 운세, 명리학, 운세, 무료운세, 타로' }}{% endblock %}">
     <meta name="author" content="{{ site_config.seo_author if site_config and site_config.seo_author else '명월헌' }}">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="{% block canonical_url %}{% if site_config and site_config.site_url %}{{ site_config.site_url }}{{ request.path if request else '' }}{% else %}{{ request.url if request else 'https://명월헌.com' }}{% endif %}{% endblock %}">
@@ -37,6 +37,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Nanum+Myeongjo:wght@400;700;800&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/icons.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     {% block extra_css %}{% endblock %}
 
@@ -135,6 +136,32 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site_config.adsense_client_id }}"
             crossorigin="anonymous"></script>
     {% endif %}
+
+    <!-- 카카오톡 SDK -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+            integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+            crossorigin="anonymous"></script>
+    <script>
+        // 카카오 SDK 초기화
+        if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+            {% if site_config and site_config.kakao_javascript_key %}
+            // 관리자 페이지에서 설정한 키 사용
+            try {
+                Kakao.init('{{ site_config.kakao_javascript_key }}');
+                console.log('[명월헌] 카카오톡 SDK 초기화 완료');
+            } catch (e) {
+                console.error('[명월헌] 카카오톡 SDK 초기화 실패:', e.message);
+            }
+            {% else %}
+            // 테스트용 더미 초기화 (실제로는 작동 안 함, 에러 메시지만 명확하게 표시)
+            console.warn('[명월헌] ⚠️ 카카오톡 JavaScript 키가 설정되지 않았습니다.');
+            console.warn('카카오톡 공유 기능을 사용하려면:');
+            console.warn('1. https://developers.kakao.com 에서 앱 등록');
+            console.warn('2. JavaScript 키 발급');
+            console.warn('3. 관리자 페이지에서 키 입력');
+            {% endif %}
+        }
+    </script>
     {% block extra_js %}{% endblock %}
 
     <!-- 사용자 정의 푸터 스크립트 (채팅, 트래킹 등) -->

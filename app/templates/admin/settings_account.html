@@ -1,0 +1,393 @@
+{% extends "layout/admin_base.html" %}
+
+{% block page_title %}계정 설정{% endblock %}
+
+{% block extra_css %}
+<style>
+    .alert {
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .settings-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .settings-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .settings-section h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #2d3748;
+        font-weight: 700;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4a5568;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #cbd5e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .password-strength {
+        margin-top: 8px;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        overflow: hidden;
+        display: none;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s;
+    }
+
+    .password-strength.weak .password-strength-bar {
+        width: 33%;
+        background: #f56565;
+    }
+
+    .password-strength.medium .password-strength-bar {
+        width: 66%;
+        background: #ed8936;
+    }
+
+    .password-strength.strong .password-strength-bar {
+        width: 100%;
+        background: #48bb78;
+    }
+
+    .password-hint {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #718096;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .info-box {
+        background: #ebf8ff;
+        border-left: 4px solid #3182ce;
+        padding: 16px;
+        margin-bottom: 24px;
+        border-radius: 4px;
+    }
+
+    .info-box h3 {
+        color: #2c5282;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .info-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #2d3748;
+        font-size: 13px;
+    }
+
+    .info-box li {
+        margin-bottom: 4px;
+    }
+
+    .current-user {
+        background: #f7fafc;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .current-user strong {
+        color: #2d3748;
+    }
+
+    .btn-logout {
+        display: inline-block;
+        padding: 10px 24px;
+        background: #e53e3e;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-logout:hover {
+        background: #c53030;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="settings-container">
+    <!-- 성공/실패 메시지 -->
+    {% if success %}
+    <div class="alert alert-success">
+        ✅ {{ success }}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">
+        ❌ {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="settings-section">
+        <h2>계정 정보</h2>
+
+        <div class="current-user">
+            <strong>현재 로그인:</strong> {{ username }}
+        </div>
+
+        <!-- 로그아웃 버튼 -->
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="/admin/logout" class="btn-logout">로그아웃</a>
+        </div>
+
+        <div class="info-box">
+            <h3>🔒 강력한 비밀번호 규칙</h3>
+            <ul>
+                <li>최소 12자 이상</li>
+                <li>영문 대문자, 소문자 포함</li>
+                <li>숫자 포함</li>
+                <li>특수문자 포함 (!@#$%^&* 등)</li>
+                <li>예측 가능한 단어 사용 금지</li>
+            </ul>
+        </div>
+
+        <form method="POST" action="/admin/settings/account/change-password" id="changePasswordForm">
+            <div class="form-group">
+                <label for="current_password">현재 비밀번호 *</label>
+                <input type="password" id="current_password" name="current_password" required
+                       placeholder="현재 비밀번호를 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">새 비밀번호 *</label>
+                <input type="password" id="new_password" name="new_password" required
+                       placeholder="새 비밀번호를 입력하세요"
+                       minlength="12">
+                <div class="password-strength" id="passwordStrength">
+                    <div class="password-strength-bar"></div>
+                </div>
+                <div class="password-hint" id="passwordHint"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">새 비밀번호 확인 *</label>
+                <input type="password" id="confirm_password" name="confirm_password" required
+                       placeholder="새 비밀번호를 다시 입력하세요"
+                       minlength="12">
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">
+                비밀번호 변경
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const newPasswordInput = document.getElementById('new_password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const passwordStrength = document.getElementById('passwordStrength');
+    const passwordHint = document.getElementById('passwordHint');
+    const form = document.getElementById('changePasswordForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // 비밀번호 강도 체크
+    newPasswordInput.addEventListener('input', function() {
+        const password = this.value;
+
+        if (password.length === 0) {
+            passwordStrength.style.display = 'none';
+            passwordHint.textContent = '';
+            return;
+        }
+
+        passwordStrength.style.display = 'block';
+
+        // 강도 계산
+        let strength = 0;
+        const checks = {
+            length: password.length >= 12,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+        };
+
+        strength = Object.values(checks).filter(Boolean).length;
+
+        // 강도 표시
+        passwordStrength.className = 'password-strength';
+        if (strength <= 2) {
+            passwordStrength.classList.add('weak');
+            passwordHint.textContent = '❌ 약함: 더 복잡한 비밀번호를 사용하세요';
+            passwordHint.style.color = '#f56565';
+        } else if (strength <= 4) {
+            passwordStrength.classList.add('medium');
+            passwordHint.textContent = '⚠️ 보통: 특수문자를 추가하면 더 안전합니다';
+            passwordHint.style.color = '#ed8936';
+        } else {
+            passwordStrength.classList.add('strong');
+            passwordHint.textContent = '✅ 강함: 안전한 비밀번호입니다';
+            passwordHint.style.color = '#48bb78';
+        }
+    });
+
+    // 폼 제출 검증
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        console.log('폼 제출 시작');
+
+        const currentPassword = document.getElementById('current_password').value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+
+        console.log('비밀번호 검증 시작');
+        console.log('현재 비밀번호 길이:', currentPassword.length);
+        console.log('새 비밀번호 길이:', newPassword.length);
+        console.log('비밀번호 확인 길이:', confirmPassword.length);
+
+        // 유효성 검사
+        if (!currentPassword || currentPassword.length === 0) {
+            alert('❌ [현재 비밀번호 오류]\n현재 비밀번호를 입력해주세요.');
+            return;
+        }
+
+        if (!newPassword || newPassword.length === 0) {
+            alert('❌ [새 비밀번호 오류]\n새 비밀번호를 입력해주세요.');
+            return;
+        }
+
+        if (newPassword.length < 12) {
+            alert('❌ [새 비밀번호 오류]\n새 비밀번호는 최소 12자 이상이어야 합니다.\n\n현재 입력: ' + newPassword.length + '자');
+            return;
+        }
+
+        if (!/[A-Z]/.test(newPassword)) {
+            alert('❌ [새 비밀번호 오류]\n새 비밀번호에 영문 대문자를 포함해야 합니다.\n\n예시: A, B, C, Z 등');
+            return;
+        }
+
+        if (!/[a-z]/.test(newPassword)) {
+            alert('❌ [새 비밀번호 오류]\n새 비밀번호에 영문 소문자를 포함해야 합니다.\n\n예시: a, b, c, z 등');
+            return;
+        }
+
+        if (!/[0-9]/.test(newPassword)) {
+            alert('❌ [새 비밀번호 오류]\n새 비밀번호에 숫자를 포함해야 합니다.\n\n예시: 0, 1, 2, 9 등');
+            return;
+        }
+
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) {
+            alert('❌ [새 비밀번호 오류]\n새 비밀번호에 특수문자를 포함해야 합니다.\n\n예시: !@#$%^&* 등');
+            return;
+        }
+
+        if (!confirmPassword || confirmPassword.length === 0) {
+            alert('❌ [비밀번호 확인 오류]\n비밀번호 확인란을 입력해주세요.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert('❌ [비밀번호 확인 오류]\n새 비밀번호와 비밀번호 확인이 일치하지 않습니다.\n\n다시 확인해주세요.');
+            confirmPasswordInput.focus();
+            return;
+        }
+
+        if (currentPassword === newPassword) {
+            alert('❌ [새 비밀번호 오류]\n현재 비밀번호와 다른 비밀번호를 사용하세요.\n\n보안을 위해 새로운 비밀번호를 설정해주세요.');
+            return;
+        }
+
+        console.log('✅ 클라이언트 검증 통과, 서버로 제출');
+
+        // 제출
+        submitBtn.disabled = true;
+        submitBtn.textContent = '변경 중...';
+        form.submit();
+    });
+</script>
+{% endblock %}

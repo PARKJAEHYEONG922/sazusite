@@ -98,6 +98,9 @@ class SiteConfig(Base):
     adsense_slot_main = Column(String(100), nullable=True)
     adsense_slot_result = Column(String(100), nullable=True)
 
+    # SNS 공유
+    kakao_javascript_key = Column(String(100), nullable=True)  # 카카오 JavaScript 키 (공유 기능용)
+
     # SEO 메타태그
     seo_title = Column(String(200), nullable=True)  # 기본 SEO 타이틀
     seo_description = Column(Text, nullable=True)  # 기본 SEO 설명

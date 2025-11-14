@@ -676,33 +676,20 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentTab = urlParams.get('tab') || 'errors';
-
-    // 각 탭별로 저장된 period 가져오기 (기본값: 7)
-    const savedPeriod = localStorage.getItem(`logsPeriod_${currentTab}`) || '7';
-
-    // 현재 탭의 period 셀렉트 박스에 저장된 값 설정
-    const periodSelects = document.querySelectorAll('#period, #period_api, #period_access, #period_rate');
-    periodSelects.forEach(select => {
-        select.value = savedPeriod;
-    });
+    // DOMContentLoaded에서는 아무것도 하지 않음
+    // 서버에서 제공한 기본값(7일)을 그대로 사용
 });
 
 function changePeriod(period) {
     const urlParams = new URLSearchParams(window.location.search);
     const currentTab = urlParams.get('tab') || 'errors';
 
-    // 현재 탭의 period를 localStorage에 저장
-    localStorage.setItem(`logsPeriod_${currentTab}`, period);
-
     window.location.href = `/admin/logs?tab=${currentTab}&period=${period}`;
 }
 
 function changeTab(tab) {
-    // 이동할 탭의 저장된 period 가져오기 (기본값: 7)
-    const savedPeriod = localStorage.getItem(`logsPeriod_${tab}`) || '7';
-    window.location.href = `/admin/logs?tab=${tab}&period=${savedPeriod}`;
+    // 탭 변경 시 항상 기본값 7일로 시작
+    window.location.href = `/admin/logs?tab=${tab}&period=7`;
 }
 
 function confirmDelete(logType) {
