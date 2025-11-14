@@ -210,21 +210,27 @@ async def update_site_settings(
             # 이미지 데이터 읽기
             image_data = await site_logo_file.read()
 
-            # SVG는 그대로 저장, 나머지는 WebP 변환
+            # 기존 로고 파일들 삭제 (모든 확장자)
+            for old_file in upload_dir.glob("site_logo.*"):
+                old_file.unlink()
+
+            # SVG는 원본 그대로, 나머지는 WebP 변환
             if file_ext == '.svg':
-                new_filename = "site_logo.svg"
+                # SVG는 그대로 저장
+                new_filename = f"site_logo{file_ext}"
                 file_path = upload_dir / new_filename
                 with file_path.open("wb") as f:
                     f.write(image_data)
             else:
-                # 기존 로고 파일들 삭제 (모든 확장자)
-                for old_file in upload_dir.glob("site_logo.*"):
-                    old_file.unlink()
-
-                # WebP로 변환 및 저장
-                output_path = upload_dir / "site_logo"
-                convert_to_webp(image_data, output_path, quality=90, max_width=800)
-                new_filename = "site_logo.webp"
+                # WebP로 변환하여 저장 (최대 너비 800px)
+                from app.utils.image_utils import convert_to_webp
+                file_path = convert_to_webp(
+                    image_data,
+                    upload_dir / "site_logo",
+                    quality=90,
+                    max_width=800
+                )
+                new_filename = os.path.basename(file_path)
 
             # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
             timestamp = int(datetime.now().timestamp())

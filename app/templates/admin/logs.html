@@ -2,29 +2,70 @@
 
 {% block title %}로그 모니터링 - 명월헌 관리자{% endblock %}
 
-{% block content %}
-<div class="logs-container">
-    <h1>로그 모니터링</h1>
+{% block page_title %}로그 모니터링{% endblock %}
 
+{% block admin_content %}
+<div class="logs-container">
     <!-- 탭 메뉴 -->
     <div class="tabs">
-        <a href="/admin/logs?tab=errors" class="tab {{ 'active' if tab == 'errors' else '' }}">
+        <a href="#" onclick="changeTab('errors'); return false;" class="tab {{ 'active' if tab == 'errors' else '' }}">
             에러 로그
         </a>
-        <a href="/admin/logs?tab=api" class="tab {{ 'active' if tab == 'api' else '' }}">
+        <a href="#" onclick="changeTab('api'); return false;" class="tab {{ 'active' if tab == 'api' else '' }}">
             API 사용
         </a>
-        <a href="/admin/logs?tab=access" class="tab {{ 'active' if tab == 'access' else '' }}">
+        <a href="#" onclick="changeTab('access'); return false;" class="tab {{ 'active' if tab == 'access' else '' }}">
             접속 로그
         </a>
-        <a href="/admin/logs?tab=rate-limit" class="tab {{ 'active' if tab == 'rate-limit' else '' }}">
+        <a href="#" onclick="changeTab('rate-limit'); return false;" class="tab {{ 'active' if tab == 'rate-limit' else '' }}">
             Rate Limit
         </a>
     </div>
 
+    <!-- 메시지 표시 -->
+    {% if message %}
+    <div class="alert alert-success">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+
     <!-- 에러 로그 탭 -->
     {% if tab == 'errors' %}
     <div class="tab-content">
+        <!-- 조회 기간 & 로그 삭제 -->
+        <div class="control-section">
+            <div class="period-selector">
+                <label for="period">조회 기간:</label>
+                <select id="period" onchange="changePeriod(this.value)">
+                    <option value="7" {% if period == 7 %}selected{% endif %}>최근 7일</option>
+                    <option value="30" {% if period == 30 %}selected{% endif %}>최근 30일</option>
+                    <option value="90" {% if period == 90 %}selected{% endif %}>최근 90일</option>
+                    <option value="365" {% if period == 365 %}selected{% endif %}>최근 1년</option>
+                    <option value="0" {% if period == 0 %}selected{% endif %}>전체</option>
+                </select>
+            </div>
+            <div class="delete-log-section">
+                <form method="POST" action="/admin/logs/delete/errors" onsubmit="return confirmDelete('에러 로그')" class="delete-form">
+                    <input type="hidden" name="period" value="{{ period }}">
+                    <label for="error_days">에러 로그 삭제:</label>
+                    <select name="days" id="error_days">
+                        <option value="7">7일 이상 경과</option>
+                        <option value="30">30일 이상 경과</option>
+                        <option value="60">60일 이상 경과</option>
+                        <option value="90" selected>90일 이상 경과</option>
+                        <option value="180">180일 이상 경과</option>
+                    </select>
+                    <button type="submit" class="btn-delete">🗑️ 삭제</button>
+                </form>
+            </div>
+        </div>
+
         <div class="stats-summary">
             <div class="stat-card">
                 <h3>24시간 에러</h3>
@@ -81,9 +122,37 @@
     <!-- API 사용 로그 탭 -->
     {% if tab == 'api' %}
     <div class="tab-content">
+        <!-- 조회 기간 & 로그 삭제 -->
+        <div class="control-section">
+            <div class="period-selector">
+                <label for="period_api">조회 기간:</label>
+                <select id="period_api" onchange="changePeriod(this.value)">
+                    <option value="7" {% if period == 7 %}selected{% endif %}>최근 7일</option>
+                    <option value="30" {% if period == 30 %}selected{% endif %}>최근 30일</option>
+                    <option value="90" {% if period == 90 %}selected{% endif %}>최근 90일</option>
+                    <option value="365" {% if period == 365 %}selected{% endif %}>최근 1년</option>
+                    <option value="0" {% if period == 0 %}selected{% endif %}>전체</option>
+                </select>
+            </div>
+            <div class="delete-log-section">
+            <form method="POST" action="/admin/logs/delete/api" onsubmit="return confirmDelete('API 사용 로그')" class="delete-form">
+                    <input type="hidden" name="period" value="{{ period }}">
+                    <label for="api_days">API 로그 삭제:</label>
+                    <select name="days" id="api_days">
+                        <option value="30">30일 이상 경과</option>
+                        <option value="60">60일 이상 경과</option>
+                        <option value="90">90일 이상 경과</option>
+                        <option value="180" selected>180일 이상 경과</option>
+                        <option value="365">1년 이상 경과</option>
+                    </select>
+                    <button type="submit" class="btn-delete">🗑️ 삭제</button>
+                </form>
+            </div>
+        </div>
+
         <div class="stats-summary">
             <div class="stat-card">
-                <h3>총 API 호출 (7일)</h3>
+                <h3>총 API 호출 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h3>
                 <p class="stat-number">{{ api_stats.total_calls }}</p>
             </div>
             <div class="stat-card">
@@ -91,7 +160,7 @@
                 <p class="stat-number">{{ "%.1f"|format(api_stats.cache_hit_rate) }}%</p>
             </div>
             <div class="stat-card">
-                <h3>예상 비용 (7일)</h3>
+                <h3>예상 비용 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h3>
                 <p class="stat-number">${{ "%.4f"|format(api_stats.total_cost) }}</p>
             </div>
             <div class="stat-card">
@@ -101,7 +170,7 @@
         </div>
 
         {% if api_by_service %}
-        <h2>서비스별 API 사용량 (7일)</h2>
+        <h2>서비스별 API 사용량 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -151,9 +220,37 @@
     <!-- 접속 로그 탭 -->
     {% if tab == 'access' %}
     <div class="tab-content">
+        <!-- 조회 기간 & 로그 삭제 -->
+        <div class="control-section">
+            <div class="period-selector">
+                <label for="period_access">조회 기간:</label>
+                <select id="period_access" onchange="changePeriod(this.value)">
+                    <option value="7" {% if period == 7 %}selected{% endif %}>최근 7일</option>
+                    <option value="30" {% if period == 30 %}selected{% endif %}>최근 30일</option>
+                    <option value="90" {% if period == 90 %}selected{% endif %}>최근 90일</option>
+                    <option value="365" {% if period == 365 %}selected{% endif %}>최근 1년</option>
+                    <option value="0" {% if period == 0 %}selected{% endif %}>전체</option>
+                </select>
+            </div>
+            <div class="delete-log-section">
+            <form method="POST" action="/admin/logs/delete/access" onsubmit="return confirmDelete('접속 로그')" class="delete-form">
+                    <input type="hidden" name="period" value="{{ period }}">
+                    <label for="access_days">접속 로그 삭제:</label>
+                    <select name="days" id="access_days">
+                        <option value="7">7일 이상 경과</option>
+                        <option value="30">30일 이상 경과</option>
+                        <option value="60">60일 이상 경과</option>
+                        <option value="90" selected>90일 이상 경과</option>
+                        <option value="180">180일 이상 경과</option>
+                    </select>
+                    <button type="submit" class="btn-delete">🗑️ 삭제</button>
+                </form>
+            </div>
+        </div>
+
         <div class="stats-summary">
             <div class="stat-card">
-                <h3>총 요청 (7일)</h3>
+                <h3>총 요청 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h3>
                 <p class="stat-number">{{ access_stats.total_requests }}</p>
             </div>
             <div class="stat-card">
@@ -167,7 +264,7 @@
         </div>
 
         {% if popular_services %}
-        <h2>인기 서비스 (7일)</h2>
+        <h2>인기 서비스 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -215,9 +312,36 @@
     <!-- Rate Limit 탭 -->
     {% if tab == 'rate-limit' %}
     <div class="tab-content">
+        <!-- 조회 기간 & 로그 삭제 -->
+        <div class="control-section">
+            <div class="period-selector">
+                <label for="period_rate">조회 기간:</label>
+                <select id="period_rate" onchange="changePeriod(this.value)">
+                    <option value="7" {% if period == 7 %}selected{% endif %}>최근 7일</option>
+                    <option value="30" {% if period == 30 %}selected{% endif %}>최근 30일</option>
+                    <option value="90" {% if period == 90 %}selected{% endif %}>최근 90일</option>
+                    <option value="365" {% if period == 365 %}selected{% endif %}>최근 1년</option>
+                    <option value="0" {% if period == 0 %}selected{% endif %}>전체</option>
+                </select>
+            </div>
+            <div class="delete-log-section">
+            <form method="POST" action="/admin/logs/delete/rate-limit" onsubmit="return confirmDelete('Rate Limit 로그')" class="delete-form">
+                    <input type="hidden" name="period" value="{{ period }}">
+                    <label for="rate_limit_days">Rate Limit 로그 삭제:</label>
+                    <select name="days" id="rate_limit_days">
+                        <option value="7">7일 이상 경과</option>
+                        <option value="30" selected>30일 이상 경과</option>
+                        <option value="60">60일 이상 경과</option>
+                        <option value="90">90일 이상 경과</option>
+                    </select>
+                    <button type="submit" class="btn-delete">🗑️ 삭제</button>
+                </form>
+            </div>
+        </div>
+
         <div class="stats-summary">
             <div class="stat-card">
-                <h3>총 위반 (7일)</h3>
+                <h3>총 위반 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h3>
                 <p class="stat-number">{{ rate_limit_stats.total_violations }}</p>
             </div>
             <div class="stat-card">
@@ -235,7 +359,7 @@
         </div>
 
         {% if top_violators %}
-        <h2>TOP 위반자 (7일)</h2>
+        <h2>TOP 위반자 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -279,11 +403,61 @@
         </table>
     </div>
     {% endif %}
-</div>
 
+</div>
+{% endblock %}
+
+{% block extra_css %}
 <style>
 .logs-container {
     padding: 20px;
+}
+
+.logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logs-header h1 {
+    margin: 0;
+}
+
+.period-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.period-selector label {
+    font-weight: bold;
+    color: #666;
+}
+
+.period-selector select {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.period-selector select:hover {
+    border-color: #8B4513;
+}
+
+.period-selector select:focus {
+    outline: none;
+    border-color: #8B4513;
+    box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
+}
+
+.tab-content {
+    display: block;
+    width: 100%;
 }
 
 .tabs {
@@ -377,5 +551,169 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* 메시지 알림 */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    white-space: pre-line;
+}
+
+.alert-success {
+    background: #c6f6d5;
+    color: #22543d;
+    border: 1px solid #9ae6b4;
+}
+
+.alert-error {
+    background: #fed7d7;
+    color: #742a2a;
+    border: 1px solid #fc8181;
+}
+
+/* 조회 기간 & 로그 삭제 컨트롤 */
+.control-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.period-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.period-selector label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.period-selector select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.period-selector select:focus {
+    outline: none;
+    border-color: #8B4513;
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+}
+
+/* 로그 삭제 섹션 */
+.delete-log-section {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.delete-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.delete-form label {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.delete-form select {
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.delete-form select:focus {
+    outline: none;
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.1);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-delete:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(229, 62, 62, 0.4);
+}
+
+.btn-delete:active {
+    transform: translateY(0);
+}
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTab = urlParams.get('tab') || 'errors';
+
+    // 각 탭별로 저장된 period 가져오기 (기본값: 7)
+    const savedPeriod = localStorage.getItem(`logsPeriod_${currentTab}`) || '7';
+
+    // 현재 탭의 period 셀렉트 박스에 저장된 값 설정
+    const periodSelects = document.querySelectorAll('#period, #period_api, #period_access, #period_rate');
+    periodSelects.forEach(select => {
+        select.value = savedPeriod;
+    });
+});
+
+function changePeriod(period) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTab = urlParams.get('tab') || 'errors';
+
+    // 현재 탭의 period를 localStorage에 저장
+    localStorage.setItem(`logsPeriod_${currentTab}`, period);
+
+    window.location.href = `/admin/logs?tab=${currentTab}&period=${period}`;
+}
+
+function changeTab(tab) {
+    // 이동할 탭의 저장된 period 가져오기 (기본값: 7)
+    const savedPeriod = localStorage.getItem(`logsPeriod_${tab}`) || '7';
+    window.location.href = `/admin/logs?tab=${tab}&period=${savedPeriod}`;
+}
+
+function confirmDelete(logType) {
+    const form = event.target;
+    const days = form.days.value;
+
+    const message = `${logType} 중 ${days}일 이상 경과한 데이터를 삭제합니다.\n\n` +
+                    `⚠️ 삭제된 데이터는 복구할 수 없습니다.\n\n` +
+                    `계속하시겠습니까?`;
+
+    return confirm(message);
+}
+</script>
 {% endblock %}

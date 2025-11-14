@@ -25,6 +25,10 @@ function previewImage(input, previewId) {
                previewId.startsWith('character_form_preview_') ||
                previewId.startsWith('character_result_preview_')) {
         previewClass = 'image-preview-item sub-banner';
+    } else if (previewId.startsWith('banner_mobile_preview_')) {
+        previewClass = 'banner-preview-card mobile';
+    } else if (previewId.startsWith('banner_pc_preview_')) {
+        previewClass = 'banner-preview-card pc';
     }
 
     const reader = new FileReader();
@@ -32,18 +36,42 @@ function previewImage(input, previewId) {
         const fileType = file.type.split('/')[0];
 
         if (fileType === 'image') {
-            previewElement.innerHTML = `
-                <div class="image-preview-wrapper">
-                    <div class="${previewClass}">
-                        <img src="${e.target.result}" alt="미리보기">
+            // 배너 이미지인 경우 특수 처리
+            if (previewId.startsWith('banner_mobile_preview_') || previewId.startsWith('banner_pc_preview_')) {
+                const isMobile = previewId.startsWith('banner_mobile_preview_');
+                const label = isMobile ? '모바일 (4:3)' : 'PC (21:9)';
+                const aspectClass = isMobile ? 'mobile' : 'pc';
+
+                previewElement.innerHTML = `
+                    <div class="image-comparison-wrapper">
+                        <div class="banner-preview-card">
+                            <div class="banner-preview-header">✨ 수정 후 - ${label}</div>
+                            <div class="banner-preview-image ${aspectClass}">
+                                <img src="${e.target.result}" alt="수정 후">
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                previewElement.innerHTML = `
+                    <div class="image-comparison-wrapper">
+                        <div class="image-preview-wrapper">
+                            <div class="image-preview-header">✨ 수정 후</div>
+                            <div class="${previewClass}">
+                                <img src="${e.target.result}" alt="수정 후">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         } else if (fileType === 'video') {
             previewElement.innerHTML = `
-                <div class="image-preview-wrapper">
-                    <div class="${previewClass}">
-                        <video src="${e.target.result}" controls></video>
+                <div class="image-comparison-wrapper">
+                    <div class="image-preview-wrapper">
+                        <div class="image-preview-header">✨ 수정 후</div>
+                        <div class="${previewClass}">
+                            <video src="${e.target.result}" controls></video>
+                        </div>
                     </div>
                 </div>
             `;

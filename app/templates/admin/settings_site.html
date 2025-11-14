@@ -51,8 +51,9 @@
                 {% if config and config.site_logo %}
                 <div class="form-hint">현재: {{ config.site_logo }}</div>
                 <div class="image-preview-wrapper mt-2">
+                    <div class="image-preview-header">📌 수정 전</div>
                     <div class="image-preview-item logo-preview">
-                        <img src="{{ config.site_logo }}" alt="현재 로고">
+                        <img src="{{ config.site_logo }}" alt="수정 전 로고">
                     </div>
                 </div>
                 {% endif %}
@@ -68,8 +69,9 @@
                 {% if config and config.site_favicon %}
                 <div class="form-hint">현재: {{ config.site_favicon }}</div>
                 <div class="image-preview-wrapper mt-2">
+                    <div class="image-preview-header">📌 수정 전</div>
                     <div class="image-preview-item favicon-preview">
-                        <img src="{{ config.site_favicon }}" alt="현재 파비콘">
+                        <img src="{{ config.site_favicon }}" alt="수정 전 파비콘">
                     </div>
                 </div>
                 {% endif %}
@@ -131,9 +133,9 @@
                             <!-- 현재 이미지 미리보기 -->
                             <div class="image-preview-wrapper mt-2">
                                 <div class="banner-preview-card">
-                                    <div class="banner-preview-header">모바일 (4:3)</div>
+                                    <div class="banner-preview-header">📌 수정 전 - 모바일 (4:3)</div>
                                     <div class="banner-preview-image mobile">
-                                        <img src="{{ config['banner_image_' + i|string] }}" alt="모바일 배너 {{ i }}">
+                                        <img src="{{ config['banner_image_' + i|string] }}" alt="수정 전 모바일 배너 {{ i }}">
                                     </div>
                                 </div>
                             </div>
@@ -152,9 +154,9 @@
                             <!-- 현재 이미지 미리보기 -->
                             <div class="image-preview-wrapper mt-2">
                                 <div class="banner-preview-card">
-                                    <div class="banner-preview-header">PC (21:9)</div>
+                                    <div class="banner-preview-header">📌 수정 전 - PC (21:9)</div>
                                     <div class="banner-preview-image pc">
-                                        <img src="{{ config['banner_image_pc_' + i|string] }}" alt="PC 배너 {{ i }}">
+                                        <img src="{{ config['banner_image_pc_' + i|string] }}" alt="수정 전 PC 배너 {{ i }}">
                                     </div>
                                 </div>
                             </div>
@@ -233,11 +235,12 @@
                         <div class="form-hint">현재: {{ config['sub_banner_image_' + i|string] }}</div>
                         <!-- 미리보기 -->
                         <div class="image-preview-wrapper mt-2">
+                            <div class="image-preview-header">📌 수정 전</div>
                             <div class="image-preview-item sub-banner">
                                 {% if config['sub_banner_image_' + i|string].endswith(('.mp4', '.webm')) %}
                                 <video src="{{ config['sub_banner_image_' + i|string] }}" controls></video>
                                 {% else %}
-                                <img src="{{ config['sub_banner_image_' + i|string] }}" alt="서브 배너 {{ i }}">
+                                <img src="{{ config['sub_banner_image_' + i|string] }}" alt="수정 전 서브 배너 {{ i }}">
                                 {% endif %}
                             </div>
                         </div>

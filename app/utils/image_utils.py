@@ -31,24 +31,36 @@ def convert_to_webp(
     # 이미지 열기
     img = Image.open(io.BytesIO(image_data))
 
-    # RGBA 모드를 RGB로 변환 (WebP는 RGB 지원)
-    if img.mode in ('RGBA', 'LA', 'P'):
-        # 투명 배경을 흰색으로 변환
-        background = Image.new('RGB', img.size, (255, 255, 255))
-        if img.mode == 'P':
-            img = img.convert('RGBA')
-        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
-        img = background
-    elif img.mode != 'RGB':
+    # 이미지 모드 변환 (WebP는 RGB와 RGBA 모두 지원)
+    if img.mode == 'P':
+        # 팔레트 모드는 RGBA로 변환 (투명도 보존)
+        img = img.convert('RGBA')
+    elif img.mode == 'LA':
+        # 그레이스케일+알파는 RGBA로 변환
+        img = img.convert('RGBA')
+    elif img.mode not in ('RGB', 'RGBA'):
+        # 그 외 모드는 RGB로 변환
         img = img.convert('RGB')
 
     # 리사이징 (비율 유지)
     if max_width or max_height:
         img = resize_image(img, max_width, max_height)
 
-    # WebP로 저장
+    # WebP로 저장 (투명도 보존)
     output_file = output_path.parent / f"{output_path.stem}.webp"
-    img.save(output_file, 'WEBP', quality=quality, method=6)
+
+    # RGBA 모드인 경우 투명도를 보존하기 위한 옵션 추가
+    save_kwargs = {
+        'format': 'WEBP',
+        'quality': quality,
+        'method': 6
+    }
+
+    # 투명도가 있는 이미지는 lossless 모드 사용 (투명도 완벽 보존)
+    if img.mode == 'RGBA':
+        save_kwargs['lossless'] = True
+
+    img.save(output_file, **save_kwargs)
 
     return str(output_file)
 

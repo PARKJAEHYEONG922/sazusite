@@ -20,7 +20,7 @@
             </h2>
             <nav>
                 <a href="/admin/dashboard" class="{% if request.url.path == '/admin/dashboard' %}active{% endif %}">📊 대시보드</a>
-                <a href="/admin/logs" class="{% if '/admin/logs' in request.url.path %}active{% endif %}">📋 로그</a>
+                <a href="/admin/logs" class="{% if '/admin/logs' in request.url.path %}active{% endif %}">📋 로그 모니터링</a>
                 <a href="/admin/settings/site" class="{% if '/admin/settings/site' in request.url.path %}active{% endif %}">🎨 사이트 설정</a>
                 <a href="/admin/settings/pages" class="{% if '/admin/settings/pages' in request.url.path or '/admin/settings/services' in request.url.path %}active{% endif %}">📄 페이지 설정</a>
                 <a href="/admin/settings/seo" class="{% if '/admin/settings/seo' in request.url.path %}active{% endif %}">🔍 SEO & 스크립트</a>

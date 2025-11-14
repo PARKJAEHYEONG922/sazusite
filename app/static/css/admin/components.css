@@ -354,6 +354,21 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
+.image-preview-header {
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--gray-700);
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--gray-100);
+    border-left: 3px solid var(--primary-500);
+    border-radius: var(--radius-sm);
+}
+
+.image-comparison-wrapper {
+    margin-top: var(--spacing-md);
+}
+
 .image-preview-item {
     position: relative;
     border-radius: var(--radius-md);

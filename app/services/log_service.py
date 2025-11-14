@@ -235,3 +235,66 @@ class LogService:
             "rate_limit_violations": rate_limit_stats['total_violations'],
             "avg_response_time_ms": access_stats['avg_response_time_ms']
         }
+
+    # ===== 로그 정리 (개별 삭제) =====
+    def delete_error_logs(self, days: int) -> int:
+        """에러 로그 삭제"""
+        cutoff = datetime.now() - timedelta(days=days)
+        deleted = self.db.query(ErrorLog)\
+            .filter(ErrorLog.timestamp < cutoff)\
+            .delete(synchronize_session=False)
+        self.db.commit()
+        return deleted
+
+    def delete_api_logs(self, days: int) -> int:
+        """API 로그 삭제"""
+        cutoff = datetime.now() - timedelta(days=days)
+        deleted = self.db.query(APIUsageLog)\
+            .filter(APIUsageLog.timestamp < cutoff)\
+            .delete(synchronize_session=False)
+        self.db.commit()
+        return deleted
+
+    def delete_access_logs(self, days: int) -> int:
+        """접속 로그 삭제"""
+        cutoff = datetime.now() - timedelta(days=days)
+        deleted = self.db.query(AccessLog)\
+            .filter(AccessLog.timestamp < cutoff)\
+            .delete(synchronize_session=False)
+        self.db.commit()
+        return deleted
+
+    def delete_rate_limit_logs(self, days: int) -> int:
+        """Rate Limit 로그 삭제"""
+        cutoff = datetime.now() - timedelta(days=days)
+        deleted = self.db.query(RateLimitLog)\
+            .filter(RateLimitLog.timestamp < cutoff)\
+            .delete(synchronize_session=False)
+        self.db.commit()
+        return deleted
+
+    def get_log_storage_info(self) -> Dict:
+        """로그 데이터 저장 현황"""
+        total_logs = {
+            "access_logs": self.db.query(func.count(AccessLog.id)).scalar() or 0,
+            "api_logs": self.db.query(func.count(APIUsageLog.id)).scalar() or 0,
+            "error_logs": self.db.query(func.count(ErrorLog.id)).scalar() or 0,
+            "rate_limit_logs": self.db.query(func.count(RateLimitLog.id)).scalar() or 0
+        }
+
+        # 가장 오래된 로그 날짜
+        oldest_access = self.db.query(func.min(AccessLog.timestamp)).scalar()
+        oldest_api = self.db.query(func.min(APIUsageLog.timestamp)).scalar()
+        oldest_error = self.db.query(func.min(ErrorLog.timestamp)).scalar()
+        oldest_rate_limit = self.db.query(func.min(RateLimitLog.timestamp)).scalar()
+
+        return {
+            "total_logs": total_logs,
+            "oldest_dates": {
+                "access": oldest_access.strftime('%Y-%m-%d') if oldest_access else None,
+                "api": oldest_api.strftime('%Y-%m-%d') if oldest_api else None,
+                "error": oldest_error.strftime('%Y-%m-%d') if oldest_error else None,
+                "rate_limit": oldest_rate_limit.strftime('%Y-%m-%d') if oldest_rate_limit else None
+            },
+            "total_count": sum(total_logs.values())
+        }
