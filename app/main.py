@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services.site_service import SiteService
 from app.routers import fortune
-from app.routers.admin import auth, dashboard
+from app.routers.admin import auth, dashboard, logs
+from app.middleware.logging_middleware import LoggingMiddleware
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -19,10 +20,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# 미들웨어 등록
+app.add_middleware(LoggingMiddleware)
+
 # 라우터 등록
 app.include_router(fortune.router)
 app.include_router(auth.router)
 app.include_router(dashboard.router)
+app.include_router(logs.router)
 
 # 정적 파일 및 템플릿 설정
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -38,7 +43,7 @@ async def index(request: Request, db: Session = Depends(get_db)):
     services = site_service.get_active_services()
 
     return templates.TemplateResponse(
-        "public/index.html",
+        "results/index.html",
         {
             "request": request,
             "site_config": site_config,
@@ -165,10 +170,10 @@ async def sitemap_xml(db: Session = Depends(get_db)):
 async def startup_event():
     """앱 시작 시 초기화"""
     from app.database import create_tables
-    import sys
-    import io
-    # Windows 인코딩 문제 해결
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    from app.utils.env_validator import validate_environment
+
+    # 환경 설정 검증 (필수!) - 인코딩 설정도 내부에서 처리됨
+    validate_environment()
 
     create_tables()
     print("[OK] Myeongwolheon server started!")

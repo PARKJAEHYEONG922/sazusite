@@ -4,141 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}관리자 - 명월헌{% endblock %}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
-            background: #f5f7fa;
-            color: #2d3748;
-            min-height: 100vh;
-        }
-
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 260px;
-            background: #ffffff;
-            border-right: 1px solid #e2e8f0;
-            padding: 30px 0;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .sidebar h2 {
-            font-size: 22px;
-            color: #667eea;
-            padding: 0 24px;
-            margin-bottom: 30px;
-            font-weight: 700;
-        }
-
-        .sidebar nav {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar nav a {
-            color: #4a5568;
-            text-decoration: none;
-            padding: 14px 24px;
-            transition: all 0.2s;
-            font-size: 15px;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar nav a:hover {
-            color: #667eea;
-            background: #f7fafc;
-            border-left-color: #667eea;
-        }
-
-        .sidebar nav a.active {
-            color: #667eea;
-            background: #edf2f7;
-            border-left-color: #667eea;
-            font-weight: 600;
-        }
-
-        .content {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            background: #f5f7fa;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            color: #2d3748;
-            font-weight: 700;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #718096;
-            font-size: 14px;
-            background: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-info::before {
-            content: "👤";
-            font-size: 18px;
-        }
-
-        @media (max-width: 768px) {
-            .admin-layout {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0;
-            }
-
-            .content {
-                padding: 20px;
-            }
-        }
-
-        {% block extra_css %}{% endblock %}
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="admin-layout">
         <aside class="sidebar">
             <h2>
                 {% if site_config and site_config.site_logo %}
-                <img src="{{ site_config.site_logo }}" alt="{{ site_config.site_name }}" style="height: 28px; vertical-align: middle; margin-right: 8px; object-fit: contain;">
+                <img src="{{ site_config.site_logo }}" alt="{{ site_config.site_name }}">
                 {% else %}
-                ⚙️ {{ site_config.site_name if site_config else "명월헌" }}
+                ⚙️
                 {% endif %}
-                관리
+                {{ site_config.site_name if site_config else "명월헌" }} 관리
             </h2>
             <nav>
                 <a href="/admin/dashboard" class="{% if request.url.path == '/admin/dashboard' %}active{% endif %}">📊 대시보드</a>
+                <a href="/admin/logs" class="{% if '/admin/logs' in request.url.path %}active{% endif %}">📋 로그</a>
                 <a href="/admin/settings/site" class="{% if '/admin/settings/site' in request.url.path %}active{% endif %}">🎨 사이트 설정</a>
-                <a href="/admin/settings/services" class="{% if '/admin/settings/services' in request.url.path %}active{% endif %}">🔮 서비스 설정</a>
+                <a href="/admin/settings/pages" class="{% if '/admin/settings/pages' in request.url.path or '/admin/settings/services' in request.url.path %}active{% endif %}">📄 페이지 설정</a>
                 <a href="/admin/settings/seo" class="{% if '/admin/settings/seo' in request.url.path %}active{% endif %}">🔍 SEO & 스크립트</a>
                 <a href="/" target="_blank">🌐 사이트 보기</a>
                 <a href="/admin/logout">🚪 로그아웃</a>
@@ -156,5 +40,6 @@
     </div>
 
     {% block extra_js %}{% endblock %}
+    <script src="{{ url_for('static', path='/js/admin.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,1151 @@
+{% extends "layout/base.html" %}
+
+{% block title %}{{ service.title }} - {{ site_config.site_name if site_config else "명월헌" }}{% endblock %}
+
+{% block meta_description %}{{ service.description if service.description else service.title + ' - ' + service.subtitle }}. 정확한 {{ service.title }} 풀이를 무료로 받아보세요.{% endblock %}
+
+{% block meta_keywords %}{{ service.title }}, {% if service.code == 'today' %}오늘의 운세, 띠별운세, 별자리운세{% elif service.code == 'newyear2026' %}2026년 운세, 신년운세, 한 해 운세{% elif service.code == 'saju' %}사주, 사주팔자, 정통사주, 명리학{% elif service.code == 'match' %}궁합, 사주궁합, 연애운{% elif service.code == 'dream' %}꿈해몽, 꿈풀이{% endif %}, 무료운세{% endblock %}
+
+{% block og_title %}{{ service.title }} - {{ service.character_name }}이 알려드려요{% endblock %}
+
+{% block og_description %}{{ service.description if service.description else service.subtitle }}{% endblock %}
+
+{% block og_image %}{{ service.character_form_image if service.character_form_image else service.character_image if service.character_image else url_for('static', path='/images/og-default.jpg') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fortune-header {
+        text-align: center;
+        padding: 120px 20px 40px;
+        margin-top: 60px;
+    }
+
+    .character-emoji {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .character-form-image {
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+        margin: 0 auto 30px;
+        display: block;
+    }
+
+    .fortune-title {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .fortune-subtitle {
+        font-size: 18px;
+        color: #a0a0a0;
+        margin-bottom: 10px;
+    }
+
+    .fortune-description {
+        font-size: 14px;
+        color: #d0d0d0;
+    }
+
+    .form-container {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 600px;
+        margin: 40px auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    label {
+        display: block;
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        background: #ffffff;
+        border: 1px solid #dcdcdc;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #333333;
+        transition: all 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: #999999;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 8px;
+    }
+
+    .btn-submit:hover {
+        background: #8e44ad;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
+    }
+
+    .section-divider {
+        margin: 32px 0;
+        border-top: 1px solid #e0e0e0;
+        padding-top: 32px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #8e44ad;
+        font-weight: 700;
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+
+    /* 성별 선택 버튼 스타일 */
+    .gender-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .gender-btn {
+        flex: 1;
+        padding: 12px;
+        background: #ffffff;
+        border: 1px solid #dcdcdc;
+        border-radius: 8px;
+        color: #333333;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .gender-btn:hover {
+        background: #f8f9fa;
+        border-color: #3498db;
+    }
+
+    .gender-btn.active {
+        background: #3498db;
+        border-color: #3498db;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .gender-btn .emoji {
+        font-size: 20px;
+    }
+
+    /* 양력/음력 선택 버튼 스타일 */
+    .label-with-calendar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .calendar-buttons {
+        display: flex;
+        gap: 6px;
+        background: #f8f9fa;
+        padding: 4px;
+        border-radius: 8px;
+    }
+
+    .calendar-btn {
+        padding: 6px 14px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: #666666;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .calendar-btn:hover {
+        color: #333333;
+        background: rgba(52, 152, 219, 0.1);
+    }
+
+    .calendar-btn.active {
+        background: #3498db;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .calendar-btn svg {
+        display: none;
+    }
+
+    /* 커스텀 알림창 스타일 */
+    .custom-alert {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-alert.active {
+        display: flex;
+    }
+
+    .custom-alert-box {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: alertSlideIn 0.3s ease-out;
+    }
+
+    @keyframes alertSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .custom-alert-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+    .custom-alert-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .custom-alert-message {
+        font-size: 16px;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    .custom-alert-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 40px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .custom-alert-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(34, 42, 45, 0.96);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .loading-content {
+        text-align: center;
+        padding: 50px 60px;
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        border: 2px solid #31464D;
+        max-width: 500px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .loading-content::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            45deg,
+            transparent,
+            rgba(49, 70, 77, 0.05),
+            transparent
+        );
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .loading-emoji {
+        font-size: 100px;
+        animation: float 2s ease-in-out infinite;
+        filter: drop-shadow(0 10px 20px rgba(49, 70, 77, 0.3));
+        position: relative;
+        z-index: 1;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0) rotate(-5deg);
+        }
+        25% {
+            transform: translateY(-15px) rotate(5deg);
+        }
+        50% {
+            transform: translateY(-10px) rotate(-3deg);
+        }
+        75% {
+            transform: translateY(-20px) rotate(3deg);
+        }
+    }
+
+    .loading-text {
+        font-size: 26px;
+        color: #31464D;
+        margin-top: 25px;
+        font-weight: 800;
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading-subtext {
+        font-size: 17px;
+        color: #222A2D;
+        margin-top: 12px;
+        font-weight: 600;
+        line-height: 1.6;
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading-subtext-detail {
+        font-size: 14px;
+        color: #666666;
+        margin-top: 8px;
+        font-weight: 500;
+        font-style: italic;
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(49, 70, 77, 0.15);
+        border-top-color: #31464D;
+        border-right-color: #222A2D;
+        border-radius: 50%;
+        animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        margin-top: 25px;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 0 20px rgba(49, 70, 77, 0.2);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* 별 애니메이션 */
+    .loading-stars {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .loading-star {
+        position: absolute;
+        font-size: 20px;
+        animation: twinkle 2s infinite ease-in-out;
+        opacity: 0.6;
+    }
+
+    .loading-star:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
+    .loading-star:nth-child(2) { top: 25%; right: 15%; animation-delay: 0.5s; }
+    .loading-star:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 1s; }
+    .loading-star:nth-child(4) { bottom: 30%; right: 10%; animation-delay: 1.5s; }
+
+    @keyframes twinkle {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* 꿈해몽 팁 박스 스타일 */
+    .dream-tips {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+        border: 2px solid #d1dce8;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 16px;
+    }
+
+    .dream-tips-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .dream-tips-icon {
+        font-size: 24px;
+    }
+
+    .dream-tips-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #4a5568;
+    }
+
+    .dream-tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .dream-tips-list li {
+        padding: 10px 0;
+        color: #5a6b7d;
+        font-size: 14px;
+        line-height: 1.6;
+        border-bottom: 1px dashed #cbd5e0;
+        position: relative;
+        padding-left: 24px;
+    }
+
+    .dream-tips-list li:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .dream-tips-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .dream-tips-footer {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #cbd5e0;
+        font-size: 13px;
+        color: #718096;
+        font-style: italic;
+        text-align: center;
+    }
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+        .fortune-header {
+            padding: 40px 15px 30px;
+        }
+
+        .character-emoji {
+            font-size: 60px;
+        }
+
+        .character-form-image {
+            max-width: 90vw;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .fortune-title {
+            font-size: 28px;
+        }
+
+        .fortune-subtitle {
+            font-size: 16px;
+        }
+
+        .form-container {
+            margin: 20px 15px;
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .btn-submit {
+            padding: 14px;
+            font-size: 17px;
+        }
+
+        .gender-btn {
+            padding: 12px;
+            font-size: 15px;
+        }
+
+        .calendar-btn {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 18px;
+        }
+
+        .loading-content {
+            padding: 40px 30px;
+            max-width: 90%;
+        }
+
+        .loading-emoji {
+            font-size: 80px;
+        }
+
+        .loading-text {
+            font-size: 22px;
+        }
+
+        .loading-subtext {
+            font-size: 15px;
+        }
+
+        .loading-subtext-detail {
+            font-size: 13px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border-width: 4px;
+        }
+
+        .dream-tips {
+            padding: 16px;
+        }
+
+        .dream-tips-title {
+            font-size: 15px;
+        }
+
+        .dream-tips-list li {
+            font-size: 13px;
+            padding-left: 20px;
+        }
+
+        .dream-tips-footer {
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 로딩 오버레이 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-stars">
+            <div class="loading-star">✨</div>
+            <div class="loading-star">⭐</div>
+            <div class="loading-star">🌟</div>
+            <div class="loading-star">💫</div>
+        </div>
+        <div class="loading-emoji">{{ service.character_emoji }}</div>
+        <div class="loading-text" id="loadingText">조회중입니다...</div>
+        <div class="loading-subtext" id="loadingSubtext">잠시만 기다려주세요</div>
+        <div class="loading-subtext-detail" id="loadingSubtextDetail"></div>
+        <div class="loading-spinner"></div>
+    </div>
+</div>
+
+<div class="fortune-header">
+    <div class="character-emoji">
+        {% if service.character_form_image %}
+            {% if service.character_form_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_form_image or '.webm?' in service.character_form_image %}
+            <video autoplay loop muted playsinline class="character-form-image">
+                <source src="{{ service.character_form_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_form_image else 'webm' }}">
+            </video>
+            {% else %}
+            <img src="{{ service.character_form_image }}" alt="{{ service.character_name }}" class="character-form-image">
+            {% endif %}
+        {% else %}
+            {{ service.character_emoji }}
+        {% endif %}
+    </div>
+    <h1 class="fortune-title">{{ service.title }}</h1>
+    <p class="fortune-subtitle">{{ service.subtitle }}</p>
+    <p class="fortune-description">{{ service.description }}</p>
+</div>
+
+<div class="form-container">
+    <form method="POST" action="/fortune/{{ service.code }}" id="fortuneForm">
+        {% if service.code != "dream" %}
+        <div class="form-group">
+            {% if service.code == "today" %}
+            <label for="name">이름 *</label>
+            <input type="text" id="name" name="name" placeholder="이름을 입력하세요" required>
+            {% else %}
+            <label for="name">이름 (선택)</label>
+            <input type="text" id="name" name="name" placeholder="이름을 입력하세요">
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <div class="label-with-calendar">
+                <label for="birthdate">생년월일 *</label>
+                <div class="calendar-buttons">
+                    <button type="button" class="calendar-btn active" data-calendar="solar">
+                        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C10.1217 16 12.1566 15.1571 13.6569 13.6569C15.1571 12.1566 16 10.1217 16 8C16 5.87827 15.1571 3.84344 13.6569 2.34315C12.1566 0.842855 10.1217 0 8 0C5.87827 0 3.84344 0.842855 2.34315 2.34315C0.842855 3.84344 0 5.87827 0 8C0 10.1217 0.842855 12.1566 2.34315 13.6569C3.84344 15.1571 5.87827 16 8 16ZM11.707 6.707C11.8892 6.5184 11.99 6.2658 11.9877 6.0036C11.9854 5.7414 11.8802 5.49059 11.6948 5.30518C11.5094 5.11977 11.2586 5.0146 10.9964 5.01233C10.7342 5.01005 10.4816 5.11084 10.293 5.293L7 8.586L5.707 7.293C5.5184 7.11084 5.2658 7.01005 5.0036 7.01233C4.7414 7.0146 4.49059 7.11977 4.30518 7.30518C4.11977 7.49059 4.0146 7.7414 4.01233 8.0036C4.01005 8.2658 4.11084 8.5184 4.293 8.707L6.293 10.707C6.48053 10.8945 6.73484 10.9998 7 10.9998C7.26516 10.9998 7.51947 10.8945 7.707 10.707L11.707 6.707Z" fill="#999"></path>
+                        </svg>
+                        <span>양력</span>
+                    </button>
+                    <button type="button" class="calendar-btn" data-calendar="lunar">
+                        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="9" cy="9" r="8" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle>
+                            <path d="M6.33333 9L8.11111 10.7778L11.6667 7.22222" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span>음력</span>
+                    </button>
+                </div>
+            </div>
+            <input type="text" id="birthdate" name="birthdate" placeholder="1965.09.22" inputmode="numeric" required>
+            <input type="hidden" id="birthdate_hidden" name="birthdate_actual">
+            <input type="hidden" id="calendar" name="calendar" value="solar">
+        </div>
+
+        <div class="form-group">
+            <label>성별 *</label>
+            <div class="gender-buttons">
+                <button type="button" class="gender-btn" data-gender="male">
+                    <span>남성</span>
+                </button>
+                <button type="button" class="gender-btn" data-gender="female">
+                    <span>여성</span>
+                </button>
+            </div>
+            <input type="hidden" id="gender" name="gender" required>
+        </div>
+        {% endif %}
+
+        {% if service.code == "today" %}
+        <div class="form-group">
+            <label for="birth_time">태어난 시간 (선택)</label>
+            <select id="birth_time" name="birth_time">
+                <option value="">모름</option>
+                <option value="23">자시 子 (23:00-00:59)</option>
+                <option value="01">축시 丑 (01:00-02:59)</option>
+                <option value="03">인시 寅 (03:00-04:59)</option>
+                <option value="05">묘시 卯 (05:00-06:59)</option>
+                <option value="07">진시 辰 (07:00-08:59)</option>
+                <option value="09">사시 巳 (09:00-10:59)</option>
+                <option value="11">오시 午 (11:00-12:59)</option>
+                <option value="13">미시 未 (13:00-14:59)</option>
+                <option value="15">신시 申 (15:00-16:59)</option>
+                <option value="17">유시 酉 (17:00-18:59)</option>
+                <option value="19">술시 戌 (19:00-20:59)</option>
+                <option value="21">해시 亥 (21:00-22:59)</option>
+            </select>
+        </div>
+        {% endif %}
+
+        {% if service.code == "saju" %}
+        <div class="form-group">
+            <label for="birth_time">태어난 시간 (선택)</label>
+            <select id="birth_time" name="birth_time">
+                <option value="">모름</option>
+                <option value="23">자시 子 (23:00-00:59)</option>
+                <option value="01">축시 丑 (01:00-02:59)</option>
+                <option value="03">인시 寅 (03:00-04:59)</option>
+                <option value="05">묘시 卯 (05:00-06:59)</option>
+                <option value="07">진시 辰 (07:00-08:59)</option>
+                <option value="09">사시 巳 (09:00-10:59)</option>
+                <option value="11">오시 午 (11:00-12:59)</option>
+                <option value="13">미시 未 (13:00-14:59)</option>
+                <option value="15">신시 申 (15:00-16:59)</option>
+                <option value="17">유시 酉 (17:00-18:59)</option>
+                <option value="19">술시 戌 (19:00-20:59)</option>
+                <option value="21">해시 亥 (21:00-22:59)</option>
+            </select>
+        </div>
+        {% endif %}
+
+        {% if service.code == "newyear2026" %}
+        <div class="form-group">
+            <label for="birth_time">태어난 시간 (선택)</label>
+            <select id="birth_time" name="birth_time">
+                <option value="">모름</option>
+                <option value="23">자시 子 (23:00-00:59)</option>
+                <option value="01">축시 丑 (01:00-02:59)</option>
+                <option value="03">인시 寅 (03:00-04:59)</option>
+                <option value="05">묘시 卯 (05:00-06:59)</option>
+                <option value="07">진시 辰 (07:00-08:59)</option>
+                <option value="09">사시 巳 (09:00-10:59)</option>
+                <option value="11">오시 午 (11:00-12:59)</option>
+                <option value="13">미시 未 (13:00-14:59)</option>
+                <option value="15">신시 申 (15:00-16:59)</option>
+                <option value="17">유시 酉 (17:00-18:59)</option>
+                <option value="19">술시 戌 (19:00-20:59)</option>
+                <option value="21">해시 亥 (21:00-22:59)</option>
+            </select>
+        </div>
+        {% endif %}
+
+        {% if service.code == "match" %}
+        <div class="section-divider">
+            <h3 class="section-title">상대방 정보</h3>
+        </div>
+
+        <div class="form-group">
+            <label for="partner_name">상대방 이름 (선택)</label>
+            <input type="text" id="partner_name" name="partner_name" placeholder="상대방 이름">
+        </div>
+
+        <div class="form-group">
+            <div class="label-with-calendar">
+                <label for="partner_birthdate">상대방 생년월일 *</label>
+                <div class="calendar-buttons">
+                    <button type="button" class="calendar-btn active" data-calendar="solar" data-target="partner_calendar">
+                        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C10.1217 16 12.1566 15.1571 13.6569 13.6569C15.1571 12.1566 16 10.1217 16 8C16 5.87827 15.1571 3.84344 13.6569 2.34315C12.1566 0.842855 10.1217 0 8 0C5.87827 0 3.84344 0.842855 2.34315 2.34315C0.842855 3.84344 0 5.87827 0 8C0 10.1217 0.842855 12.1566 2.34315 13.6569C3.84344 15.1571 5.87827 16 8 16ZM11.707 6.707C11.8892 6.5184 11.99 6.2658 11.9877 6.0036C11.9854 5.7414 11.8802 5.49059 11.6948 5.30518C11.5094 5.11977 11.2586 5.0146 10.9964 5.01233C10.7342 5.01005 10.4816 5.11084 10.293 5.293L7 8.586L5.707 7.293C5.5184 7.11084 5.2658 7.01005 5.0036 7.01233C4.7414 7.0146 4.49059 7.11977 4.30518 7.30518C4.11977 7.49059 4.0146 7.7414 4.01233 8.0036C4.01005 8.2658 4.11084 8.5184 4.293 8.707L6.293 10.707C6.48053 10.8945 6.73484 10.9998 7 10.9998C7.26516 10.9998 7.51947 10.8945 7.707 10.707L11.707 6.707Z" fill="#999"></path>
+                        </svg>
+                        <span>양력</span>
+                    </button>
+                    <button type="button" class="calendar-btn" data-calendar="lunar" data-target="partner_calendar">
+                        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="9" cy="9" r="8" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle>
+                            <path d="M6.33333 9L8.11111 10.7778L11.6667 7.22222" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span>음력</span>
+                    </button>
+                </div>
+            </div>
+            <input type="text" id="partner_birthdate" name="partner_birthdate" placeholder="1965.09.22" inputmode="numeric" required>
+            <input type="hidden" id="partner_birthdate_hidden" name="partner_birthdate_actual">
+            <input type="hidden" id="partner_calendar" name="partner_calendar" value="solar">
+        </div>
+
+        <div class="form-group">
+            <label>상대방 성별 *</label>
+            <div class="gender-buttons">
+                <button type="button" class="gender-btn" data-gender="male" data-target="partner_gender">
+                    <span>남성</span>
+                </button>
+                <button type="button" class="gender-btn" data-gender="female" data-target="partner_gender">
+                    <span>여성</span>
+                </button>
+            </div>
+            <input type="hidden" id="partner_gender" name="partner_gender" required>
+        </div>
+        {% endif %}
+
+        {% if service.code == "dream" %}
+        <div class="form-group">
+            <label for="dream_content">꿈 내용을 입력해주세요 *</label>
+            <textarea id="dream_content" name="dream_content" placeholder="어젯밤에 꾼 꿈을 자세히 적어주시게나..." style="min-height: 180px;" required></textarea>
+
+            <div class="dream-tips">
+                <div class="dream-tips-header">
+                    <span class="dream-tips-icon">💡</span>
+                    <span class="dream-tips-title">백운선생의 꿈 이야기 작성법</span>
+                </div>
+                <ul class="dream-tips-list">
+                    <li><strong>누가 나왔는가?</strong> 꿈 속 인물을 명확히 적어주시게. 아는 사람인지, 낯선 이인지 말이네.</li>
+                    <li><strong>어디서 벌어졌는가?</strong> 장소가 중요하네. 집인지, 산인지, 물가인지 자세히 말해주게.</li>
+                    <li><strong>무슨 일이 일어났는가?</strong> 꿈 속에서 벌어진 일을 처음부터 끝까지 순서대로 말씀해주시게.</li>
+                    <li><strong>특별한 물건이 있었는가?</strong> 돈, 동물, 금은보화... 이런 것들이 꿈 풀이의 열쇠라네.</li>
+                    <li><strong>기분이 어땠는가?</strong> 꿈 속에서 느낀 감정과 깨어나서의 기분까지 말해주게나.</li>
+                </ul>
+                <div class="dream-tips-footer">
+                    ⭐ 자세히 적을수록 더 정확한 해몽을 해드릴 수 있답니다
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            {{ service.character_name }}에게 물어보기
+        </button>
+    </form>
+</div>
+
+<script>
+    // 서비스별 로딩 메시지
+    const loadingMessages = {
+        'today': {
+            main: '오늘의 운세를 분석하고 있습니다',
+            sub: 'AI가 당신의 사주를 깊이 살펴보고 있어요',
+            detail: '음양오행의 기운을 정밀하게 계산 중...'
+        },
+        'saju': {
+            main: '정통 사주팔자를 풀이하고 있습니다',
+            sub: 'AI가 천간·지지와 음양오행을 분석하고 있어요',
+            detail: '수천 년 역사의 사주 이론과 AI가 만나는 순간...'
+        },
+        'newyear2026': {
+            main: '2026년 신년운세를 점성하고 있습니다',
+            sub: 'AI가 병오년의 기운과 당신의 사주를 분석 중이에요',
+            detail: '새해의 운명을 음양오행으로 풀어내는 중...'
+        },
+        'match': {
+            main: '두 분의 궁합을 분석하고 있습니다',
+            sub: 'AI가 사주의 상생상극 관계를 살펴보고 있어요',
+            detail: '천생연분인지 음양오행이 말해줄 거예요...'
+        },
+        'dream': {
+            main: '백운선생께서 꿈을 풀이하고 계십니다',
+            sub: '꿈 속 상징과 의미를 해석하고 있어요',
+            detail: '오랜 경험으로 꿈의 길흉화복을 살피는 중...'
+        }
+    };
+
+    const serviceCode = '{{ service.code }}';
+    const form = document.getElementById('fortuneForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const birthdateInput = document.getElementById('birthdate');
+    const partnerBirthdateInput = document.getElementById('partner_birthdate');
+
+    // 생년월일 자동 포맷팅 함수
+    function formatBirthdate(input) {
+        input.addEventListener('input', function(e) {
+            const inputEl = e.target;
+            let value = inputEl.value.replace(/[^\d]/g, ''); // 숫자만 남기기
+
+            // 최대 8자리까지만
+            if (value.length > 8) {
+                value = value.substring(0, 8);
+            }
+
+            // 포맷팅: 1989.09.22
+            let formatted = '';
+            if (value.length >= 4) {
+                formatted = value.substring(0, 4);
+                if (value.length >= 6) {
+                    formatted += '.' + value.substring(4, 6);
+                    if (value.length >= 8) {
+                        formatted += '.' + value.substring(6, 8);
+                    } else if (value.length > 6) {
+                        formatted += '.' + value.substring(6);
+                    }
+                } else if (value.length > 4) {
+                    formatted += '.' + value.substring(4);
+                }
+            } else {
+                formatted = value;
+            }
+
+            inputEl.value = formatted;
+        });
+    }
+
+    // 생년월일 포맷팅 적용 (꿈해몽이 아닐 때만)
+    if (birthdateInput) {
+        formatBirthdate(birthdateInput);
+    }
+
+    // 상대방 생년월일 포맷팅 적용 (사주궁합용)
+    if (partnerBirthdateInput) {
+        formatBirthdate(partnerBirthdateInput);
+    }
+
+    // 성별 버튼 클릭 이벤트
+    document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const gender = this.getAttribute('data-gender');
+            const target = this.getAttribute('data-target') || 'gender';
+
+            // 같은 그룹의 다른 버튼들에서 active 클래스 제거
+            const parentButtons = this.parentElement;
+            parentButtons.querySelectorAll('.gender-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+
+            // 현재 버튼에 active 클래스 추가
+            this.classList.add('active');
+
+            // hidden input에 값 설정
+            document.getElementById(target).value = gender;
+        });
+    });
+
+    // 양력/음력 버튼 클릭 이벤트
+    document.querySelectorAll('.calendar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const calendar = this.getAttribute('data-calendar');
+            const target = this.getAttribute('data-target') || 'calendar';
+
+            // 같은 그룹의 다른 버튼들에서 active 클래스 제거
+            const parentButtons = this.parentElement;
+            parentButtons.querySelectorAll('.calendar-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+
+            // 현재 버튼에 active 클래스 추가
+            this.classList.add('active');
+
+            // hidden input에 값 설정
+            document.getElementById(target).value = calendar;
+        });
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 이름 유효성 검사 (꿈해몽이 아닐 때만)
+        const nameInput = document.getElementById('name');
+        if (nameInput && nameInput.value.trim()) {
+            const name = nameInput.value.trim();
+            // 완성된 한글만 허용 (자음/모음 단독 불가)
+            const koreanRegex = /^[가-힣]+$/;
+            // 자음만 있는지 체크 (ㄱ-ㅎ)
+            const consonantRegex = /[ㄱ-ㅎ]/;
+            // 모음만 있는지 체크 (ㅏ-ㅣ)
+            const vowelRegex = /[ㅏ-ㅣ]/;
+
+            if (consonantRegex.test(name) || vowelRegex.test(name)) {
+                alert('완성된 한글 이름만 입력 가능합니다.');
+                nameInput.focus();
+                return;
+            }
+
+            if (!koreanRegex.test(name)) {
+                alert('이름은 한글만 입력 가능합니다.');
+                nameInput.focus();
+                return;
+            }
+
+            if (name.length < 2 || name.length > 4) {
+                alert('이름은 2글자 이상 4글자 이하로 입력해주세요.');
+                nameInput.focus();
+                return;
+            }
+        }
+
+        // 생년월일 유효성 검사 (꿈해몽이 아닐 때만)
+        if (birthdateInput && serviceCode !== 'dream') {
+            const birthdateValue = birthdateInput.value.replace(/\./g, '');
+        if (birthdateValue.length === 8) {
+            const year = parseInt(birthdateValue.substring(0, 4));
+            const month = parseInt(birthdateValue.substring(4, 6));
+            const day = parseInt(birthdateValue.substring(6, 8));
+
+            // 년도 유효성 검사 (150살 이상 불가)
+            const currentYear = new Date().getFullYear();
+            const minYear = currentYear - 150;
+            if (year < minYear || year > currentYear) {
+                alert('년도를 다시 확인해주세요. (150살 이상은 검색할 수 없습니다)');
+                birthdateInput.focus();
+                return;
+            }
+
+            // 월 유효성 검사 (1-12월)
+            if (month < 1 || month > 12) {
+                alert('월을 다시 확인해주세요. (1-12월만 가능합니다)');
+                birthdateInput.focus();
+                return;
+            }
+
+            // 일 유효성 검사 (1-31일)
+            if (day < 1 || day > 31) {
+                alert('일을 다시 확인해주세요. (1-31일만 가능합니다)');
+                birthdateInput.focus();
+                return;
+            }
+
+            // 월별 일수 체크
+            const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            if (day > daysInMonth[month - 1]) {
+                alert(`${month}월은 최대 ${daysInMonth[month - 1]}일까지 입력 가능합니다.`);
+                birthdateInput.focus();
+                return;
+            }
+
+            // hidden input에 YYYY-MM-DD 형식으로 저장
+            birthdateInput.name = '';  // 기존 name 제거
+            const hiddenInput = document.getElementById('birthdate_hidden');
+            hiddenInput.name = 'birthdate';  // hidden에 name 부여
+            hiddenInput.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+        }
+
+        // 상대방 생년월일 변환 (사주궁합용)
+        if (partnerBirthdateInput) {
+            const partnerBirthdateValue = partnerBirthdateInput.value.replace(/\./g, '');
+            if (partnerBirthdateValue.length === 8) {
+                const year = parseInt(partnerBirthdateValue.substring(0, 4));
+                const month = parseInt(partnerBirthdateValue.substring(4, 6));
+                const day = parseInt(partnerBirthdateValue.substring(6, 8));
+
+                // 년도 유효성 검사 (150살 이상 불가)
+                const currentYear = new Date().getFullYear();
+                const minYear = currentYear - 150;
+                if (year < minYear || year > currentYear) {
+                    alert('상대방 년도를 다시 확인해주세요. (150살 이상은 검색할 수 없습니다)');
+                    partnerBirthdateInput.focus();
+                    return;
+                }
+
+                // 월 유효성 검사 (1-12월)
+                if (month < 1 || month > 12) {
+                    alert('상대방 월을 다시 확인해주세요. (1-12월만 가능합니다)');
+                    partnerBirthdateInput.focus();
+                    return;
+                }
+
+                // 일 유효성 검사 (1-31일)
+                if (day < 1 || day > 31) {
+                    alert('상대방 일을 다시 확인해주세요. (1-31일만 가능합니다)');
+                    partnerBirthdateInput.focus();
+                    return;
+                }
+
+                // 월별 일수 체크
+                const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                if (day > daysInMonth[month - 1]) {
+                    alert(`상대방 생년월일: ${month}월은 최대 ${daysInMonth[month - 1]}일까지 입력 가능합니다.`);
+                    partnerBirthdateInput.focus();
+                    return;
+                }
+
+                // hidden input에 YYYY-MM-DD 형식으로 저장
+                partnerBirthdateInput.name = '';  // 기존 name 제거
+                const hiddenInput = document.getElementById('partner_birthdate_hidden');
+                hiddenInput.name = 'partner_birthdate';  // hidden에 name 부여
+                hiddenInput.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+        }
+
+        // 버튼 비활성화
+        submitBtn.disabled = true;
+        submitBtn.textContent = '조회중...';
+
+        // 로딩 오버레이 표시
+        loadingOverlay.classList.add('active');
+
+        const messages = loadingMessages[serviceCode] || {
+            main: '조회중입니다',
+            sub: '잠시만 기다려주세요',
+            detail: ''
+        };
+
+        loadingText.textContent = messages.main;
+        document.getElementById('loadingSubtext').textContent = messages.sub;
+        document.getElementById('loadingSubtextDetail').textContent = messages.detail;
+
+        // 폼 제출
+        form.submit();
+    });
+</script>
+{% endblock %}

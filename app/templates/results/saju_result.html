@@ -1038,7 +1038,7 @@
 
 <script>
     // 백엔드에서 계산된 사주 데이터
-    const backendSajuData = {{ result.saju_data | tojson if result.saju_data else 'null' }};
+    const backendSajuData = {% if result.saju_data %}{{ result.saju_data | tojson }}{% else %}null{% endif %};
 
     // 사주 데이터 구성
     const sajuData = {

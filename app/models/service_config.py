@@ -17,6 +17,8 @@ class FortuneServiceConfig(Base):
     title = Column(String(100))  # "오늘의 운세"
     subtitle = Column(String(200))  # "야광묘가 알려드려요"
     description = Column(Text)  # "행운의 색상·숫자·방향"
+    url_path = Column(String(100), nullable=True)  # "/fortune/saju" - 시작 페이지 URL 경로
+    result_url_path = Column(String(100), nullable=True)  # "/fortune/saju" (POST) - 결과 페이지 URL 경로
 
     # 캐릭터
     character_name = Column(String(50))  # "야광묘"

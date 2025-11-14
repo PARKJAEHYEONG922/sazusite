@@ -10,7 +10,8 @@ def build_user_key(
     name: Optional[str],
     birthdate: date,
     gender: str,
-    partner_birthdate: Optional[date] = None
+    partner_birthdate: Optional[date] = None,
+    birth_time: Optional[str] = None
 ) -> str:
     """
     동일인 식별용 user_key 생성
@@ -20,6 +21,7 @@ def build_user_key(
         birthdate: 생년월일
         gender: 성별
         partner_birthdate: 상대방 생년월일 (궁합용)
+        birth_time: 출생시간 (선택)
 
     Returns:
         SHA256 해시 문자열
@@ -30,6 +32,10 @@ def build_user_key(
         birthdate.isoformat(),
         gender
     ]
+
+    # 출생시간 포함 (있을 경우)
+    if birth_time:
+        data_parts.append(birth_time)
 
     if partner_birthdate:
         data_parts.append(partner_birthdate.isoformat())

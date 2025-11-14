@@ -1,0 +1,706 @@
+{% extends "layout/base.html" %}
+
+{% block title %}{{ service.title }} 결과 - {{ site_config.site_name if site_config else "명월헌" }}{% endblock %}
+
+{% block meta_description %}{{ data.name if data else '고객' }}님의 {{ service.title }} 풀이 결과입니다. {{ service.character_name }}이 자세히 풀어드렸습니다.{% endblock %}
+
+{% block meta_keywords %}{{ service.title }}, {% if service.code == 'today' %}오늘의 운세, 띠별운세{% elif service.code == 'newyear2026' %}2026년 운세, 신년운세{% elif service.code == 'match' %}궁합, 사주궁합{% elif service.code == 'dream' %}꿈해몽, 꿈풀이{% endif %}, 운세 결과{% endblock %}
+
+{% block og_title %}{{ data.name if data else '고객' }}님의 {{ service.title }} 결과{% endblock %}
+
+{% block og_description %}{{ service.character_name }}이 자세히 풀어드린 {{ service.title }} 결과를 확인하세요.{% endblock %}
+
+{% block og_image %}{{ service.character_image if service.character_image else url_for('static', path='/images/og-fortune.jpg') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-header {
+        text-align: center;
+        padding: 100px 20px 40px;
+        margin-top: 60px;
+    }
+
+    .character-emoji {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+
+    .character-image {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        margin: 0 auto 20px;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .character-image {
+            max-width: 90vw;
+        }
+    }
+
+    .result-title {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .result-date {
+        color: #a0a0a0;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .cache-notice {
+        display: inline-block;
+        padding: 8px 16px;
+        background: rgba(76, 175, 80, 0.2);
+        border: 1px solid #4CAF50;
+        border-radius: 20px;
+        color: #4CAF50;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+    .result-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    /* 인사말 스타일 */
+    .greeting-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        font-size: 18px;
+        line-height: 1.8;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    /* 운세 섹션 카드 스타일 */
+    .fortune-card {
+        background: #ffffff;
+        border: 2px solid rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        color: #000000;
+    }
+
+    .fortune-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .fortune-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .fortune-card-icon {
+        font-size: 28px;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .fortune-card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .fortune-card-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #444;
+    }
+
+    /* 행운 요소 스타일 */
+    .lucky-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .lucky-item {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .lucky-item-label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .lucky-item-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    /* 조언 섹션 스타일 */
+    .advice-section {
+        display: grid;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .advice-item {
+        padding: 15px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.02);
+        border-left: 4px solid #667eea;
+    }
+
+    .advice-item.avoid {
+        border-left-color: #f5576c;
+        background: rgba(245, 87, 108, 0.05);
+    }
+
+    .advice-item.recommend {
+        border-left-color: #4CAF50;
+        background: rgba(76, 175, 80, 0.05);
+    }
+
+    .advice-item-title {
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 15px;
+    }
+
+    .advice-item-content {
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .final-advice {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        border: none;
+        padding: 20px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        border-radius: 12px;
+        margin-top: 10px;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .actions {
+        text-align: center;
+        margin: 40px 0;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(245, 87, 108, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .result-container {
+            padding: 0 15px;
+        }
+
+        .greeting-section {
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .fortune-card {
+            padding: 20px;
+        }
+
+        .fortune-card-title {
+            font-size: 18px;
+        }
+
+        .lucky-items {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="result-header">
+    <div class="character-emoji">
+        {% if service.character_image %}
+            {% if service.character_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_image or '.webm?' in service.character_image %}
+                <video autoplay loop muted playsinline class="character-image" preload="auto">
+                    <source src="{{ service.character_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_image else 'webm' }}">
+                    브라우저가 비디오를 지원하지 않습니다.
+                </video>
+            {% else %}
+                <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="character-image">
+            {% endif %}
+        {% else %}
+            {{ service.character_emoji }}
+        {% endif %}
+    </div>
+    <h1 class="result-title">{{ service.title }}</h1>
+    <p class="result-date">{{ today.strftime('%Y년 %m월 %d일') }}</p>
+    {% if is_cached %}
+    <div class="cache-notice">오늘 이미 보신 운세예요</div>
+    {% endif %}
+</div>
+
+{% if result.daily_fortune_info %}
+<div class="result-container">
+    <div class="fortune-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 30px;">
+        <div class="fortune-card-header" style="border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
+            <span style="font-size: 28px;">📅</span>
+            <h3 class="fortune-card-title" style="color: white;">오늘의 천간지지</h3>
+        </div>
+        <div style="margin-top: 20px;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 48px; font-weight: bold; margin-bottom: 10px;">
+                    {{ result.daily_fortune_info.ganzhi_full }}
+                </div>
+                <div style="font-size: 24px; margin-bottom: 5px;">
+                    {{ result.daily_fortune_info.ganzhi_kr }}
+                </div>
+                <div style="font-size: 18px; opacity: 0.9;">
+                    오행: {{ result.daily_fortune_info.ohang }} | 신살: {{ result.daily_fortune_info.sinsal }}
+                </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span style="font-size: 32px; font-weight: bold;">
+                        {% if result.daily_fortune_info.luck_level == '대길' %}
+                            🌟 {{ result.daily_fortune_info.luck_level }} 🌟
+                        {% elif result.daily_fortune_info.luck_level == '중길' or result.daily_fortune_info.luck_level == '소길' %}
+                            ✨ {{ result.daily_fortune_info.luck_level }} ✨
+                        {% elif result.daily_fortune_info.luck_level == '평' %}
+                            ⭐ {{ result.daily_fortune_info.luck_level }} ⭐
+                        {% elif result.daily_fortune_info.luck_level == '소흉' or result.daily_fortune_info.luck_level == '중흉' %}
+                            ☁️ {{ result.daily_fortune_info.luck_level }} ☁️
+                        {% else %}
+                            ⚠️ {{ result.daily_fortune_info.luck_level }} ⚠️
+                        {% endif %}
+                    </span>
+                </div>
+                <p style="font-size: 16px; line-height: 1.8; text-align: center; margin: 0;">
+                    {{ result.daily_fortune_info.description }}
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 15px;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">✅ 좋은 일</div>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
+                        {% for activity in result.daily_fortune_info.good_activities %}
+                        <li>{{ activity }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div style="background: rgba(244, 67, 54, 0.3); border-radius: 12px; padding: 15px;">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">❌ 나쁜 일</div>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
+                        {% for activity in result.daily_fortune_info.bad_activities %}
+                        <li>{{ activity }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if result.compatibility_info %}
+<div class="result-container">
+    <div class="fortune-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; margin-bottom: 30px;">
+        <div class="fortune-card-header" style="border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
+            <span style="font-size: 28px;">💕</span>
+            <h3 class="fortune-card-title" style="color: white;">사주 궁합 분석</h3>
+        </div>
+        <div style="margin-top: 20px;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 56px; font-weight: bold; margin-bottom: 10px;">
+                    {{ result.compatibility_info.score }}점
+                </div>
+                <div style="font-size: 28px; margin-bottom: 15px;">
+                    {{ result.compatibility_info.level }}
+                </div>
+                <div style="display: flex; justify-content: center; gap: 30px; font-size: 18px;">
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">{{ request_data.name }}</div>
+                        <div style="font-size: 24px; font-weight: bold;">{{ result.compatibility_info.person1.day_pillar }}</div>
+                        <div style="font-size: 16px;">{{ result.compatibility_info.person1.ohang }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; font-size: 32px;">💫</div>
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">{{ request_data.partner_name }}</div>
+                        <div style="font-size: 24px; font-weight: bold;">{{ result.compatibility_info.person2.day_pillar }}</div>
+                        <div style="font-size: 16px;">{{ result.compatibility_info.person2.ohang }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                <div style="background: rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 15px;">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">🔥 오행 관계: {{ result.compatibility_info.ohang_relation.type }}</div>
+                    <p style="font-size: 14px; line-height: 1.6; margin: 0;">{{ result.compatibility_info.ohang_relation.description }}</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 15px;">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">☯️ 일주 관계: {{ result.compatibility_info.ilju_compatibility.gan_relation }}</div>
+                    <p style="font-size: 14px; line-height: 1.6; margin: 0;">{{ result.compatibility_info.ilju_compatibility.description }}</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 15px;">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">🌙 지지 관계: {{ result.compatibility_info.jiji_relation.type }}</div>
+                    <p style="font-size: 14px; line-height: 1.6; margin: 0;">{{ result.compatibility_info.jiji_relation.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if result.year_fortune_info %}
+<div class="result-container">
+    <div class="fortune-card" style="background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); color: white; margin-bottom: 30px;">
+        <div class="fortune-card-header" style="border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
+            <span style="font-size: 28px;">🎊</span>
+            <h3 class="fortune-card-title" style="color: white;">2026년 천간지지</h3>
+        </div>
+        <div style="margin-top: 20px;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 48px; font-weight: bold; margin-bottom: 10px;">
+                    {{ result.year_fortune_info.ganzhi_full }}
+                </div>
+                <div style="font-size: 20px; opacity: 0.95; margin-bottom: 10px;">
+                    {{ result.year_fortune_info.description }}
+                </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">📅 월별 천간지지</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 14px;">
+                    {% for month_data in result.year_fortune_info.monthly_ganzhi %}
+                    <div style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-weight: bold;">{{ month_data.month }}월</div>
+                        <div>{{ month_data.ganzhi_hanja }}</div>
+                        <div style="font-size: 12px; opacity: 0.9;">({{ month_data.ganzhi_kr }})</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 20px;">
+                <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">✨ 2026년 대길일</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 14px;">
+                    {% for lucky_day in result.year_fortune_info.lucky_days %}
+                    <div style="background: rgba(255, 215, 0, 0.2); border-radius: 8px; padding: 10px;">
+                        <div style="font-weight: bold;">{{ lucky_day.date }}</div>
+                        <div>{{ lucky_day.ganzhi }} - {{ lucky_day.sinsal }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="result-container" id="fortuneResult">
+    <!-- JavaScript로 동적 생성 -->
+</div>
+
+<div class="actions">
+    <a href="/" class="btn btn-primary">메인으로</a>
+    <a href="/fortune/{{ service.code }}" class="btn btn-secondary">다시 보기</a>
+</div>
+
+<script>
+    // 운세 텍스트 원본
+    const fortuneText = {{ result.result_text | tojson }};
+
+    // 섹션별 아이콘 매핑
+    const sectionIcons = {
+        '총운': '⭐',
+        '종합운': '⭐',
+        '금전운': '💰',
+        '연애': '💖',
+        '대인운': '👥',
+        '연애/대인운': '💖',
+        '직장': '💼',
+        '사업운': '📈',
+        '직장·사업운': '💼',
+        '건강운': '💪',
+        '학업': '📚',
+        '성취운': '🎯',
+        '학업·성취운': '📚',
+        '행운': '🍀',
+        '행운 요소': '🍀',
+        '조언': '💡',
+        '오늘의 조언': '💡',
+        // 꿈해몽 관련 섹션
+        '꿈이 전하는 뜻': '🌙',
+        '꿈 속 징표들': '🔮',
+        '길몽인가, 흉몽인가': '⚖️',
+        '한 마디로 정리하자면': '📝'
+    };
+
+    function parseFortuneText(text) {
+        const lines = text.split('\n');
+        const sections = [];
+        let currentSection = null;
+        let greeting = '';
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+
+            // **인사말** 등의 헤더 제거하고 직접 인사말 추출
+            if (!currentSection && !line.startsWith('**') && line.length > 0) {
+                greeting += line + ' ';
+                continue;
+            }
+
+            // ** 제목 ** 형식의 섹션 헤더 찾기
+            const headerMatch = line.match(/^\*\*(.+?)\*\*$/);
+            if (headerMatch) {
+                if (currentSection) {
+                    sections.push(currentSection);
+                }
+
+                let title = headerMatch[1].trim();
+                // 숫자와 점 제거 (예: "1. 오늘의 총운" -> "총운")
+                title = title.replace(/^\d+\.\s*/, '');
+                title = title.replace(/^오늘의\s*/, '');
+
+                // 아이콘 찾기
+                let icon = '✨';
+                for (const [key, value] of Object.entries(sectionIcons)) {
+                    if (title.includes(key)) {
+                        icon = value;
+                        break;
+                    }
+                }
+
+                currentSection = {
+                    title: title,
+                    icon: icon,
+                    content: '',
+                    isLucky: title.includes('행운'),
+                    isAdvice: title.includes('조언') || title.includes('오늘의 조언')
+                };
+            } else if (currentSection) {
+                currentSection.content += line + '\n';
+            }
+        }
+
+        if (currentSection) {
+            sections.push(currentSection);
+        }
+
+        return { greeting: greeting.trim(), sections };
+    }
+
+    function renderLuckySection(content) {
+        const lines = content.split('\n').filter(l => l.trim());
+        let html = '<div class="lucky-items">';
+
+        for (const line of lines) {
+            const match = line.match(/[-•*]\s*(.+?):\s*(.+)/);
+            if (match) {
+                const label = match[1].replace('행운의 ', '').trim();
+                const value = match[2].trim();
+                html += `
+                    <div class="lucky-item">
+                        <div class="lucky-item-label">${label}</div>
+                        <div class="lucky-item-value">${value}</div>
+                    </div>
+                `;
+            }
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function renderAdviceSection(content) {
+        const lines = content.split('\n').filter(l => l.trim());
+
+        // "피해야 할"이나 "추천" 키워드가 있는지 확인
+        const hasAdviceStructure = lines.some(line =>
+            line.includes('피해야 할') || line.includes('추천')
+        );
+
+        // 키워드가 없으면 일반 콘텐츠로 렌더링 (꿈해몽 조언 등)
+        if (!hasAdviceStructure) {
+            return renderRegularContent(content);
+        }
+
+        // 기존 조언 섹션 렌더링 로직
+        let html = '<div class="advice-section">';
+
+        let currentType = null;
+        let currentContent = '';
+
+        for (const line of lines) {
+            if (line.includes('피해야 할')) {
+                if (currentType) {
+                    html += renderAdviceItem(currentType, currentContent);
+                }
+                currentType = 'avoid';
+                currentContent = '';
+            } else if (line.includes('추천')) {
+                if (currentType) {
+                    html += renderAdviceItem(currentType, currentContent);
+                }
+                currentType = 'recommend';
+                currentContent = '';
+            } else if (line.includes('조언') && !line.includes('피해야') && !line.includes('추천')) {
+                if (currentType) {
+                    html += renderAdviceItem(currentType, currentContent);
+                }
+                // 감성 조언은 마지막에 특별하게 표시
+                const adviceMatch = line.match(/[-•]\s*(.+?):\s*(.+)/);
+                if (adviceMatch) {
+                    html += `<div class="final-advice">${adviceMatch[2]}</div>`;
+                }
+                currentType = null;
+                currentContent = '';
+            } else if (currentType) {
+                const match = line.match(/[-•]\s*(.+?):\s*(.+)/);
+                if (match) {
+                    currentContent = match[2];
+                } else if (!line.startsWith('-') && !line.startsWith('•')) {
+                    currentContent += ' ' + line;
+                }
+            }
+        }
+
+        if (currentType && currentContent) {
+            html += renderAdviceItem(currentType, currentContent);
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function renderAdviceItem(type, content) {
+        const title = type === 'avoid' ? '⚠️ 피해야 할 행동' : '✅ 추천 행동';
+        return `
+            <div class="advice-item ${type}">
+                <div class="advice-item-title">${title}</div>
+                <div class="advice-item-content">${content}</div>
+            </div>
+        `;
+    }
+
+    function renderRegularContent(content) {
+        // - 로 시작하는 줄을 분리하여 각각 문단으로 처리
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+        let html = '';
+
+        for (const line of lines) {
+            // - 로 시작하는 경우 제거
+            let processedLine = line.replace(/^-\s*/, '');
+
+            // **텍스트** 형식을 <strong>텍스트</strong>로 변환
+            processedLine = processedLine.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+            // 각 줄을 문단으로 표시
+            html += `<p style="margin-bottom: 12px; line-height: 1.8;">${processedLine}</p>`;
+        }
+
+        return html;
+    }
+
+    function renderFortune() {
+        const { greeting, sections } = parseFortuneText(fortuneText);
+        const container = document.getElementById('fortuneResult');
+
+        let html = '';
+
+        // 인사말 섹션
+        if (greeting) {
+            html += `<div class="greeting-section">${greeting}</div>`;
+        }
+
+        // 각 섹션 렌더링
+        for (const section of sections) {
+            html += `
+                <div class="fortune-card">
+                    <div class="fortune-card-header">
+                        <div class="fortune-card-icon">${section.icon}</div>
+                        <h3 class="fortune-card-title">${section.title}</h3>
+                    </div>
+                    <div class="fortune-card-content">
+            `;
+
+            if (section.isLucky) {
+                html += renderLuckySection(section.content);
+            } else if (section.isAdvice) {
+                html += renderAdviceSection(section.content);
+            } else {
+                html += renderRegularContent(section.content);
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // 페이지 로드시 실행
+    renderFortune();
+</script>
+{% endblock %}

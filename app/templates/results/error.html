@@ -1,0 +1,60 @@
+{% extends "layout/base.html" %}
+
+{% block title %}오류 - {{ site_config.site_name if site_config else "명월헌" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 80px auto;
+        text-align: center;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        border-radius: 20px;
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .error-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #ef4444;
+    }
+
+    .error-message {
+        font-size: 16px;
+        color: #d0d0d0;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn-home {
+        display: inline-block;
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+    .btn-home:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(245, 87, 108, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h1 class="error-title">오류가 발생했습니다</h1>
+    <p class="error-message">{{ message }}</p>
+    <a href="/" class="btn-home">메인으로 돌아가기</a>
+</div>
+{% endblock %}

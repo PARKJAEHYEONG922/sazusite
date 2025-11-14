@@ -1,24 +1,45 @@
 {% extends "layout/admin_base.html" %}
 
-{% block page_title %}서비스 설정{% endblock %}
+{% block page_title %}페이지 설정{% endblock %}
 
 {% block admin_content %}
 <!-- 알림 메시지 -->
-{% if success %}
+{% if success or request.query_params.get('success') %}
 <div class="alert alert-success">
     <span class="alert-icon">✓</span>
-    <span class="alert-content">{{ success }}</span>
+    <span class="alert-content">
+        {% if request.query_params.get('success') == 'new_page_created' %}
+            새 페이지가 성공적으로 생성되었습니다.
+        {% elif request.query_params.get('success') == 'page_deleted' %}
+            페이지가 성공적으로 삭제되었습니다.
+        {% else %}
+            {{ success }}
+        {% endif %}
+    </span>
 </div>
 {% endif %}
 
-{% if error %}
+{% if error or request.query_params.get('error') %}
 <div class="alert alert-error">
     <span class="alert-icon">✕</span>
-    <span class="alert-content">{{ error }}</span>
+    <span class="alert-content">{{ error or request.query_params.get('error') }}</span>
 </div>
 {% endif %}
 
-<!-- 서비스 목록 -->
+<!-- 페이지 추가 버튼 -->
+<div class="admin-section">
+    <div class="admin-section-header">
+        <div>
+            <h2 class="admin-section-title">페이지 관리</h2>
+            <p class="admin-section-description">운세 페이지를 추가하거나 수정할 수 있습니다</p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="showNewPageModal()">
+            ➕ 새 페이지 추가
+        </button>
+    </div>
+</div>
+
+<!-- 페이지 목록 -->
 {% for service in services %}
 <div class="admin-section">
     <div class="admin-section-header">
@@ -51,14 +72,19 @@
                 <span class="badge badge-default mt-2">{{ service.code }}</span>
             </div>
         </div>
-        <button type="button" class="btn btn-secondary" onclick="toggleEdit('{{ service.code }}')">
-            ✏️ 수정
-        </button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary" onclick="toggleEdit('{{ service.code }}')">
+                ✏️ 수정
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete('{{ service.code }}', '{{ service.title }}')">
+                🗑️ 삭제
+            </button>
+        </div>
     </div>
 
     <!-- 수정 폼 -->
     <div id="edit-{{ service.code }}" class="service-edit-form">
-        <form method="POST" action="/admin/settings/services/{{ service.code }}" enctype="multipart/form-data">
+        <form method="POST" action="/admin/settings/pages/{{ service.code }}" enctype="multipart/form-data">
             <!-- 탭 네비게이션 -->
             <div class="tab-navigation">
                 <button type="button" class="tab-button active" onclick="switchServiceTab(event, '{{ service.code }}', 'start')">
@@ -72,7 +98,13 @@
             <!-- 시작 페이지 탭 -->
             <div id="tab-start-{{ service.code }}" class="tab-content active">
                 <div class="form-grid form-grid-2">
-                    <div class="form-group full-width">
+                    <div class="form-group">
+                        <label class="form-label">페이지 주소 (URL)</label>
+                        <input type="text" name="url_path" class="form-input" value="{{ service.url_path or '/fortune/' + service.code }}" placeholder="/fortune/saju">
+                        <span class="form-hint">예: /fortune/tarot, /saju (슬래시로 시작)</span>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label">제목 <span class="required">*</span></label>
                         <input type="text" name="title" class="form-input" value="{{ service.title }}" required>
                     </div>
@@ -114,6 +146,12 @@
             <!-- 결과 페이지 탭 -->
             <div id="tab-result-{{ service.code }}" class="tab-content">
                 <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">결과 페이지 주소 (URL)</label>
+                        <input type="text" name="result_url_path" class="form-input" value="{{ service.result_url_path or service.url_path or '/fortune/' + service.code }}" placeholder="/fortune/saju">
+                        <span class="form-hint">폼 제출 시 사용되는 URL입니다. 시작 페이지와 동일하게 설정하세요. (GET=입력폼, POST=결과)</span>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label">캐릭터 이름 <span class="required">*</span></label>
                         <input type="text" name="character_name" class="form-input" value="{{ service.character_name }}" required>
@@ -208,6 +246,74 @@
 }
 </style>
 
+<!-- 새 페이지 추가 모달 -->
+<div id="newPageModal" class="modal-backdrop" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">새 페이지 추가</h2>
+            <button type="button" class="modal-close" onclick="hideNewPageModal()">&times;</button>
+        </div>
+        <form method="POST" action="/admin/settings/pages/create">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">페이지 주소 (URL) <span class="required">*</span></label>
+                    <div style="display: flex; align-items: center; gap: 0;">
+                        <span style="padding: 10px 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-right: none; border-radius: 6px 0 0 6px; color: #6b7280; font-family: monospace;">/fortune/</span>
+                        <input type="text" name="code" class="form-input" required pattern="[a-z0-9_]+" placeholder="tarot" style="border-radius: 0 6px 6px 0; flex: 1;">
+                    </div>
+                    <span class="form-hint">영문 소문자, 숫자, 언더스코어(_)만 사용 (예: tarot, zodiac, love2024)</span>
+                </div>
+
+                <!-- 시작 페이지 섹션 -->
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 2px solid #e5e7eb;">
+                    <h3 style="font-size: 16px; font-weight: 600; color: #3b82f6; margin-bottom: 16px;">📝 시작 페이지 설정</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">제목 <span class="required">*</span></label>
+                        <input type="text" name="title" class="form-input" required placeholder="예: 타로 운세">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">부제목 <span class="required">*</span></label>
+                        <input type="text" name="subtitle" class="form-input" required placeholder="예: 카드가 알려드려요">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">설명 <span class="required">*</span></label>
+                        <textarea name="description" class="form-textarea" required placeholder="서비스에 대한 설명을 입력하세요"></textarea>
+                    </div>
+                </div>
+
+                <!-- 결과 페이지 섹션 -->
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 2px solid #e5e7eb;">
+                    <h3 style="font-size: 16px; font-weight: 600; color: #8b5cf6; margin-bottom: 16px;">🎯 결과 페이지 설정</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">캐릭터 이름 <span class="required">*</span></label>
+                        <input type="text" name="character_name" class="form-input" required placeholder="예: 타로마스터">
+                        <span class="form-hint">시작 페이지와 결과 페이지에서 모두 사용됩니다</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">이모지 <span class="required">*</span></label>
+                        <input type="text" name="character_emoji" class="form-input" required maxlength="2" placeholder="예: 🔮">
+                        <span class="form-hint">이미지가 없을 때 대체로 사용됩니다</span>
+                    </div>
+
+                    <p style="font-size: 13px; color: #6b7280; margin-top: 16px;">
+                        페이지 생성 후 '페이지 설정'에서 시작 페이지/결과 페이지 이미지를 업로드할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideNewPageModal()">취소</button>
+                <button type="submit" class="btn btn-primary">생성</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function toggleEdit(code) {
     const form = document.getElementById('edit-' + code);
@@ -231,5 +337,32 @@ function switchServiceTab(event, serviceCode, tabName) {
         targetTab.classList.add('active');
     }
 }
+
+function showNewPageModal() {
+    document.getElementById('newPageModal').style.display = 'flex';
+}
+
+function hideNewPageModal() {
+    document.getElementById('newPageModal').style.display = 'none';
+}
+
+function confirmDelete(code, title) {
+    if (confirm(`정말로 "${title}" 페이지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 관련된 모든 데이터가 삭제됩니다.`)) {
+        // 폼 생성하여 DELETE 요청
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/settings/pages/${code}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// 모달 외부 클릭 시 닫기
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('newPageModal');
+    if (event.target === modal) {
+        hideNewPageModal();
+    }
+});
 </script>
 {% endblock %}

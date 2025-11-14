@@ -31,4 +31,8 @@ def get_db():
 
 def create_tables():
     """모든 테이블 생성"""
+    # 모델 import (테이블 생성을 위해)
+    from app.models import admin_user, fortune_result, site_config, service_config
+    from app.models.log import ErrorLog, APIUsageLog, AccessLog, RateLimitLog
+
     Base.metadata.create_all(bind=engine)

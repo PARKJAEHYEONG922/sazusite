@@ -1,0 +1,667 @@
+{% extends "layout/base.html" %}
+
+{% block title %}{{ site_config.site_name if site_config else "명월헌" }} - 야광묘가 알려주는 오늘의 기운{% endblock %}
+
+{% block meta_description %}명월헌 - 전통 사주팔자, 2026년 신년운세, 사주궁합, 오늘의 운세, 꿈해몽. 30년 경력 명리학자의 정확한 운세 풀이를 AI로 만나보세요. 무료 운세 상담.{% endblock %}
+
+{% block meta_keywords %}사주, 사주팔자, 신년운세, 2026년 운세, 궁합, 사주궁합, 꿈해몽, 오늘의 운세, 명리학, 운세, 무료운세, 타로, 띠별운세{% endblock %}
+
+{% block og_type %}website{% endblock %}
+
+{% block og_image %}{{ site_config.banner_image_1 if site_config and site_config.banner_image_1 else url_for('static', path='/images/og-home.jpg') }}{% endblock %}
+
+{% block content %}
+<!-- 메인 배너 슬라이더 (전체 너비) -->
+<section class="banner-section">
+    <div class="swiper-container" id="mainBanner">
+        <div class="swiper-wrapper">
+            <!-- 슬라이드 1 -->
+            <div class="swiper-slide">
+                <picture>
+                    {% if site_config and site_config.banner_image_pc_1 %}
+                    <source media="(min-width: 768px)" srcset="{{ site_config.banner_image_pc_1 }}">
+                    {% endif %}
+                    {% if site_config and site_config.banner_image_1 %}
+                    <img src="{{ site_config.banner_image_1 }}" alt="{{ site_config.banner_title_1 if site_config else '오늘의 운세' }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/1200x900/3498db/ffffff?text=오늘의+운세" alt="오늘의 운세">
+                    {% endif %}
+                </picture>
+                <div class="slide-content">
+                    <h2>{{ site_config.banner_title_1 if site_config and site_config.banner_title_1 else '오늘의 운세' }}</h2>
+                    <p>{{ site_config.banner_subtitle_1 if site_config and site_config.banner_subtitle_1 else '야광묘가 알려드려요' }}</p>
+                    {% if site_config and site_config.banner_description_1 %}
+                    <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_1 }}</p>
+                    {% endif %}
+                    <a href="{{ site_config.banner_link_1 if site_config and site_config.banner_link_1 else '/fortune/today' }}" class="banner-btn">지금 보러가기 →</a>
+                </div>
+            </div>
+
+            <!-- 슬라이드 2 -->
+            <div class="swiper-slide">
+                <picture>
+                    {% if site_config and site_config.banner_image_pc_2 %}
+                    <source media="(min-width: 768px)" srcset="{{ site_config.banner_image_pc_2 }}">
+                    {% endif %}
+                    {% if site_config and site_config.banner_image_2 %}
+                    <img src="{{ site_config.banner_image_2 }}" alt="{{ site_config.banner_title_2 if site_config else '정통 사주팔자' }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/1200x900/9b59b6/ffffff?text=정통+사주팔자" alt="정통 사주팔자">
+                    {% endif %}
+                </picture>
+                <div class="slide-content">
+                    <h2>{{ site_config.banner_title_2 if site_config and site_config.banner_title_2 else '정통 사주팔자' }}</h2>
+                    <p>{{ site_config.banner_subtitle_2 if site_config and site_config.banner_subtitle_2 else '청월아씨가 풀어드려요' }}</p>
+                    {% if site_config and site_config.banner_description_2 %}
+                    <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_2 }}</p>
+                    {% endif %}
+                    <a href="{{ site_config.banner_link_2 if site_config and site_config.banner_link_2 else '/fortune/saju' }}" class="banner-btn">지금 보러가기 →</a>
+                </div>
+            </div>
+
+            <!-- 슬라이드 3 -->
+            <div class="swiper-slide">
+                <picture>
+                    {% if site_config and site_config.banner_image_pc_3 %}
+                    <source media="(min-width: 768px)" srcset="{{ site_config.banner_image_pc_3 }}">
+                    {% endif %}
+                    {% if site_config and site_config.banner_image_3 %}
+                    <img src="{{ site_config.banner_image_3 }}" alt="{{ site_config.banner_title_3 if site_config else '사주궁합' }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/1200x900/e74c3c/ffffff?text=사주궁합" alt="사주궁합">
+                    {% endif %}
+                </picture>
+                <div class="slide-content">
+                    <h2>{{ site_config.banner_title_3 if site_config and site_config.banner_title_3 else '사주궁합' }}</h2>
+                    <p>{{ site_config.banner_subtitle_3 if site_config and site_config.banner_subtitle_3 else '월하낭자가 알려드려요' }}</p>
+                    {% if site_config and site_config.banner_description_3 %}
+                    <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_3 }}</p>
+                    {% endif %}
+                    <a href="{{ site_config.banner_link_3 if site_config and site_config.banner_link_3 else '/fortune/match' }}" class="banner-btn">지금 보러가기 →</a>
+                </div>
+            </div>
+
+            <!-- 슬라이드 4 -->
+            <div class="swiper-slide">
+                <picture>
+                    {% if site_config and site_config.banner_image_pc_4 %}
+                    <source media="(min-width: 768px)" srcset="{{ site_config.banner_image_pc_4 }}">
+                    {% endif %}
+                    {% if site_config and site_config.banner_image_4 %}
+                    <img src="{{ site_config.banner_image_4 }}" alt="{{ site_config.banner_title_4 if site_config else '꿈해몽' }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/1200x900/1abc9c/ffffff?text=꿈해몽" alt="꿈해몽">
+                    {% endif %}
+                </picture>
+                <div class="slide-content">
+                    <h2>{{ site_config.banner_title_4 if site_config and site_config.banner_title_4 else '꿈해몽' }}</h2>
+                    <p>{{ site_config.banner_subtitle_4 if site_config and site_config.banner_subtitle_4 else '백운선생이 해석해드려요' }}</p>
+                    {% if site_config and site_config.banner_description_4 %}
+                    <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_4 }}</p>
+                    {% endif %}
+                    <a href="{{ site_config.banner_link_4 if site_config and site_config.banner_link_4 else '/fortune/dream' }}" class="banner-btn">지금 보러가기 →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="swiper-pagination"></div>
+    </div>
+</section>
+
+<!-- 운세 서비스 섹션 -->
+<section class="services-section">
+    <div class="container">
+        <h2 class="section-title">명월헌 BEST 사주</h2>
+
+        <div class="services-grid">
+            <!-- 서브배너 1 -->
+            <a href="{{ site_config.sub_banner_link_1 if site_config and site_config.sub_banner_link_1 else '/fortune/newyear2026' }}" class="service-card">
+                <div class="service-image">
+                    {% if site_config and site_config.sub_banner_image_1 %}
+                        {% if site_config.sub_banner_image_1.endswith(('.mp4', '.webm')) or '.mp4?' in site_config.sub_banner_image_1 or '.webm?' in site_config.sub_banner_image_1 %}
+                        <video autoplay loop muted playsinline>
+                            <source src="{{ site_config.sub_banner_image_1 }}" type="video/{{ 'mp4' if '.mp4' in site_config.sub_banner_image_1 else 'webm' }}">
+                        </video>
+                        {% else %}
+                        <img src="{{ site_config.sub_banner_image_1 }}" alt="{{ site_config.sub_banner_title_1 }}">
+                        {% endif %}
+                    {% else %}
+                    <div class="service-placeholder">
+                        <span class="service-emoji">{{ site_config.sub_banner_emoji_1 if site_config else '🌙' }}</span>
+                    </div>
+                    {% endif %}
+                    <h3 class="service-title">{{ site_config.sub_banner_title_1 if site_config else '월하소녀 2026 신년운세' }}</h3>
+                </div>
+                <div class="service-content">
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_1 if site_config else '월하소녀 2026 신년운세' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_1 if site_config else '이번 신년, 당신의 운명은?' }}</p>
+                </div>
+            </a>
+
+            <!-- 서브배너 2 -->
+            <a href="{{ site_config.sub_banner_link_2 if site_config and site_config.sub_banner_link_2 else '/fortune/saju' }}" class="service-card">
+                <div class="service-image">
+                    {% if site_config and site_config.sub_banner_image_2 %}
+                        {% if site_config.sub_banner_image_2.endswith(('.mp4', '.webm')) or '.mp4?' in site_config.sub_banner_image_2 or '.webm?' in site_config.sub_banner_image_2 %}
+                        <video autoplay loop muted playsinline>
+                            <source src="{{ site_config.sub_banner_image_2 }}" type="video/{{ 'mp4' if '.mp4' in site_config.sub_banner_image_2 else 'webm' }}">
+                        </video>
+                        {% else %}
+                        <img src="{{ site_config.sub_banner_image_2 }}" alt="{{ site_config.sub_banner_title_2 }}">
+                        {% endif %}
+                    {% else %}
+                    <div class="service-placeholder">
+                        <span class="service-emoji">{{ site_config.sub_banner_emoji_2 if site_config else '📜' }}</span>
+                    </div>
+                    {% endif %}
+                    <h3 class="service-title">{{ site_config.sub_banner_title_2 if site_config else '청월아씨 정통사주' }}</h3>
+                </div>
+                <div class="service-content">
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_2 if site_config else '청월아씨 정통사주' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_2 if site_config else '내 앞에 펼쳐진 운명의 길은?' }}</p>
+                </div>
+            </a>
+
+            <!-- 서브배너 3 -->
+            <a href="{{ site_config.sub_banner_link_3 if site_config and site_config.sub_banner_link_3 else '/fortune/match' }}" class="service-card">
+                <div class="service-image">
+                    {% if site_config and site_config.sub_banner_image_3 %}
+                        {% if site_config.sub_banner_image_3.endswith(('.mp4', '.webm')) or '.mp4?' in site_config.sub_banner_image_3 or '.webm?' in site_config.sub_banner_image_3 %}
+                        <video autoplay loop muted playsinline>
+                            <source src="{{ site_config.sub_banner_image_3 }}" type="video/{{ 'mp4' if '.mp4' in site_config.sub_banner_image_3 else 'webm' }}">
+                        </video>
+                        {% else %}
+                        <img src="{{ site_config.sub_banner_image_3 }}" alt="{{ site_config.sub_banner_title_3 }}">
+                        {% endif %}
+                    {% else %}
+                    <div class="service-placeholder">
+                        <span class="service-emoji">{{ site_config.sub_banner_emoji_3 if site_config else '💘' }}</span>
+                    </div>
+                    {% endif %}
+                    <h3 class="service-title">{{ site_config.sub_banner_title_3 if site_config else '홍연아씨 사주궁합' }}</h3>
+                </div>
+                <div class="service-content">
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_3 if site_config else '홍연아씨 사주궁합' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_3 if site_config else '우리는 운명일까, 우연일까?' }}</p>
+                </div>
+            </a>
+
+            <!-- 서브배너 4 -->
+            <a href="{{ site_config.sub_banner_link_4 if site_config and site_config.sub_banner_link_4 else '/fortune/dream' }}" class="service-card">
+                <div class="service-image">
+                    {% if site_config and site_config.sub_banner_image_4 %}
+                        {% if site_config.sub_banner_image_4.endswith(('.mp4', '.webm')) or '.mp4?' in site_config.sub_banner_image_4 or '.webm?' in site_config.sub_banner_image_4 %}
+                        <video autoplay loop muted playsinline>
+                            <source src="{{ site_config.sub_banner_image_4 }}" type="video/{{ 'mp4' if '.mp4' in site_config.sub_banner_image_4 else 'webm' }}">
+                        </video>
+                        {% else %}
+                        <img src="{{ site_config.sub_banner_image_4 }}" alt="{{ site_config.sub_banner_title_4 }}">
+                        {% endif %}
+                    {% else %}
+                    <div class="service-placeholder">
+                        <span class="service-emoji">{{ site_config.sub_banner_emoji_4 if site_config else '💭' }}</span>
+                    </div>
+                    {% endif %}
+                    <h3 class="service-title">{{ site_config.sub_banner_title_4 if site_config else '몽월소녀 꿈해몽' }}</h3>
+                </div>
+                <div class="service-content">
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_4 if site_config else '몽월소녀 꿈해몽' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_4 if site_config else '어젯 밤 꿈, 무슨 의미일까?' }}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- 빠른 운세 보기 섹션 -->
+<section class="quick-fortune-section">
+    <div class="container">
+        <h2 class="section-title">
+            {{ site_config.quick_fortune_title if site_config else "빠른 운세 보기" }}
+        </h2>
+        <p class="text-center mb-4" style="color: var(--text-secondary);">
+            {{ site_config.quick_fortune_description if site_config else "간단한 정보 입력으로 바로 확인하세요" }}
+        </p>
+
+        <form class="quick-fortune-form" action="/fortune/today" method="POST">
+            <div class="form-group">
+                <label for="name">이름 *</label>
+                <input type="text" id="name" name="name" placeholder="이름을 입력하세요" required>
+            </div>
+
+            <div class="form-group">
+                <div class="label-with-calendar">
+                    <label for="birthdate">생년월일 *</label>
+                    <div class="calendar-buttons">
+                        <button type="button" class="calendar-btn active" data-calendar="solar">
+                            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C10.1217 16 12.1566 15.1571 13.6569 13.6569C15.1571 12.1566 16 10.1217 16 8C16 5.87827 15.1571 3.84344 13.6569 2.34315C12.1566 0.842855 10.1217 0 8 0C5.87827 0 3.84344 0.842855 2.34315 2.34315C0.842855 3.84344 0 5.87827 0 8C0 10.1217 0.842855 12.1566 2.34315 13.6569C3.84344 15.1571 5.87827 16 8 16ZM11.707 6.707C11.8892 6.5184 11.99 6.2658 11.9877 6.0036C11.9854 5.7414 11.8802 5.49059 11.6948 5.30518C11.5094 5.11977 11.2586 5.0146 10.9964 5.01233C10.7342 5.01005 10.4816 5.11084 10.293 5.293L7 8.586L5.707 7.293C5.5184 7.11084 5.2658 7.01005 5.0036 7.01233C4.7414 7.0146 4.49059 7.11977 4.30518 7.30518C4.11977 7.49059 4.0146 7.7414 4.01233 8.0036C4.01005 8.2658 4.11084 8.5184 4.293 8.707L6.293 10.707C6.48053 10.8945 6.73484 10.9998 7 10.9998C7.26516 10.9998 7.51947 10.8945 7.707 10.707L11.707 6.707Z" fill="#999"></path>
+                            </svg>
+                            <span>양력</span>
+                        </button>
+                        <button type="button" class="calendar-btn" data-calendar="lunar">
+                            <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="9" cy="9" r="8" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle>
+                                <path d="M6.33333 9L8.11111 10.7778L11.6667 7.22222" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <span>음력</span>
+                        </button>
+                    </div>
+                </div>
+                <input type="text" id="birthdate" name="birthdate" placeholder="1965.09.22" inputmode="numeric" required>
+                <input type="hidden" id="birthdate_hidden" name="birthdate_actual">
+                <input type="hidden" id="calendar" name="calendar" value="solar">
+            </div>
+
+            <div class="form-group">
+                <label for="birth_time">태어난 시간 (선택)</label>
+                <select id="birth_time" name="birth_time">
+                    <option value="">모름</option>
+                    <option value="23-01">자시 (23:00-01:00)</option>
+                    <option value="01-03">축시 (01:00-03:00)</option>
+                    <option value="03-05">인시 (03:00-05:00)</option>
+                    <option value="05-07">묘시 (05:00-07:00)</option>
+                    <option value="07-09">진시 (07:00-09:00)</option>
+                    <option value="09-11">사시 (09:00-11:00)</option>
+                    <option value="11-13">오시 (11:00-13:00)</option>
+                    <option value="13-15">미시 (13:00-15:00)</option>
+                    <option value="15-17">신시 (15:00-17:00)</option>
+                    <option value="17-19">유시 (17:00-19:00)</option>
+                    <option value="19-21">술시 (19:00-21:00)</option>
+                    <option value="21-23">해시 (21:00-23:00)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>성별 *</label>
+                <div class="gender-buttons">
+                    <button type="button" class="gender-btn" data-gender="male">
+                        <span>남성</span>
+                    </button>
+                    <button type="button" class="gender-btn" data-gender="female">
+                        <span>여성</span>
+                    </button>
+                </div>
+                <input type="hidden" id="gender" name="gender" required>
+            </div>
+
+            <button type="submit" class="btn-primary">
+                오늘의 운세 보기 ✨
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* 양력/음력 선택 버튼 스타일 */
+    .label-with-calendar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .calendar-buttons {
+        display: flex;
+        gap: 6px;
+        background: #f8f9fa;
+        padding: 4px;
+        border-radius: 8px;
+    }
+
+    .calendar-btn {
+        padding: 6px 14px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: #666666;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .calendar-btn:hover {
+        color: #333333;
+        background: rgba(52, 152, 219, 0.1);
+    }
+
+    .calendar-btn.active {
+        background: #3498db;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .calendar-btn svg {
+        display: none;
+    }
+
+    /* 성별 선택 버튼 스타일 */
+    .gender-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .gender-btn {
+        flex: 1;
+        padding: 12px;
+        background: #ffffff;
+        border: 1px solid #dcdcdc;
+        border-radius: 8px;
+        color: #333333;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .gender-btn:hover {
+        background: #f8f9fa;
+        border-color: #3498db;
+    }
+
+    .gender-btn.active {
+        background: #3498db;
+        border-color: #3498db;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+    }
+
+    .loading-content {
+        text-align: center;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+    }
+
+    .loading-emoji {
+        font-size: 80px;
+        animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .loading-text {
+        font-size: 24px;
+        color: #ffd700;
+        margin-top: 20px;
+        font-weight: bold;
+    }
+
+    .loading-subtext {
+        font-size: 16px;
+        color: #d4d4d4;
+        margin-top: 10px;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 215, 0, 0.2);
+        border-top-color: #ffd700;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-top: 20px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+</style>
+
+<!-- 로딩 오버레이 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-emoji">✨</div>
+        <div class="loading-text">오늘의 운세를 조회중입니다</div>
+        <div class="loading-subtext">잠시만 기다려주세요</div>
+        <div class="loading-spinner"></div>
+    </div>
+</div>
+
+<script>
+    // Swiper 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        new Swiper('#mainBanner', {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            loop: true,
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+        });
+
+        // 빠른 운세 폼 제출 처리
+        const quickFortuneForm = document.querySelector('.quick-fortune-form');
+        const submitBtn = quickFortuneForm.querySelector('.btn-primary');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const birthdateInput = document.getElementById('birthdate');
+
+        // 페이지 로드 시 뒤로가기로 돌아온 경우 처리
+        window.addEventListener('pageshow', function(event) {
+            // 브라우저 캐시에서 페이지를 복원한 경우 (뒤로가기)
+            if (event.persisted || performance.getEntriesByType('navigation')[0].type === 'back_forward') {
+                // 로딩 오버레이 숨기기
+                loadingOverlay.classList.remove('active');
+                // 버튼 활성화 및 텍스트 복원
+                submitBtn.disabled = false;
+                submitBtn.textContent = '오늘의 운세 보기 ✨';
+                // 세션 스토리지 정리
+                sessionStorage.removeItem('fortuneFormSubmitted');
+            }
+        });
+
+        // 페이지를 떠날 때 (새로고침 포함) 세션 스토리지 정리
+        window.addEventListener('beforeunload', function() {
+            if (!sessionStorage.getItem('fortuneFormSubmitted')) {
+                loadingOverlay.classList.remove('active');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '오늘의 운세 보기 ✨';
+            }
+        });
+
+        // 생년월일 자동 포맷팅
+        birthdateInput.addEventListener('input', function(e) {
+            const input = e.target;
+            let value = input.value.replace(/[^\d]/g, ''); // 숫자만 남기기
+
+            // 최대 8자리까지만
+            if (value.length > 8) {
+                value = value.substring(0, 8);
+            }
+
+            // 포맷팅: 1989.09.22
+            let formatted = '';
+            if (value.length >= 4) {
+                formatted = value.substring(0, 4);
+                if (value.length >= 6) {
+                    formatted += '.' + value.substring(4, 6);
+                    if (value.length >= 8) {
+                        formatted += '.' + value.substring(6, 8);
+                    } else if (value.length > 6) {
+                        formatted += '.' + value.substring(6);
+                    }
+                } else if (value.length > 4) {
+                    formatted += '.' + value.substring(4);
+                }
+            } else {
+                formatted = value;
+            }
+
+            input.value = formatted;
+        });
+
+        // 성별 버튼 클릭 이벤트
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const gender = this.getAttribute('data-gender');
+
+                // 같은 그룹의 다른 버튼들에서 active 클래스 제거
+                const parentButtons = this.parentElement;
+                parentButtons.querySelectorAll('.gender-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+
+                // 현재 버튼에 active 클래스 추가
+                this.classList.add('active');
+
+                // hidden input에 값 설정
+                document.getElementById('gender').value = gender;
+            });
+        });
+
+        // 양력/음력 버튼 클릭 이벤트
+        document.querySelectorAll('.calendar-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const calendar = this.getAttribute('data-calendar');
+
+                // 같은 그룹의 다른 버튼들에서 active 클래스 제거
+                const parentButtons = this.parentElement;
+                parentButtons.querySelectorAll('.calendar-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+
+                // 현재 버튼에 active 클래스 추가
+                this.classList.add('active');
+
+                // hidden input에 값 설정
+                document.getElementById('calendar').value = calendar;
+            });
+        });
+
+        quickFortuneForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 이름 유효성 검사
+            const nameInput = document.getElementById('name');
+            if (nameInput && nameInput.value.trim()) {
+                const name = nameInput.value.trim();
+                // 완성된 한글만 허용 (자음/모음 단독 불가)
+                const koreanRegex = /^[가-힣]+$/;
+                // 자음만 있는지 체크 (ㄱ-ㅎ)
+                const consonantRegex = /[ㄱ-ㅎ]/;
+                // 모음만 있는지 체크 (ㅏ-ㅣ)
+                const vowelRegex = /[ㅏ-ㅣ]/;
+
+                if (consonantRegex.test(name) || vowelRegex.test(name)) {
+                    alert('완성된 한글 이름만 입력 가능합니다.');
+                    nameInput.focus();
+                    return;
+                }
+
+                if (!koreanRegex.test(name)) {
+                    alert('이름은 한글만 입력 가능합니다.');
+                    nameInput.focus();
+                    return;
+                }
+
+                if (name.length < 2 || name.length > 4) {
+                    alert('이름은 2글자 이상 4글자 이하로 입력해주세요.');
+                    nameInput.focus();
+                    return;
+                }
+            }
+
+            // 생년월일을 YYYY-MM-DD 형식으로 변환
+            const birthdateValue = birthdateInput.value.replace(/\./g, '');
+            if (birthdateValue.length === 8) {
+                const year = parseInt(birthdateValue.substring(0, 4));
+                const month = parseInt(birthdateValue.substring(4, 6));
+                const day = parseInt(birthdateValue.substring(6, 8));
+
+                // 년도 유효성 검사 (150살 이상 불가)
+                const currentYear = new Date().getFullYear();
+                const minYear = currentYear - 150;
+                if (year < minYear || year > currentYear) {
+                    alert('년도를 다시 확인해주세요. (150살 이상은 검색할 수 없습니다)');
+                    birthdateInput.focus();
+                    return;
+                }
+
+                // 월 유효성 검사 (1-12월)
+                if (month < 1 || month > 12) {
+                    alert('월을 다시 확인해주세요. (1-12월만 가능합니다)');
+                    birthdateInput.focus();
+                    return;
+                }
+
+                // 일 유효성 검사 (1-31일)
+                if (day < 1 || day > 31) {
+                    alert('일을 다시 확인해주세요. (1-31일만 가능합니다)');
+                    birthdateInput.focus();
+                    return;
+                }
+
+                // 월별 일수 체크
+                const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                if (day > daysInMonth[month - 1]) {
+                    alert(`${month}월은 최대 ${daysInMonth[month - 1]}일까지 입력 가능합니다.`);
+                    birthdateInput.focus();
+                    return;
+                }
+
+                // hidden input에 YYYY-MM-DD 형식으로 저장
+                birthdateInput.name = '';  // 기존 name 제거
+                const hiddenInput = document.getElementById('birthdate_hidden');
+                hiddenInput.name = 'birthdate';  // hidden에 name 부여
+                hiddenInput.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+
+            // 폼이 제출되었음을 세션 스토리지에 저장
+            sessionStorage.setItem('fortuneFormSubmitted', 'true');
+
+            // 버튼 비활성화
+            submitBtn.disabled = true;
+            submitBtn.textContent = '조회중...';
+
+            // 로딩 오버레이 표시
+            loadingOverlay.classList.add('active');
+
+            // 폼 제출
+            quickFortuneForm.submit();
+        });
+    });
+</script>
+{% endblock %}

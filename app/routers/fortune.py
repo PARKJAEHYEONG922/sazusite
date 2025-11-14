@@ -11,9 +11,12 @@ from typing import Optional
 from app.database import get_db
 from app.services.fortune_service import FortuneService
 from app.services.site_service import SiteService
+from app.middleware import rate_limiter
+from app.config import get_settings
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+settings = get_settings()
 
 
 @router.get("/fortune/{service_code}", response_class=HTMLResponse)
@@ -29,7 +32,7 @@ async def fortune_form(
 
     if not service or not service.is_active:
         return templates.TemplateResponse(
-            "public/error.html",
+            "results/error.html",
             {
                 "request": request,
                 "site_config": site_config,
@@ -38,8 +41,11 @@ async def fortune_form(
             status_code=404
         )
 
+    # 개별 시작 페이지 템플릿 사용 (각 서비스마다 pages/{code}.html)
+    template_name = f"pages/{service_code}.html"
+
     return templates.TemplateResponse(
-        "public/fortune_form.html",
+        template_name,
         {
             "request": request,
             "site_config": site_config,
@@ -65,13 +71,16 @@ async def fortune_result(
     db: Session = Depends(get_db)
 ):
     """운세 생성 및 결과 페이지"""
+    # Rate Limiting 체크 (API 비용 폭탄 방지) + 위반 로깅
+    rate_limiter.check_rate_limit(request, db)
+
     site_service = SiteService(db)
     site_config = site_service.get_site_config()
     service = site_service.get_service_by_code(service_code)
 
     if not service or not service.is_active:
         return templates.TemplateResponse(
-            "public/error.html",
+            "results/error.html",
             {
                 "request": request,
                 "site_config": site_config,
@@ -84,7 +93,7 @@ async def fortune_result(
     if service_code != "dream":
         if not birthdate or not gender:
             return templates.TemplateResponse(
-                "public/error.html",
+                "results/error.html",
                 {
                     "request": request,
                     "site_config": site_config,
@@ -119,13 +128,14 @@ async def fortune_result(
         request_data["dream_content"] = dream_content
 
     # 운세 생성
-    fortune_service = FortuneService(db)
+    client_ip = request.client.host if request.client else "unknown"
+    fortune_service = FortuneService(db, client_ip=client_ip)
 
     try:
         result = fortune_service.get_or_create_fortune(service_code, request_data)
 
-        # 사주 서비스인 경우 전용 템플릿 사용
-        template_name = "public/saju_result.html" if service_code == "saju" else "public/fortune_result.html"
+        # 개별 결과 템플릿 사용 (각 서비스마다 results/{code}_result.html)
+        template_name = f"results/{service_code}_result.html"
 
         return templates.TemplateResponse(
             template_name,
@@ -141,12 +151,25 @@ async def fortune_result(
         )
 
     except Exception as e:
+        # 에러 로깅 (DB에 저장)
+        from app.utils.logger import log_exception
+        log_exception(db, e, request, service_code=service_code)
+
+        # 개발 환경에서만 상세 에러 표시, 프로덕션에서는 숨김
+        if settings.environment == "development":
+            error_message = f"운세 생성 중 오류가 발생했습니다: {str(e)}"
+        else:
+            error_message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+            # 프로덕션 환경에서는 서버 로그에도 기록
+            import logging
+            logging.error(f"Fortune generation error: {str(e)}", exc_info=True)
+
         return templates.TemplateResponse(
-            "public/error.html",
+            "results/error.html",
             {
                 "request": request,
                 "site_config": site_config,
-                "message": f"운세 생성 중 오류가 발생했습니다: {str(e)}"
+                "message": error_message
             },
             status_code=500
         )

@@ -3,6 +3,7 @@ Gemini API 서비스
 """
 import google.generativeai as genai
 import time
+from typing import Optional, Tuple, Dict
 from app.config import get_settings
 
 settings = get_settings()
@@ -18,17 +19,21 @@ class GeminiService:
         self.max_retries = 3
         self.retry_delay = 2  # 초
 
-    def generate_content(self, prompt: str) -> str:
+    def generate_content(self, prompt: str, service_code: Optional[str] = None, db=None, client_ip: Optional[str] = None) -> str:
         """
         Gemini API 호출하여 텍스트 생성 (재시도 로직 포함)
 
         Args:
             prompt: 입력 프롬프트
+            service_code: 서비스 코드 (로깅용)
+            db: DB 세션 (로깅용)
+            client_ip: 클라이언트 IP (로깅용)
 
         Returns:
             생성된 텍스트
         """
         last_error = None
+        start_time = time.time()
 
         for attempt in range(1, self.max_retries + 1):
             try:
@@ -45,6 +50,49 @@ class GeminiService:
                 # 응답 검증
                 if not response or not response.text:
                     raise Exception("AI 응답이 비어있습니다")
+
+                # 응답 시간 계산
+                response_time_ms = int((time.time() - start_time) * 1000)
+
+                # API 사용 로깅 (DB가 있고 service_code가 있는 경우만)
+                if db and service_code:
+                    try:
+                        from app.utils.logger import Logger
+                        logger = Logger(db)
+
+                        # 토큰 사용량 추출 (Gemini API response에서)
+                        prompt_tokens = None
+                        completion_tokens = None
+                        total_tokens = None
+                        estimated_cost = 0.0
+
+                        if hasattr(response, 'usage_metadata'):
+                            usage = response.usage_metadata
+                            prompt_tokens = getattr(usage, 'prompt_token_count', None)
+                            completion_tokens = getattr(usage, 'candidates_token_count', None)
+                            total_tokens = getattr(usage, 'total_token_count', None)
+
+                            # 비용 계산 (Gemini 2.0 Flash 기준)
+                            # Input: $0.075 per 1M tokens
+                            # Output: $0.30 per 1M tokens
+                            if prompt_tokens and completion_tokens:
+                                estimated_cost = (prompt_tokens * 0.075 / 1_000_000) + (completion_tokens * 0.30 / 1_000_000)
+
+                        logger.log_api_usage(
+                            model=settings.gemini_model,
+                            service_code=service_code,
+                            prompt_tokens=prompt_tokens,
+                            completion_tokens=completion_tokens,
+                            total_tokens=total_tokens,
+                            estimated_cost=estimated_cost,
+                            response_time_ms=response_time_ms,
+                            is_cached=False,
+                            cache_hit=False,
+                            client_ip=client_ip
+                        )
+                    except Exception as log_error:
+                        # 로깅 실패는 무시 (메인 기능에 영향 주지 않음)
+                        print(f"[WARNING] API usage logging failed: {log_error}")
 
                 return response.text
 

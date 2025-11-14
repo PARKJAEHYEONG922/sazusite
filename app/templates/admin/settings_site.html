@@ -2,690 +2,322 @@
 
 {% block page_title %}사이트 설정{% endblock %}
 
-{% block extra_css %}
-<style>
-    .settings-container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
-
-    .settings-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        text-align: center;
-    }
-
-    .settings-header h2 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 600;
-    }
-
-    .settings-body {
-        padding: 30px;
-    }
-
-    .alert {
-        padding: 15px 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        font-size: 14px;
-    }
-
-    .alert-success {
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
-        color: #155724;
-    }
-
-    .alert-error {
-        background: #f8d7da;
-        border: 1px solid #f5c6cb;
-        color: #721c24;
-    }
-
-    /* Tab Navigation */
-    .tab-navigation {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 25px;
-        border-bottom: 2px solid #e5e7eb;
-        overflow-x: auto;
-    }
-
-    .tab-btn {
-        background: none;
-        border: none;
-        padding: 12px 20px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #6b7280;
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
-        transition: all 0.3s;
-        white-space: nowrap;
-    }
-
-    .tab-btn:hover {
-        color: #667eea;
-        background: rgba(102, 126, 234, 0.05);
-    }
-
-    .tab-btn.active {
-        color: #667eea;
-        border-bottom-color: #667eea;
-    }
-
-    .tab-content {
-        display: none;
-    }
-
-    .tab-content.active {
-        display: block;
-    }
-
-    /* Form Styles */
-    .form-section {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 20px;
-    }
-
-    .section-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #e5e7eb;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #374151;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .form-group input[type="text"],
-    .form-group textarea {
-        width: 100%;
-        padding: 10px 15px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        font-size: 14px;
-        background: #ffffff;
-        color: #1f2937;
-        transition: all 0.2s;
-    }
-
-    .form-group input[type="text"]:focus,
-    .form-group textarea:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .form-group textarea {
-        min-height: 80px;
-        resize: vertical;
-        font-family: inherit;
-    }
-
-    .form-group input[type="file"] {
-        padding: 8px;
-        font-size: 13px;
-        cursor: pointer;
-    }
-
-    .form-group input[type="file"]::file-selector-button {
-        padding: 8px 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-        margin-right: 10px;
-    }
-
-    .form-group input[type="file"]::file-selector-button:hover {
-        opacity: 0.9;
-    }
-
-    .info-text {
-        color: #6b7280;
-        font-size: 12px;
-        margin-top: 5px;
-    }
-
-    .current-image {
-        color: #059669;
-        font-size: 12px;
-        margin-top: 5px;
-    }
-
-    /* Banner Card */
-    .banner-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 15px;
-    }
-
-    .banner-card-header {
-        color: #667eea;
-        font-size: 15px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    /* Submit Button */
-    .btn-submit {
-        width: 100%;
-        padding: 14px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-top: 10px;
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .settings-body {
-            padding: 20px;
-        }
-
-        .tab-btn {
-            padding: 10px 15px;
-            font-size: 13px;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block admin_content %}
-<div class="settings-container">
-    <div class="settings-header">
-        <h2>⚙️ 사이트 설정</h2>
-    </div>
-
-    <div class="settings-body">
-        {% if success %}
-        <div class="alert alert-success">
-            ✅ {{ success }}
-        </div>
-        {% endif %}
-
-        {% if error %}
-        <div class="alert alert-error">
-            ❌ {{ error }}
-        </div>
-        {% endif %}
-
-        <form method="POST" action="/admin/settings/site" enctype="multipart/form-data">
-            <!-- 기본 정보 섹션 -->
-            <div class="form-section">
-                <div class="section-title">🏠 기본 정보</div>
-
-                <div class="form-group">
-                    <label>사이트 이름</label>
-                    <input type="text" name="site_name" value="{{ config.site_name if config else '명월헌' }}" required>
-                </div>
-
-                <div class="form-group">
-                    <label>사이트 URL</label>
-                    <input type="url" name="site_url" value="{{ config.site_url if config and config.site_url else '' }}" placeholder="https://yourdomain.com">
-                    <p class="info-text">사이트의 전체 URL을 입력하세요 (예: https://명월헌.com). SEO와 소셜 공유에 사용됩니다.</p>
-                </div>
-
-                <div class="form-group">
-                    <label>사이트 로고 이미지</label>
-                    <input type="file" name="site_logo_file" accept="image/*">
-                    {% if config and config.site_logo %}
-                    <p class="current-image">✓ 현재: {{ config.site_logo }}</p>
-                    {% endif %}
-                    <p class="info-text">로고 이미지를 업로드하면 사이트 이름 대신 이미지가 표시됩니다 (권장 크기: 가로 150px)</p>
-                </div>
-
-                <div class="form-group">
-                    <label>사이트 파비콘</label>
-                    <input type="file" name="site_favicon_file" accept=".ico,.png,image/x-icon,image/png">
-                    {% if config and config.site_favicon %}
-                    <p class="current-image">✓ 현재: {{ config.site_favicon }}</p>
-                    {% endif %}
-                    <p class="info-text">브라우저 탭에 표시될 파비콘 이미지 (권장 크기: 32x32px, 형식: .ico 또는 .png)</p>
-                </div>
-
-                <div class="form-group">
-                    <label>메인 타이틀</label>
-                    <input type="text" name="main_title" value="{{ config.main_title if config else '' }}" required>
-                </div>
-
-                <div class="form-group">
-                    <label>메인 서브타이틀</label>
-                    <textarea name="main_subtitle" required>{{ config.main_subtitle if config else '' }}</textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>푸터 텍스트</label>
-                    <textarea name="footer_text" required>{{ config.footer_text if config else '' }}</textarea>
-                </div>
-            </div>
-
-            <!-- 메인 배너 섹션 (Tab) -->
-            <div class="form-section">
-                <div class="section-title">🎨 메인 배너 설정 (4:3 비율)</div>
-
-                <div class="tab-navigation">
-                    <button type="button" class="tab-btn active" onclick="switchTab(event, 'banner-1')">배너 1</button>
-                    <button type="button" class="tab-btn" onclick="switchTab(event, 'banner-2')">배너 2</button>
-                    <button type="button" class="tab-btn" onclick="switchTab(event, 'banner-3')">배너 3</button>
-                    <button type="button" class="tab-btn" onclick="switchTab(event, 'banner-4')">배너 4</button>
-                </div>
-
-                <!-- 배너 1 -->
-                <div id="banner-1" class="tab-content active">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>모바일 이미지 (4:3 비율)</label>
-                            <input type="file" name="banner_file_1" accept="image/*">
-                            {% if config and config.banner_image_1 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_1 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>PC 이미지 (21:9 비율)</label>
-                            <input type="file" name="banner_pc_file_1" accept="image/*">
-                            {% if config and config.banner_image_pc_1 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_1 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="banner_title_1" value="{{ config.banner_title_1 if config else '오늘의 운세' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="banner_subtitle_1" value="{{ config.banner_subtitle_1 if config else '야광묘가 알려드려요' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="banner_description_1">{{ config.banner_description_1 if config else '매일 새로운 운세로 하루를 시작하세요' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="banner_link_1" value="{{ config.banner_link_1 if config else '/fortune/today' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 배너 2 -->
-                <div id="banner-2" class="tab-content">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>모바일 이미지 (4:3 비율)</label>
-                            <input type="file" name="banner_file_2" accept="image/*">
-                            {% if config and config.banner_image_2 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_2 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>PC 이미지 (21:9 비율)</label>
-                            <input type="file" name="banner_pc_file_2" accept="image/*">
-                            {% if config and config.banner_image_pc_2 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_2 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="banner_title_2" value="{{ config.banner_title_2 if config else '정통 사주팔자' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="banner_subtitle_2" value="{{ config.banner_subtitle_2 if config else '청월아씨가 풀어드려요' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="banner_description_2">{{ config.banner_description_2 if config else '태어난 시간으로 알아보는 나의 운명' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="banner_link_2" value="{{ config.banner_link_2 if config else '/fortune/saju' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 배너 3 -->
-                <div id="banner-3" class="tab-content">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>모바일 이미지 (4:3 비율)</label>
-                            <input type="file" name="banner_file_3" accept="image/*">
-                            {% if config and config.banner_image_3 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_3 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>PC 이미지 (21:9 비율)</label>
-                            <input type="file" name="banner_pc_file_3" accept="image/*">
-                            {% if config and config.banner_image_pc_3 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_3 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="banner_title_3" value="{{ config.banner_title_3 if config else '사주궁합' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="banner_subtitle_3" value="{{ config.banner_subtitle_3 if config else '월하낭자가 알려드려요' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="banner_description_3">{{ config.banner_description_3 if config else '두 사람의 인연과 미래를 함께 살펴보세요' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="banner_link_3" value="{{ config.banner_link_3 if config else '/fortune/match' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 배너 4 -->
-                <div id="banner-4" class="tab-content">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>모바일 이미지 (4:3 비율)</label>
-                            <input type="file" name="banner_file_4" accept="image/*">
-                            {% if config and config.banner_image_4 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_4 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>PC 이미지 (21:9 비율)</label>
-                            <input type="file" name="banner_pc_file_4" accept="image/*">
-                            {% if config and config.banner_image_pc_4 %}
-                            <p class="current-image">✓ 현재: {{ config.banner_image_pc_4 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="banner_title_4" value="{{ config.banner_title_4 if config else '꿈해몽' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="banner_subtitle_4" value="{{ config.banner_subtitle_4 if config else '백운선생이 해석해드려요' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="banner_description_4">{{ config.banner_description_4 if config else '당신의 꿈이 전하는 메시지를 찾아보세요' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="banner_link_4" value="{{ config.banner_link_4 if config else '/fortune/dream' }}">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 서브 배너 섹션 (Tab) -->
-            <div class="form-section">
-                <div class="section-title">🎴 서브 배너 설정 (서비스 카드, 3:4 비율)</div>
-
-                <div class="tab-navigation">
-                    <button type="button" class="tab-btn active" onclick="switchTab(event, 'sub-1')">서브 1</button>
-                    <button type="button" class="tab-btn" onclick="switchTab(event, 'sub-2')">서브 2</button>
-                    <button type="button" class="tab-btn" onclick="switchTab(event, 'sub-3')">서브 3</button>
-                    <button type="button" class="tab-btn" onclick="switchTab(event, 'sub-4')">서브 4</button>
-                </div>
-
-                <!-- 서브배너 1 -->
-                <div id="sub-1" class="tab-content active">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>이미지/영상 업로드 (3:4 비율)</label>
-                            <input type="file" name="sub_banner_file_1" accept="image/*,video/mp4,video/webm">
-                            {% if config and config.sub_banner_image_1 %}
-                            <p class="current-image">✓ 현재: {{ config.sub_banner_image_1 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>이모티콘</label>
-                            <input type="text" name="sub_banner_emoji_1" value="{{ config.sub_banner_emoji_1 if config else '🌙' }}" maxlength="2">
-                            <p class="info-text">이미지가 없을 때 표시됩니다</p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="sub_banner_title_1" value="{{ config.sub_banner_title_1 if config else '월하소녀 2026 신년운세' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="sub_banner_subtitle_1" value="{{ config.sub_banner_subtitle_1 if config else '월하소녀 2026 신년운세' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="sub_banner_description_1">{{ config.sub_banner_description_1 if config else '이번 신년, 당신의 운명은?' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="sub_banner_link_1" value="{{ config.sub_banner_link_1 if config else '/fortune/today' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 서브배너 2 -->
-                <div id="sub-2" class="tab-content">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>이미지/영상 업로드 (3:4 비율)</label>
-                            <input type="file" name="sub_banner_file_2" accept="image/*,video/mp4,video/webm">
-                            {% if config and config.sub_banner_image_2 %}
-                            <p class="current-image">✓ 현재: {{ config.sub_banner_image_2 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>이모티콘</label>
-                            <input type="text" name="sub_banner_emoji_2" value="{{ config.sub_banner_emoji_2 if config else '📜' }}" maxlength="2">
-                            <p class="info-text">이미지가 없을 때 표시됩니다</p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="sub_banner_title_2" value="{{ config.sub_banner_title_2 if config else '청월아씨 정통사주' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="sub_banner_subtitle_2" value="{{ config.sub_banner_subtitle_2 if config else '청월아씨 정통사주' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="sub_banner_description_2">{{ config.sub_banner_description_2 if config else '내 앞에 펼쳐진 운명의 길은?' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="sub_banner_link_2" value="{{ config.sub_banner_link_2 if config else '/fortune/saju' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 서브배너 3 -->
-                <div id="sub-3" class="tab-content">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>이미지/영상 업로드 (3:4 비율)</label>
-                            <input type="file" name="sub_banner_file_3" accept="image/*,video/mp4,video/webm">
-                            {% if config and config.sub_banner_image_3 %}
-                            <p class="current-image">✓ 현재: {{ config.sub_banner_image_3 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>이모티콘</label>
-                            <input type="text" name="sub_banner_emoji_3" value="{{ config.sub_banner_emoji_3 if config else '💘' }}" maxlength="2">
-                            <p class="info-text">이미지가 없을 때 표시됩니다</p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="sub_banner_title_3" value="{{ config.sub_banner_title_3 if config else '홍연아씨 사주궁합' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="sub_banner_subtitle_3" value="{{ config.sub_banner_subtitle_3 if config else '홍연아씨 사주궁합' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="sub_banner_description_3">{{ config.sub_banner_description_3 if config else '우리는 운명일까, 우연일까?' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="sub_banner_link_3" value="{{ config.sub_banner_link_3 if config else '/fortune/match' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 서브배너 4 -->
-                <div id="sub-4" class="tab-content">
-                    <div class="banner-card">
-                        <div class="form-group">
-                            <label>이미지/영상 업로드 (3:4 비율)</label>
-                            <input type="file" name="sub_banner_file_4" accept="image/*,video/mp4,video/webm">
-                            {% if config and config.sub_banner_image_4 %}
-                            <p class="current-image">✓ 현재: {{ config.sub_banner_image_4 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label>이모티콘</label>
-                            <input type="text" name="sub_banner_emoji_4" value="{{ config.sub_banner_emoji_4 if config else '💭' }}" maxlength="2">
-                            <p class="info-text">이미지가 없을 때 표시됩니다</p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>제목</label>
-                            <input type="text" name="sub_banner_title_4" value="{{ config.sub_banner_title_4 if config else '몽월소녀 꿈해몽' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>부제목</label>
-                            <input type="text" name="sub_banner_subtitle_4" value="{{ config.sub_banner_subtitle_4 if config else '몽월소녀 꿈해몽' }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>설명</label>
-                            <textarea name="sub_banner_description_4">{{ config.sub_banner_description_4 if config else '어젯 밤 꿈, 무슨 의미일까?' }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="sub_banner_link_4" value="{{ config.sub_banner_link_4 if config else '/fortune/dream' }}">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 애드센스 섹션 -->
-            <div class="form-section">
-                <div class="section-title">💰 애드센스 설정</div>
-
-                <div class="form-group">
-                    <label>애드센스 클라이언트 ID</label>
-                    <input type="text" name="adsense_client_id" value="{{ config.adsense_client_id if config and config.adsense_client_id else '' }}" placeholder="ca-pub-XXXXXXXXXXXXXXXX">
-                    <p class="info-text">예: ca-pub-1234567890123456</p>
-                </div>
-
-                <div class="form-group">
-                    <label>메인 페이지 광고 슬롯</label>
-                    <input type="text" name="adsense_slot_main" value="{{ config.adsense_slot_main if config and config.adsense_slot_main else '' }}" placeholder="1234567890">
-                </div>
-
-                <div class="form-group">
-                    <label>결과 페이지 광고 슬롯</label>
-                    <input type="text" name="adsense_slot_result" value="{{ config.adsense_slot_result if config and config.adsense_slot_result else '' }}" placeholder="0987654321">
-                </div>
-            </div>
-
-            <button type="submit" class="btn-submit">💾 설정 저장</button>
-        </form>
-    </div>
+<!-- 알림 메시지 -->
+{% if success %}
+<div class="alert alert-success">
+    <span class="alert-icon">✓</span>
+    <span class="alert-content">{{ success }}</span>
 </div>
+{% endif %}
 
-<script>
-function switchTab(event, tabId) {
-    // Get parent tab container
-    const parentSection = event.target.closest('.form-section');
+{% if error %}
+<div class="alert alert-error">
+    <span class="alert-icon">✕</span>
+    <span class="alert-content">{{ error }}</span>
+</div>
+{% endif %}
 
-    // Remove active from all tabs in this section
-    const tabs = parentSection.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => tab.classList.remove('active'));
+<form method="POST" action="/admin/settings/site" enctype="multipart/form-data">
+    <!-- 기본 정보 섹션 -->
+    <div class="admin-section">
+        <div class="admin-section-header">
+            <div>
+                <h2 class="admin-section-title">기본 정보</h2>
+                <p class="admin-section-description">사이트의 기본적인 정보를 설정합니다</p>
+            </div>
+        </div>
 
-    // Remove active from all tab contents in this section
-    const contents = parentSection.querySelectorAll('.tab-content');
-    contents.forEach(content => content.classList.remove('active'));
+        <div class="form-grid form-grid-2">
+            <div class="form-group">
+                <label class="form-label">사이트 이름 <span class="required">*</span></label>
+                <input type="text" name="site_name" class="form-input"
+                       value="{{ config.site_name if config else '명월헌' }}" required>
+            </div>
 
-    // Add active to clicked tab
-    event.target.classList.add('active');
+            <div class="form-group">
+                <label class="form-label">사이트 URL</label>
+                <input type="url" name="site_url" class="form-input"
+                       value="{{ config.site_url if config and config.site_url else '' }}"
+                       placeholder="https://yourdomain.com">
+                <span class="form-hint">SEO와 소셜 공유에 사용됩니다</span>
+            </div>
 
-    // Show selected content
-    document.getElementById(tabId).classList.add('active');
-}
-</script>
+            <div class="form-group">
+                <label class="form-label">사이트 로고 이미지</label>
+                <input type="file" id="site_logo_file" name="site_logo_file" class="form-file-input"
+                       accept="image/*" onchange="previewImage(this, 'logo_preview')">
+                <label for="site_logo_file" class="form-file-label">📁 파일 선택</label>
+                {% if config and config.site_logo %}
+                <div class="form-hint">현재: {{ config.site_logo }}</div>
+                <div class="image-preview-wrapper mt-2">
+                    <div class="image-preview-item logo-preview">
+                        <img src="{{ config.site_logo }}" alt="현재 로고">
+                    </div>
+                </div>
+                {% endif %}
+                <div id="logo_preview" class="mt-2"></div>
+                <span class="form-hint">권장 크기: 가로 150px</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">사이트 파비콘</label>
+                <input type="file" id="site_favicon_file" name="site_favicon_file" class="form-file-input"
+                       accept=".ico,.png,image/x-icon,image/png" onchange="previewImage(this, 'favicon_preview')">
+                <label for="site_favicon_file" class="form-file-label">📁 파일 선택</label>
+                {% if config and config.site_favicon %}
+                <div class="form-hint">현재: {{ config.site_favicon }}</div>
+                <div class="image-preview-wrapper mt-2">
+                    <div class="image-preview-item favicon-preview">
+                        <img src="{{ config.site_favicon }}" alt="현재 파비콘">
+                    </div>
+                </div>
+                {% endif %}
+                <div id="favicon_preview" class="mt-2"></div>
+                <span class="form-hint">브라우저 탭에 표시됨 (32x32px, .ico 또는 .png)</span>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">메인 타이틀 <span class="required">*</span></label>
+                <input type="text" name="main_title" class="form-input"
+                       value="{{ config.main_title if config else '' }}" required>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">메인 서브타이틀 <span class="required">*</span></label>
+                <textarea name="main_subtitle" class="form-textarea" required>{{ config.main_subtitle if config else '' }}</textarea>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">푸터 텍스트 <span class="required">*</span></label>
+                <textarea name="footer_text" class="form-textarea" required>{{ config.footer_text if config else '' }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 배너 섹션 -->
+    <div class="admin-section">
+        <div class="admin-section-header">
+            <div>
+                <h2 class="admin-section-title">메인 배너 설정</h2>
+                <p class="admin-section-description">메인 슬라이더 배너 (PC: 21:9 비율, 모바일: 4:3 비율)</p>
+            </div>
+        </div>
+
+        <div class="tab-navigation">
+            <button type="button" class="tab-button active" onclick="switchTab(event, 'banner-1')">배너 1</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'banner-2')">배너 2</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'banner-3')">배너 3</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'banner-4')">배너 4</button>
+        </div>
+
+        {% for i in range(1, 5) %}
+        <div id="banner-{{ i }}" class="tab-content {% if i == 1 %}active{% endif %}">
+            <div class="banner-group">
+                <div class="banner-item">
+                    <div class="banner-item-header">
+                        <h3 class="banner-item-title">배너 {{ i }} 이미지</h3>
+                    </div>
+
+                    <div class="form-grid form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">모바일 이미지 (4:3 비율)</label>
+                            <input type="file" id="banner_file_{{ i }}" name="banner_file_{{ i }}"
+                                   class="form-file-input" accept="image/*"
+                                   onchange="previewImage(this, 'banner_mobile_preview_{{ i }}')">
+                            <label for="banner_file_{{ i }}" class="form-file-label">📁 파일 선택</label>
+                            {% if config and config['banner_image_' + i|string] %}
+                            <div class="form-hint">현재: {{ config['banner_image_' + i|string] }}</div>
+                            <!-- 현재 이미지 미리보기 -->
+                            <div class="image-preview-wrapper mt-2">
+                                <div class="banner-preview-card">
+                                    <div class="banner-preview-header">모바일 (4:3)</div>
+                                    <div class="banner-preview-image mobile">
+                                        <img src="{{ config['banner_image_' + i|string] }}" alt="모바일 배너 {{ i }}">
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div id="banner_mobile_preview_{{ i }}" class="mt-2"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">PC 이미지 (21:9 비율)</label>
+                            <input type="file" id="banner_pc_file_{{ i }}" name="banner_pc_file_{{ i }}"
+                                   class="form-file-input" accept="image/*"
+                                   onchange="previewImage(this, 'banner_pc_preview_{{ i }}')">
+                            <label for="banner_pc_file_{{ i }}" class="form-file-label">📁 파일 선택</label>
+                            {% if config and config['banner_image_pc_' + i|string] %}
+                            <div class="form-hint">현재: {{ config['banner_image_pc_' + i|string] }}</div>
+                            <!-- 현재 이미지 미리보기 -->
+                            <div class="image-preview-wrapper mt-2">
+                                <div class="banner-preview-card">
+                                    <div class="banner-preview-header">PC (21:9)</div>
+                                    <div class="banner-preview-image pc">
+                                        <img src="{{ config['banner_image_pc_' + i|string] }}" alt="PC 배너 {{ i }}">
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div id="banner_pc_preview_{{ i }}" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="banner-item">
+                    <div class="banner-item-header">
+                        <h3 class="banner-item-title">배너 {{ i }} 텍스트</h3>
+                    </div>
+
+                    <div class="form-grid form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">제목</label>
+                            <input type="text" name="banner_title_{{ i }}" class="form-input"
+                                   value="{{ config['banner_title_' + i|string] if config else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">부제목</label>
+                            <input type="text" name="banner_subtitle_{{ i }}" class="form-input"
+                                   value="{{ config['banner_subtitle_' + i|string] if config else '' }}">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">설명</label>
+                            <textarea name="banner_description_{{ i }}" class="form-textarea">{{ config['banner_description_' + i|string] if config else '' }}</textarea>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">링크 URL</label>
+                            <input type="text" name="banner_link_{{ i }}" class="form-input"
+                                   value="{{ config['banner_link_' + i|string] if config else '' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 서브 배너 섹션 -->
+    <div class="admin-section">
+        <div class="admin-section-header">
+            <div>
+                <h2 class="admin-section-title">서브 배너 설정</h2>
+                <p class="admin-section-description">서비스 카드 영역 (3:4 비율, 이미지 또는 비디오)</p>
+            </div>
+        </div>
+
+        <div class="tab-navigation">
+            <button type="button" class="tab-button active" onclick="switchTab(event, 'sub-1')">서브 1</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'sub-2')">서브 2</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'sub-3')">서브 3</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'sub-4')">서브 4</button>
+        </div>
+
+        {% for i in range(1, 5) %}
+        <div id="sub-{{ i }}" class="tab-content {% if i == 1 %}active{% endif %}">
+            <div class="banner-item">
+                <div class="banner-item-header">
+                    <h3 class="banner-item-title">서브 배너 {{ i }}</h3>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="form-group full-width">
+                        <label class="form-label">이미지/영상 (3:4 비율)</label>
+                        <input type="file" id="sub_banner_file_{{ i }}" name="sub_banner_file_{{ i }}"
+                               class="form-file-input" accept="image/*,video/mp4,video/webm"
+                               onchange="previewImage(this, 'sub_banner_preview_{{ i }}')">
+                        <label for="sub_banner_file_{{ i }}" class="form-file-label">📁 파일 선택</label>
+                        {% if config and config['sub_banner_image_' + i|string] %}
+                        <div class="form-hint">현재: {{ config['sub_banner_image_' + i|string] }}</div>
+                        <!-- 미리보기 -->
+                        <div class="image-preview-wrapper mt-2">
+                            <div class="image-preview-item sub-banner">
+                                {% if config['sub_banner_image_' + i|string].endswith(('.mp4', '.webm')) %}
+                                <video src="{{ config['sub_banner_image_' + i|string] }}" controls></video>
+                                {% else %}
+                                <img src="{{ config['sub_banner_image_' + i|string] }}" alt="서브 배너 {{ i }}">
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div id="sub_banner_preview_{{ i }}" class="mt-2"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">제목</label>
+                        <input type="text" name="sub_banner_title_{{ i }}" class="form-input"
+                               value="{{ config['sub_banner_title_' + i|string] if config else '' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">부제목</label>
+                        <input type="text" name="sub_banner_subtitle_{{ i }}" class="form-input"
+                               value="{{ config['sub_banner_subtitle_' + i|string] if config else '' }}">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label">설명</label>
+                        <textarea name="sub_banner_description_{{ i }}" class="form-textarea">{{ config['sub_banner_description_' + i|string] if config else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label">링크 URL</label>
+                        <input type="text" name="sub_banner_link_{{ i }}" class="form-input"
+                               value="{{ config['sub_banner_link_' + i|string] if config else '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 애드센스 섹션 -->
+    <div class="admin-section">
+        <div class="admin-section-header">
+            <div>
+                <h2 class="admin-section-title">애드센스 설정</h2>
+                <p class="admin-section-description">Google AdSense 광고 설정</p>
+            </div>
+        </div>
+
+        <div class="form-grid form-grid-3">
+            <div class="form-group full-width">
+                <label class="form-label">애드센스 클라이언트 ID</label>
+                <input type="text" name="adsense_client_id" class="form-input"
+                       value="{{ config.adsense_client_id if config and config.adsense_client_id else '' }}"
+                       placeholder="ca-pub-XXXXXXXXXXXXXXXX">
+                <span class="form-hint">예: ca-pub-1234567890123456</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">메인 페이지 광고 슬롯</label>
+                <input type="text" name="adsense_slot_main" class="form-input"
+                       value="{{ config.adsense_slot_main if config and config.adsense_slot_main else '' }}"
+                       placeholder="1234567890">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">결과 페이지 광고 슬롯</label>
+                <input type="text" name="adsense_slot_result" class="form-input"
+                       value="{{ config.adsense_slot_result if config and config.adsense_slot_result else '' }}"
+                       placeholder="0987654321">
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 버튼 -->
+    <div class="form-actions">
+        <div></div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='/admin/dashboard'">
+                취소
+            </button>
+            <button type="submit" class="btn btn-primary">
+                💾 저장
+            </button>
+        </div>
+    </div>
+</form>
 {% endblock %}

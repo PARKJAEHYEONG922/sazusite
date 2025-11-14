@@ -43,7 +43,11 @@
       "Bash(pip show:*)",
       "Bash(curl:*)",
       "Bash(test:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(code --install-extension:*)",
+      "Bash(copy:*)",
+      "Bash(copy \"c:\\사주사이트\\app\\templates\\public\\fortune_form.html\" \"c:\\사주사이트\\app\\templates\\fortune\\match.html\")",
+      "Bash(copy \"c:\\사주사이트\\app\\templates\\public\\fortune_form.html\" \"c:\\사주사이트\\app\\templates\\fortune\\newyear2026.html\")"
     ],
     "deny": [],
     "ask": []

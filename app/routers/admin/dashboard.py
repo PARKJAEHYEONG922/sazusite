@@ -16,6 +16,7 @@ from PIL import Image
 from app.database import get_db
 from app.models.fortune_result import FortuneResult
 from app.services.site_service import SiteService
+from app.services.log_service import LogService
 from app.utils.security import verify_token
 from app.utils.image_utils import convert_to_webp, validate_image_ratio
 
@@ -67,6 +68,10 @@ async def dashboard(
     site_service = SiteService(db)
     site_config = site_service.get_site_config()
 
+    # 로그 요약 정보 추가
+    log_service = LogService(db)
+    log_summary = log_service.get_dashboard_summary()
+
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {
@@ -75,7 +80,8 @@ async def dashboard(
             "site_config": site_config,
             "total_today": total_today,
             "stats": stats,
-            "recent_logs": recent_logs
+            "recent_logs": recent_logs,
+            "log_summary": log_summary
         }
     )
 
@@ -507,38 +513,371 @@ async def update_site_settings(
         )
 
 
-@router.get("/settings/services", response_class=HTMLResponse)
-async def services_settings(
+@router.get("/settings/pages", response_class=HTMLResponse)
+async def pages_settings(
     request: Request,
     db: Session = Depends(get_db),
     admin_token: Optional[str] = Cookie(None)
 ):
-    """서비스 설정 페이지"""
+    """페이지 설정"""
     username = check_admin(admin_token)
     if not username:
         return RedirectResponse(url="/admin/login", status_code=303)
 
     site_service = SiteService(db)
     services = site_service.get_all_services()
+    site_config = site_service.get_site_config()
 
     return templates.TemplateResponse(
-        "admin/settings_services.html",
+        "admin/settings_pages.html",
         {
             "request": request,
             "username": username,
+            "site_config": site_config,
             "services": services,
             "success": None,
             "error": None
         }
     )
 
+# 하위 호환성을 위한 리다이렉트
+@router.get("/settings/services", response_class=HTMLResponse)
+async def services_settings_redirect():
+    """기존 URL에서 새 URL로 리다이렉트"""
+    return RedirectResponse(url="/admin/settings/pages", status_code=301)
 
-@router.post("/settings/services/{service_code}", response_class=HTMLResponse)
+
+@router.post("/settings/pages/create", response_class=HTMLResponse)
+async def create_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_token: Optional[str] = Cookie(None),
+    code: str = Form(...),
+    title: str = Form(...),
+    subtitle: str = Form(...),
+    description: str = Form(...),
+    character_name: str = Form(...),
+    character_emoji: str = Form(...)
+):
+    """새 페이지 생성"""
+    username = check_admin(admin_token)
+    if not username:
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    try:
+        site_service = SiteService(db)
+
+        # 코드 검증 (영문, 숫자, 언더스코어만 허용)
+        import re
+        if not re.match(r'^[a-z0-9_]+$', code):
+            raise ValueError("코드는 영문 소문자, 숫자, 언더스코어(_)만 사용할 수 있습니다.")
+
+        # 새 페이지 생성
+        service_data = {
+            "code": code,
+            "url_path": f"/fortune/{code}",  # 기본 URL 경로
+            "result_url_path": f"/fortune/{code}",  # 결과 페이지 URL (기본값은 시작페이지와 동일)
+            "title": title,
+            "subtitle": subtitle,
+            "description": description,
+            "character_name": character_name,
+            "character_emoji": character_emoji,
+            "is_active": True
+        }
+        site_service.create_service(service_data)
+
+        # 템플릿 파일 자동 생성
+        template_dir = Path("app/templates/fortune")
+        template_dir.mkdir(parents=True, exist_ok=True)
+
+        template_file = template_dir / f"{code}.html"
+        if not template_file.exists():
+            template_content = f'''{{%% extends "layout/base.html" %%}}
+
+{{%% block title %%}}{title} - {{{{ site_config.site_name if site_config else "명월헌" }}}}{{%% endblock %%}}
+
+{{%% block content %%}}
+<div class="container mx-auto px-4 py-8">
+    <!-- 캐릭터 이미지 영역 -->
+    <div class="character-section text-center mb-8">
+        {{%% if service and service.character_form_image %%}}
+            {{%% if service.character_form_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_form_image or '.webm?' in service.character_form_image %%}}
+                <video class="character-image mx-auto" autoplay loop muted playsinline style="max-width: 300px; height: auto;">
+                    <source src="{{{{ service.character_form_image }}}}" type="video/{{{{ 'mp4' if '.mp4' in service.character_form_image else 'webm' }}}}">
+                </video>
+            {{%% else %%}}
+                <img src="{{{{ service.character_form_image }}}}" alt="{{{{ service.character_name }}}}" class="character-image mx-auto" style="max-width: 300px; height: auto;">
+            {{%% endif %%}}
+        {{%% elif service and service.character_emoji %%}}
+            <div class="character-emoji text-8xl mb-4">{{{{ service.character_emoji }}}}</div>
+        {{%% endif %%}}
+
+        <h1 class="text-4xl font-bold mb-4">{{{{ service.title if service else "{title}" }}}}</h1>
+        <p class="text-xl text-gray-600 mb-2">{{{{ service.subtitle if service else "{subtitle}" }}}}</p>
+        <p class="text-gray-500">{{{{ service.description if service else "{description}" }}}}</p>
+    </div>
+
+    <!-- 여기부터 커스텀 영역 -->
+    <!-- 아래에 원하는 입력 폼이나 기능을 추가하세요 -->
+
+    <div class="custom-content max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 mt-8">
+        <div class="text-center text-gray-500">
+            <p class="text-lg mb-4">🛠️ 이 영역은 커스텀 코드를 작성하는 공간입니다</p>
+            <p class="text-sm">템플릿 파일: <code class="bg-gray-100 px-2 py-1 rounded">app/templates/fortune/{code}.html</code></p>
+            <p class="text-sm mt-2">이 파일을 수정하여 입력 폼이나 기능을 추가하세요.</p>
+        </div>
+    </div>
+
+    <!-- 커스텀 영역 끝 -->
+</div>
+{{%% endblock %%}}
+'''
+            with template_file.open("w", encoding="utf-8") as f:
+                f.write(template_content)
+
+        # 2. 결과 페이지 템플릿 생성
+        public_dir = Path("app/templates/public")
+        public_dir.mkdir(parents=True, exist_ok=True)
+
+        result_template_file = public_dir / f"{code}_result.html"
+        if not result_template_file.exists():
+            result_template_content = f'''{{%% extends "layout/base.html" %%}}
+
+{{%% block title %%}}{{{{ service.title }}}} 결과 - {{{{ site_config.site_name if site_config else "명월헌" }}}}{{%% endblock %%}}
+
+{{%% block meta_description %%}}{{{{ request_data.name if request_data and request_data.name else '고객' }}}}님의 {{{{ service.title }}}} 풀이 결과입니다. {{{{ service.character_name }}}}이 자세히 풀어드렸습니다.{{%% endblock %%}}
+
+{{%% block meta_keywords %%}}{{{{ service.title }}}}, 운세, 사주, 운세 결과{{%% endblock %%}}
+
+{{%% block og_title %%}}{{{{ request_data.name if request_data and request_data.name else '고객' }}}}님의 {{{{ service.title }}}} 결과{{%% endblock %%}}
+
+{{%% block og_description %%}}{{{{ service.character_name }}}}이 자세히 풀어드린 {{{{ service.title }}}} 결과를 확인하세요.{{%% endblock %%}}
+
+{{%% block og_image %%}}{{{{ service.character_image if service.character_image else url_for('static', path='/images/og-default.jpg') }}}}{{%% endblock %%}}
+
+{{%% block extra_css %%}}
+<style>
+    .result-header {{
+        text-align: center;
+        padding: 100px 20px 40px;
+        margin-top: 60px;
+    }}
+
+    .character-emoji {{
+        font-size: 60px;
+        margin-bottom: 15px;
+    }}
+
+    .character-image {{
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        margin: 0 auto 20px;
+        display: block;
+    }}
+
+    @media (max-width: 768px) {{
+        .character-image {{
+            max-width: 90vw;
+        }}
+    }}
+
+    .result-title {{
+        font-size: 32px;
+        margin-bottom: 10px;
+    }}
+
+    .result-date {{
+        color: #5a4a3a;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        margin-top: 5px;
+    }}
+
+    .cache-notice {{
+        display: inline-block;
+        padding: 8px 16px;
+        background: rgba(76, 175, 80, 0.2);
+        border: 1px solid #4CAF50;
+        border-radius: 20px;
+        color: #4CAF50;
+        font-size: 14px;
+        margin-top: 10px;
+    }}
+
+    .result-container {{
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }}
+
+    .section-box {{
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }}
+
+    .section-title {{
+        font-size: 24px;
+        font-weight: 700;
+        color: #5a4a3a;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0e6d6;
+    }}
+
+    .content-text {{
+        line-height: 1.8;
+        color: #4a4a4a;
+        white-space: pre-wrap;
+    }}
+
+    .back-button {{
+        display: inline-block;
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 20px auto;
+        display: block;
+        width: fit-content;
+    }}
+
+    .back-button:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }}
+</style>
+{{%% endblock %%}}
+
+{{%% block content %%}}
+<!-- 결과 헤더 -->
+<div class="result-header">
+    {{%% if service.character_image %%}}
+        {{%% if service.character_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_image or '.webm?' in service.character_image %%}}
+            <video class="character-image" autoplay loop muted playsinline>
+                <source src="{{{{ service.character_image }}}}" type="video/{{{{ 'mp4' if '.mp4' in service.character_image else 'webm' }}}}">
+            </video>
+        {{%% else %%}}
+            <img src="{{{{ service.character_image }}}}" alt="{{{{ service.character_name }}}}" class="character-image">
+        {{%% endif %%}}
+    {{%% elif service.character_emoji %%}}
+        <div class="character-emoji">{{{{ service.character_emoji }}}}</div>
+    {{%% endif %%}}
+
+    <h1 class="result-title">{{{{ service.character_name }}}}의 {{{{ service.title }}}}</h1>
+
+    {{%% if request_data and request_data.name %%}}
+        <p class="result-date">{{{{ request_data.name }}}}님의 운세</p>
+    {{%% endif %%}}
+
+    {{%% if today %%}}
+        <p class="result-date">{{{{ today }}}}</p>
+    {{%% endif %%}}
+
+    {{%% if is_cached %%}}
+        <span class="cache-notice">💾 저장된 결과</span>
+    {{%% endif %%}}
+</div>
+
+<!-- 결과 내용 -->
+<div class="result-container">
+    <!-- 여기부터 커스텀 결과 영역 -->
+    <div class="section-box">
+        <h2 class="section-title">🔮 결과</h2>
+        <div class="content-text">
+            {{%% if result and result.content %%}}
+                {{{{ result.content | safe }}}}
+            {{%% else %%}}
+                <p style="text-align: center; color: #999; padding: 40px;">
+                    🛠️ 이 영역은 커스텀 결과를 표시하는 공간입니다<br>
+                    템플릿 파일: <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">app/templates/results/{code}_result.html</code><br>
+                    <small style="margin-top: 10px; display: block;">이 파일을 수정하여 결과를 커스터마이징하세요.</small>
+                </p>
+            {{%% endif %%}}
+        </div>
+    </div>
+
+    <!-- 다시 보기 버튼 -->
+    <a href="{{{{ service.url_path }}}}" class="back-button">다시 보기</a>
+</div>
+{{%% endblock %%}}
+'''
+            with result_template_file.open("w", encoding="utf-8") as f:
+                f.write(result_template_content)
+
+        return RedirectResponse(
+            url=f"/admin/settings/pages?success=new_page_created",
+            status_code=303
+        )
+    except Exception as e:
+        site_service = SiteService(db)
+        services = site_service.get_all_services()
+        site_config = site_service.get_site_config()
+
+        return templates.TemplateResponse(
+            "admin/settings_pages.html",
+            {
+                "request": request,
+                "username": username,
+                "site_config": site_config,
+                "services": services,
+                "success": None,
+                "error": f"페이지 생성 중 오류가 발생했습니다: {str(e)}"
+            }
+        )
+
+
+@router.post("/settings/pages/{service_code}/delete", response_class=HTMLResponse)
+async def delete_page(
+    request: Request,
+    service_code: str,
+    db: Session = Depends(get_db),
+    admin_token: Optional[str] = Cookie(None)
+):
+    """페이지 삭제"""
+    username = check_admin(admin_token)
+    if not username:
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    try:
+        site_service = SiteService(db)
+        site_service.delete_service(service_code)
+
+        # 관련 이미지 파일도 삭제
+        upload_dir = Path("app/static/uploads")
+        for pattern in [f"character_{service_code}.*", f"character_form_{service_code}.*"]:
+            for old_file in upload_dir.glob(pattern):
+                old_file.unlink()
+
+        return RedirectResponse(
+            url=f"/admin/settings/pages?success=page_deleted",
+            status_code=303
+        )
+    except Exception as e:
+        return RedirectResponse(
+            url=f"/admin/settings/pages?error={str(e)}",
+            status_code=303
+        )
+
+
+@router.post("/settings/pages/{service_code}", response_class=HTMLResponse)
 async def update_service_settings(
     request: Request,
     service_code: str,
     db: Session = Depends(get_db),
     admin_token: Optional[str] = Cookie(None),
+    url_path: Optional[str] = Form(None),
     title: str = Form(...),
     subtitle: str = Form(...),
     description: str = Form(...),
@@ -672,7 +1011,14 @@ async def update_service_settings(
             if current_service and current_service.character_form_image:
                 character_form_image_url = current_service.character_form_image
 
+        # URL 경로 검증
+        if url_path:
+            url_path = url_path.strip()
+            if not url_path.startswith('/'):
+                url_path = '/' + url_path
+
         updates = {
+            "url_path": url_path if url_path else f"/fortune/{service_code}",
             "title": title,
             "subtitle": subtitle,
             "description": description,
@@ -685,12 +1031,14 @@ async def update_service_settings(
         site_service.update_service_config(service_code, updates)
 
         services = site_service.get_all_services()
+        site_config = site_service.get_site_config()
 
         return templates.TemplateResponse(
-            "admin/settings_services.html",
+            "admin/settings_pages.html",
             {
                 "request": request,
                 "username": username,
+                "site_config": site_config,
                 "services": services,
                 "success": f"{title} 설정이 성공적으로 저장되었습니다.",
                 "error": None
@@ -699,12 +1047,14 @@ async def update_service_settings(
     except Exception as e:
         site_service = SiteService(db)
         services = site_service.get_all_services()
+        site_config = site_service.get_site_config()
 
         return templates.TemplateResponse(
-            "admin/settings_services.html",
+            "admin/settings_pages.html",
             {
                 "request": request,
                 "username": username,
+                "site_config": site_config,
                 "services": services,
                 "success": None,
                 "error": f"저장 중 오류가 발생했습니다: {str(e)}"

@@ -22,8 +22,9 @@ PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 class FortuneService:
     """운세 생성 및 캐싱 서비스"""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, client_ip: Optional[str] = None):
         self.db = db
+        self.client_ip = client_ip
         self._prompt_cache = {}
 
     def _load_prompt_template(self, service_code: str) -> str:
@@ -90,7 +91,7 @@ class FortuneService:
         # 2026 신년운세는 별도 처리
         if service_code == "newyear2026":
             prompt = self.build_newyear2026_prompt(request_data)
-            result_text = gemini_service.generate_content(prompt)
+            result_text = gemini_service.generate_content(prompt, service_code=service_code, db=self.db, client_ip=self.client_ip)
 
             serializable_data = self._make_json_serializable(request_data)
 
@@ -143,7 +144,7 @@ class FortuneService:
         prompt = self.build_prompt(service_code, service_config, request_data)
 
         # Gemini API 호출
-        result_text = gemini_service.generate_content(prompt)
+        result_text = gemini_service.generate_content(prompt, service_code=service_code, db=self.db, client_ip=self.client_ip)
 
         # request_data를 JSON 직렬화 가능하게 변환 (date 객체를 문자열로)
         serializable_data = self._make_json_serializable(request_data)
@@ -310,13 +311,14 @@ class FortuneService:
         name = request_data.get("name")
         birthdate = datetime.fromisoformat(str(request_data["birthdate"])).date()
         gender = request_data["gender"]
+        birth_time = request_data.get("birth_time")  # 출생시간 추가
 
         # 궁합일 경우 상대방 생년월일도 포함
         partner_birthdate = None
         if service_code == "match" and "partner_birthdate" in request_data:
             partner_birthdate = datetime.fromisoformat(str(request_data["partner_birthdate"])).date()
 
-        return build_user_key(name, birthdate, gender, partner_birthdate)
+        return build_user_key(name, birthdate, gender, partner_birthdate, birth_time)
 
     def build_prompt(
         self,

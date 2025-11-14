@@ -197,6 +197,45 @@
 </div>
 
 <div class="section">
+    <h2>📋 로그 요약 (24시간)</h2>
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">⚠️ 에러 발생</span>
+            <span class="info-value" style="color: {% if log_summary['error_count'] > 0 %}#e53e3e{% else %}#48bb78{% endif %};">
+                {{ log_summary['error_count'] }}건
+            </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">🤖 AI API 호출</span>
+            <span class="info-value">{{ log_summary['api_calls'] }}회</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">💰 AI 비용 (24시간)</span>
+            <span class="info-value">${{ "%.4f"|format(log_summary['api_cost']) }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">👥 방문자 수</span>
+            <span class="info-value">{{ log_summary['visitor_count'] }}명</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">🚫 Rate Limit 위반</span>
+            <span class="info-value" style="color: {% if log_summary['rate_limit_violations'] > 0 %}#ed8936{% else %}#48bb78{% endif %};">
+                {{ log_summary['rate_limit_violations'] }}건
+            </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">⚡ 평균 응답 시간</span>
+            <span class="info-value">{{ log_summary['avg_response_time_ms']|int }}ms</span>
+        </div>
+    </div>
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/admin/logs" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+            📊 상세 로그 보기
+        </a>
+    </div>
+</div>
+
+<div class="section">
     <h2>💡 시스템 정보</h2>
     <div class="info-grid">
         <div class="info-item">
