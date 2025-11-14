@@ -73,7 +73,7 @@ ADMIN_PASSWORD=실제_설정한_비밀번호
 # ========================================
 # Gemini API 설정
 # ========================================
-GEMINI_API_KEY=AIzaSyAM_F9a5kyZ_bCm8DeDabpBJvmaKFMaDB0
+GEMINI_API_KEY=your_actual_gemini_api_key_here
 GEMINI_MODEL=gemini-2.0-flash-exp
 GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models
 
