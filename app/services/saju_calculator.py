@@ -178,6 +178,9 @@ class SajuCalculator:
                 hour = int(birth_time.split('-')[0])
             elif ':' in birth_time:
                 hour = int(birth_time.split(':')[0])
+            else:
+                # 단순 숫자 형식 (예: "23", "01")
+                hour = int(birth_time)
 
         # 간지 계산
         ganzhi = self.get_ganzhi(year, month, day, hour)
