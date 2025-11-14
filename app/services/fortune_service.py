@@ -419,10 +419,10 @@ class FortuneService:
             # 오행 분석
             ohang = sd.get("ohang", {})
             saju_info += f"\n[오행 분석]\n"
-            for elem, name in [('木', '목'), ('火', '화'), ('土', '토'), ('金', '금'), ('水', '수')]:
+            for elem, elem_name in [('木', '목'), ('火', '화'), ('土', '토'), ('金', '금'), ('水', '수')]:
                 if elem in ohang:
                     info = ohang[elem]
-                    saju_info += f"- {name}({elem}): {info['count']}개 ({info['percent']:.1f}%) - {info['status']}\n"
+                    saju_info += f"- {elem_name}({elem}): {info['count']}개 ({info['percent']:.1f}%) - {info['status']}\n"
 
             # 신강신약 및 용신
             strength = sd.get("strength", {})

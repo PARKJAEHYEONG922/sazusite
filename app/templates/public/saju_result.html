@@ -899,7 +899,14 @@
 <div class="result-header">
     <div class="character-emoji">
         {% if service.character_image %}
-            <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="character-image">
+            {% if service.character_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_image or '.webm?' in service.character_image %}
+                <video autoplay loop muted playsinline class="character-image" preload="auto">
+                    <source src="{{ service.character_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_image else 'webm' }}">
+                    브라우저가 비디오를 지원하지 않습니다.
+                </video>
+            {% else %}
+                <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="character-image">
+            {% endif %}
         {% else %}
             {{ service.character_emoji }}
         {% endif %}
