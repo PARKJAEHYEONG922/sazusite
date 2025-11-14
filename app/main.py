@@ -4,7 +4,7 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -62,6 +62,102 @@ async def api_test():
         "message": "명월헌 API가 정상 작동 중입니다!",
         "version": "1.0.0"
     }
+
+
+@app.get("/robots.txt", response_class=Response)
+async def robots_txt():
+    """robots.txt 제공"""
+    content = """# robots.txt for 명월헌 (myeongwolheon.kr)
+# 검색엔진 크롤러 설정
+
+# 모든 검색엔진 허용
+User-agent: *
+Allow: /
+
+# 관리자 페이지 차단
+Disallow: /admin/
+Disallow: /admin
+
+# API 엔드포인트 차단 (검색 결과에 노출 불필요)
+Disallow: /api/
+
+# 사이트맵 위치
+Sitemap: https://myeongwolheon.kr/sitemap.xml
+
+# 크롤링 속도 제한 (서버 부하 방지)
+Crawl-delay: 1
+"""
+    return Response(content=content, media_type="text/plain")
+
+
+@app.get("/sitemap.xml", response_class=Response)
+async def sitemap_xml(db: Session = Depends(get_db)):
+    """동적 sitemap.xml 생성"""
+    from datetime import datetime
+
+    site_service = SiteService(db)
+    site_config = site_service.get_site_config()
+
+    # 기본 URL (배포 시 자동으로 설정된 도메인 사용)
+    base_url = site_config.site_url if site_config and site_config.site_url else "https://myeongwolheon.kr"
+
+    # 현재 날짜 (lastmod 용)
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # 사이트맵 XML 생성
+    xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- 메인 페이지 -->
+    <url>
+        <loc>{base_url}/</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- 오늘의 운세 -->
+    <url>
+        <loc>{base_url}/fortune/today</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- 2026 신년운세 -->
+    <url>
+        <loc>{base_url}/fortune/newyear2026</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- 정통 사주팔자 -->
+    <url>
+        <loc>{base_url}/fortune/saju</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- 사주궁합 -->
+    <url>
+        <loc>{base_url}/fortune/match</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- 꿈해몽 -->
+    <url>
+        <loc>{base_url}/fortune/dream</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+</urlset>
+"""
+
+    return Response(content=xml_content, media_type="application/xml")
 
 
 # 앱 시작 시 실행

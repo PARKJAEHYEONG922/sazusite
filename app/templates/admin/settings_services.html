@@ -291,8 +291,22 @@
     <div class="service-card">
         <div class="service-header">
             <div class="service-emoji">
-                {% if service.character_image %}
-                    <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="service-image">
+                {% if service.character_form_image %}
+                    {% if service.character_form_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_form_image or '.webm?' in service.character_form_image %}
+                        <video class="service-image" autoplay loop muted playsinline>
+                            <source src="{{ service.character_form_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_form_image else 'webm' }}">
+                        </video>
+                    {% else %}
+                        <img src="{{ service.character_form_image }}" alt="{{ service.character_name }}" class="service-image">
+                    {% endif %}
+                {% elif service.character_image %}
+                    {% if service.character_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_image or '.webm?' in service.character_image %}
+                        <video class="service-image" autoplay loop muted playsinline>
+                            <source src="{{ service.character_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_image else 'webm' }}">
+                        </video>
+                    {% else %}
+                        <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="service-image">
+                    {% endif %}
                 {% else %}
                     {{ service.character_emoji }}
                 {% endif %}

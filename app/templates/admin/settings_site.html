@@ -259,6 +259,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label>사이트 URL</label>
+                    <input type="url" name="site_url" value="{{ config.site_url if config and config.site_url else '' }}" placeholder="https://yourdomain.com">
+                    <p class="info-text">사이트의 전체 URL을 입력하세요 (예: https://명월헌.com). SEO와 소셜 공유에 사용됩니다.</p>
+                </div>
+
+                <div class="form-group">
                     <label>사이트 로고 이미지</label>
                     <input type="file" name="site_logo_file" accept="image/*">
                     {% if config and config.site_logo %}

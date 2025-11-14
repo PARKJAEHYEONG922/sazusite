@@ -17,6 +17,7 @@ from app.database import get_db
 from app.models.fortune_result import FortuneResult
 from app.services.site_service import SiteService
 from app.utils.security import verify_token
+from app.utils.image_utils import convert_to_webp, validate_image_ratio
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory="app/templates")
@@ -111,6 +112,7 @@ async def update_site_settings(
     db: Session = Depends(get_db),
     admin_token: Optional[str] = Cookie(None),
     site_name: str = Form(...),
+    site_url: Optional[str] = Form(None),
     site_logo_file: Optional[UploadFile] = File(None),
     site_favicon_file: Optional[UploadFile] = File(None),
     main_title: str = Form(...),
@@ -199,17 +201,24 @@ async def update_site_settings(
             if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']:
                 raise ValueError("로고: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp, svg만 가능)")
 
-            # 파일명 생성
-            new_filename = f"site_logo{file_ext}"
-            file_path = upload_dir / new_filename
+            # 이미지 데이터 읽기
+            image_data = await site_logo_file.read()
 
-            # 기존 파일 삭제
-            if file_path.exists():
-                file_path.unlink()
+            # SVG는 그대로 저장, 나머지는 WebP 변환
+            if file_ext == '.svg':
+                new_filename = "site_logo.svg"
+                file_path = upload_dir / new_filename
+                with file_path.open("wb") as f:
+                    f.write(image_data)
+            else:
+                # 기존 로고 파일들 삭제 (모든 확장자)
+                for old_file in upload_dir.glob("site_logo.*"):
+                    old_file.unlink()
 
-            # 파일 저장
-            with file_path.open("wb") as buffer:
-                shutil.copyfileobj(site_logo_file.file, buffer)
+                # WebP로 변환 및 저장
+                output_path = upload_dir / "site_logo"
+                convert_to_webp(image_data, output_path, quality=90, max_width=800)
+                new_filename = "site_logo.webp"
 
             # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
             timestamp = int(datetime.now().timestamp())
@@ -296,21 +305,20 @@ async def update_site_settings(
                 if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
                     raise ValueError(f"배너 {i}: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
 
-                # 파일명 생성 (banner_1.jpg 형식)
-                new_filename = f"banner_{i}{file_ext}"
-                file_path = upload_dir / new_filename
+                # 이미지 데이터 읽기
+                image_data = await banner_file.read()
 
-                # 기존 파일 삭제
-                if file_path.exists():
-                    file_path.unlink()
+                # 기존 배너 파일들 삭제 (모든 확장자)
+                for old_file in upload_dir.glob(f"banner_{i}.*"):
+                    old_file.unlink()
 
-                # 파일 저장
-                with file_path.open("wb") as buffer:
-                    shutil.copyfileobj(banner_file.file, buffer)
+                # WebP로 변환 및 저장 (1200px 최대 너비)
+                output_path = upload_dir / f"banner_{i}"
+                convert_to_webp(image_data, output_path, quality=90, max_width=1200)
 
                 # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
                 timestamp = int(datetime.now().timestamp())
-                banner_updates[f"banner_image_{i}"] = f"/static/uploads/{new_filename}?v={timestamp}"
+                banner_updates[f"banner_image_{i}"] = f"/static/uploads/banner_{i}.webp?v={timestamp}"
             else:
                 # 파일 업로드가 없으면 기존 값 유지
                 if current_config:
@@ -326,21 +334,20 @@ async def update_site_settings(
                 if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
                     raise ValueError(f"PC 배너 {i}: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
 
-                # 파일명 생성 (banner_pc_1.jpg 형식)
-                new_filename = f"banner_pc_{i}{file_ext}"
-                file_path = upload_dir / new_filename
+                # 이미지 데이터 읽기
+                image_data = await banner_pc_file.read()
 
-                # 기존 파일 삭제
-                if file_path.exists():
-                    file_path.unlink()
+                # 기존 PC 배너 파일들 삭제 (모든 확장자)
+                for old_file in upload_dir.glob(f"banner_pc_{i}.*"):
+                    old_file.unlink()
 
-                # 파일 저장
-                with file_path.open("wb") as buffer:
-                    shutil.copyfileobj(banner_pc_file.file, buffer)
+                # WebP로 변환 및 저장 (2100px 최대 너비 - 21:9 와이드 스크린 지원)
+                output_path = upload_dir / f"banner_pc_{i}"
+                convert_to_webp(image_data, output_path, quality=90, max_width=2100)
 
                 # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
                 timestamp = int(datetime.now().timestamp())
-                banner_updates[f"banner_image_pc_{i}"] = f"/static/uploads/{new_filename}?v={timestamp}"
+                banner_updates[f"banner_image_pc_{i}"] = f"/static/uploads/banner_pc_{i}.webp?v={timestamp}"
             else:
                 # 파일 업로드가 없으면 기존 값 유지
                 if current_config:
@@ -412,17 +419,23 @@ async def update_site_settings(
                 if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
                     raise ValueError(f"서브배너 {i}: 지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
 
-                # 파일명 생성 (sub_banner_1.jpg 형식)
-                new_filename = f"sub_banner_{i}{file_ext}"
-                file_path = upload_dir / new_filename
+                # 기존 서브배너 파일들 삭제 (모든 확장자)
+                for old_file in upload_dir.glob(f"sub_banner_{i}.*"):
+                    old_file.unlink()
 
-                # 기존 파일 삭제
-                if file_path.exists():
-                    file_path.unlink()
-
-                # 파일 저장
-                with file_path.open("wb") as buffer:
-                    shutil.copyfileobj(sub_banner_file.file, buffer)
+                # 동영상은 그대로 저장, 이미지는 WebP로 변환
+                if file_ext in ['.mp4', '.webm']:
+                    # 동영상 파일은 그대로 저장
+                    new_filename = f"sub_banner_{i}{file_ext}"
+                    file_path = upload_dir / new_filename
+                    with file_path.open("wb") as buffer:
+                        shutil.copyfileobj(sub_banner_file.file, buffer)
+                else:
+                    # 이미지는 WebP로 변환
+                    image_data = await sub_banner_file.read()
+                    output_path = upload_dir / f"sub_banner_{i}"
+                    convert_to_webp(image_data, output_path, quality=90, max_width=1200)
+                    new_filename = f"sub_banner_{i}.webp"
 
                 # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
                 timestamp = int(datetime.now().timestamp())
@@ -454,6 +467,7 @@ async def update_site_settings(
 
         updates = {
             "site_name": site_name,
+            "site_url": site_url if site_url else None,
             "site_logo": site_logo_url,
             "site_favicon": site_favicon_url,
             "main_title": main_title,
@@ -554,52 +568,42 @@ async def update_service_settings(
             if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
                 raise ValueError("지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
 
-            # 임시 파일 저장
-            temp_filename = f"temp_character_{service_code}{file_ext}"
-            temp_path = upload_dir / temp_filename
+            # 이미지 데이터 읽기
+            image_data = await character_image_file.read()
 
-            with temp_path.open("wb") as buffer:
-                shutil.copyfileobj(character_image_file.file, buffer)
+            # 동영상은 그대로 저장, 이미지는 WebP로 변환
+            if file_ext in ['.mp4', '.webm']:
+                # 동영상 파일 비율 검증 및 저장
+                temp_filename = f"temp_character_{service_code}{file_ext}"
+                temp_path = upload_dir / temp_filename
+                with temp_path.open("wb") as buffer:
+                    buffer.write(image_data)
 
-            # 이미지인 경우에만 비율 검증 (3:4 비율 권장, ±10% 허용)
-            if file_ext not in ['.mp4', '.webm']:
-                try:
-                    img = Image.open(temp_path)
-                    width, height = img.size
-                    img.close()  # 파일 핸들 명시적으로 닫기
-
-                    aspect_ratio = width / height
-                    target_ratio = 3 / 4
-
-                    # ±10% 허용 범위
-                    if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
-                        if temp_path.exists():
-                            temp_path.unlink()  # 임시 파일 삭제
-                        raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
-                except ValueError:
-                    # 비율 오류는 그대로 전달
-                    raise
-                except Exception as e:
-                    if temp_path.exists():
-                        try:
-                            temp_path.unlink()
-                        except:
-                            pass  # 삭제 실패는 무시
-                    raise ValueError(f"이미지 검증 실패: {str(e)}")
-
-            # 모든 확장자의 기존 파일 삭제 (이미지 및 영상)
-            all_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']
-            for ext in all_extensions:
-                old_file = upload_dir / f"character_{service_code}{ext}"
-                if old_file.exists():
+                # 모든 확장자의 기존 파일 삭제
+                for old_file in upload_dir.glob(f"character_{service_code}.*"):
                     old_file.unlink()
 
-            # 최종 파일명 생성
-            final_filename = f"character_{service_code}{file_ext}"
-            final_path = upload_dir / final_filename
+                # 최종 경로로 이동
+                final_filename = f"character_{service_code}{file_ext}"
+                final_path = upload_dir / final_filename
+                temp_path.rename(final_path)
+            else:
+                # 이미지 비율 검증 (3:4 비율 권장, ±10% 허용)
+                target_ratio = 3 / 4
+                if not validate_image_ratio(image_data, target_ratio, tolerance=0.10):
+                    from app.utils.image_utils import get_image_dimensions
+                    width, height = get_image_dimensions(image_data)
+                    aspect_ratio = width / height
+                    raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
 
-            # 임시 파일을 최종 경로로 이동
-            temp_path.rename(final_path)
+                # 모든 확장자의 기존 파일 삭제
+                for old_file in upload_dir.glob(f"character_{service_code}.*"):
+                    old_file.unlink()
+
+                # WebP로 변환 및 저장
+                output_path = upload_dir / f"character_{service_code}"
+                convert_to_webp(image_data, output_path, quality=85, max_width=400)
+                final_filename = f"character_{service_code}.webp"
 
             # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
             timestamp = int(datetime.now().timestamp())
@@ -622,52 +626,42 @@ async def update_service_settings(
             if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
                 raise ValueError("지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
 
-            # 임시 파일 저장
-            temp_filename = f"temp_character_form_{service_code}{file_ext}"
-            temp_path = upload_dir / temp_filename
+            # 이미지 데이터 읽기
+            image_data = await character_form_image_file.read()
 
-            with temp_path.open("wb") as buffer:
-                shutil.copyfileobj(character_form_image_file.file, buffer)
+            # 동영상은 그대로 저장, 이미지는 WebP로 변환
+            if file_ext in ['.mp4', '.webm']:
+                # 동영상 파일 비율 검증 및 저장
+                temp_filename = f"temp_character_form_{service_code}{file_ext}"
+                temp_path = upload_dir / temp_filename
+                with temp_path.open("wb") as buffer:
+                    buffer.write(image_data)
 
-            # 이미지인 경우에만 비율 검증 (3:4 비율 권장, ±10% 허용)
-            if file_ext not in ['.mp4', '.webm']:
-                try:
-                    img = Image.open(temp_path)
-                    width, height = img.size
-                    img.close()  # 파일 핸들 명시적으로 닫기
-
-                    aspect_ratio = width / height
-                    target_ratio = 3 / 4
-
-                    # ±10% 허용 범위
-                    if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
-                        if temp_path.exists():
-                            temp_path.unlink()  # 임시 파일 삭제
-                        raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
-                except ValueError:
-                    # 비율 오류는 그대로 전달
-                    raise
-                except Exception as e:
-                    if temp_path.exists():
-                        try:
-                            temp_path.unlink()
-                        except:
-                            pass  # 삭제 실패는 무시
-                    raise ValueError(f"이미지 검증 실패: {str(e)}")
-
-            # 모든 확장자의 기존 파일 삭제 (이미지 및 영상)
-            all_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']
-            for ext in all_extensions:
-                old_file = upload_dir / f"character_form_{service_code}{ext}"
-                if old_file.exists():
+                # 모든 확장자의 기존 파일 삭제
+                for old_file in upload_dir.glob(f"character_form_{service_code}.*"):
                     old_file.unlink()
 
-            # 최종 파일명 생성
-            final_filename = f"character_form_{service_code}{file_ext}"
-            final_path = upload_dir / final_filename
+                # 최종 경로로 이동
+                final_filename = f"character_form_{service_code}{file_ext}"
+                final_path = upload_dir / final_filename
+                temp_path.rename(final_path)
+            else:
+                # 이미지 비율 검증 (3:4 비율 권장, ±10% 허용)
+                target_ratio = 3 / 4
+                if not validate_image_ratio(image_data, target_ratio, tolerance=0.10):
+                    from app.utils.image_utils import get_image_dimensions
+                    width, height = get_image_dimensions(image_data)
+                    aspect_ratio = width / height
+                    raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
 
-            # 임시 파일을 최종 경로로 이동
-            temp_path.rename(final_path)
+                # 모든 확장자의 기존 파일 삭제
+                for old_file in upload_dir.glob(f"character_form_{service_code}.*"):
+                    old_file.unlink()
+
+                # WebP로 변환 및 저장
+                output_path = upload_dir / f"character_form_{service_code}"
+                convert_to_webp(image_data, output_path, quality=85, max_width=400)
+                final_filename = f"character_form_{service_code}.webp"
 
             # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
             timestamp = int(datetime.now().timestamp())
@@ -712,6 +706,132 @@ async def update_service_settings(
                 "request": request,
                 "username": username,
                 "services": services,
+                "success": None,
+                "error": f"저장 중 오류가 발생했습니다: {str(e)}"
+            }
+        )
+
+
+@router.get("/settings/seo", response_class=HTMLResponse)
+async def settings_seo(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_token: Optional[str] = Cookie(None)
+):
+    """SEO 설정 페이지"""
+    username = check_admin(admin_token)
+    if not username:
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    site_service = SiteService(db)
+    config = site_service.get_site_config()
+
+    return templates.TemplateResponse(
+        "admin/settings_seo.html",
+        {
+            "request": request,
+            "username": username,
+            "config": config,
+            "success": None,
+            "error": None
+        }
+    )
+
+
+@router.post("/settings/seo", response_class=HTMLResponse)
+async def update_seo_settings(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_token: Optional[str] = Cookie(None),
+    seo_title: Optional[str] = Form(None),
+    seo_description: Optional[str] = Form(None),
+    seo_keywords: Optional[str] = Form(None),
+    seo_author: Optional[str] = Form(None),
+    seo_og_image_file: Optional[UploadFile] = File(None),
+    header_script: Optional[str] = Form(None),
+    footer_script: Optional[str] = Form(None)
+):
+    """SEO 설정 업데이트"""
+    username = check_admin(admin_token)
+    if not username:
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    try:
+        site_service = SiteService(db)
+        current_config = site_service.get_site_config()
+
+        # OG 이미지 업로드 처리
+        seo_og_image_url = None
+        if seo_og_image_file and seo_og_image_file.filename:
+            # 업로드 디렉토리 설정
+            upload_dir = Path("app/static/uploads")
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            # 파일 확장자 확인
+            file_ext = os.path.splitext(seo_og_image_file.filename)[1].lower()
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                raise ValueError("OG 이미지: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+
+            # 이미지 데이터 읽기
+            image_data = await seo_og_image_file.read()
+
+            # 이미지 비율 검증 (2:1 비율 권장, ±15% 허용)
+            target_ratio = 1200 / 630  # 약 1.9:1
+            if not validate_image_ratio(image_data, target_ratio, tolerance=0.15):
+                from app.utils.image_utils import get_image_dimensions
+                width, height = get_image_dimensions(image_data)
+                aspect_ratio = width / height
+                raise ValueError(f"OG 이미지 비율이 권장 비율(1200x630, 약 2:1)에 가깝지 않습니다. 현재 크기: {width}x{height} (비율: {aspect_ratio:.2f})")
+
+            # 기존 OG 이미지 파일들 삭제 (모든 확장자)
+            for old_file in upload_dir.glob("og_image.*"):
+                old_file.unlink()
+
+            # WebP로 변환 및 저장 (1200px 최대 너비)
+            output_path = upload_dir / "og_image"
+            convert_to_webp(image_data, output_path, quality=90, max_width=1200)
+
+            # URL 경로 저장
+            timestamp = int(datetime.now().timestamp())
+            seo_og_image_url = f"/static/uploads/og_image.webp?v={timestamp}"
+        else:
+            # 파일 업로드가 없으면 기존 값 유지
+            if current_config and current_config.seo_og_image:
+                seo_og_image_url = current_config.seo_og_image
+
+        updates = {
+            "seo_title": seo_title if seo_title else None,
+            "seo_description": seo_description if seo_description else None,
+            "seo_keywords": seo_keywords if seo_keywords else None,
+            "seo_author": seo_author if seo_author else "명월헌",
+            "seo_og_image": seo_og_image_url,
+            "header_script": header_script if header_script else None,
+            "footer_script": footer_script if footer_script else None
+        }
+
+        site_service.update_site_config(updates)
+        config = site_service.get_site_config()
+
+        return templates.TemplateResponse(
+            "admin/settings_seo.html",
+            {
+                "request": request,
+                "username": username,
+                "config": config,
+                "success": "SEO 설정이 성공적으로 저장되었습니다.",
+                "error": None
+            }
+        )
+    except Exception as e:
+        site_service = SiteService(db)
+        config = site_service.get_site_config()
+
+        return templates.TemplateResponse(
+            "admin/settings_seo.html",
+            {
+                "request": request,
+                "username": username,
+                "config": config,
                 "success": None,
                 "error": f"저장 중 오류가 발생했습니다: {str(e)}"
             }

@@ -4,6 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_config.site_name if site_config else "명월헌" }}{% endblock %}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}{{ site_config.seo_description if site_config and site_config.seo_description else '명월헌 - 전통 사주팔자, 2026년 신년운세, 궁합, 오늘의 운세, 꿈해몽까지. 30년 경력 명리학자의 정확한 운세 풀이를 AI로 만나보세요.' }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ site_config.seo_keywords if site_config and site_config.seo_keywords else '사주, 사주팔자, 신년운세, 2026년 운세, 궁합, 꿈해몽, 오늘의 운세, 명리학, 운세, 무료운세, 타로' }}{% endblock %}">
+    <meta name="author" content="{{ site_config.seo_author if site_config and site_config.seo_author else '명월헌' }}">
+    <meta name="robots" content="index, follow">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical_url %}{% if site_config and site_config.site_url %}{{ site_config.site_url }}{{ request.path if request else '' }}{% else %}{{ request.url if request else 'https://명월헌.com' }}{% endif %}{% endblock %}">
+
+    <!-- Open Graph Tags -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ self.meta_description() }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ site_config.seo_og_image if site_config and site_config.seo_og_image else (site_config.site_logo if site_config and site_config.site_logo else url_for('static', path='/images/og-default.jpg')) }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{% if site_config and site_config.site_url %}{{ site_config.site_url }}{{ request.path if request else '' }}{% else %}{{ request.url if request else 'https://명월헌.com' }}{% endif %}{% endblock %}">
+    <meta property="og:site_name" content="{{ site_config.site_name if site_config else '명월헌' }}">
+    <meta property="og:locale" content="ko_KR">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ self.og_title() }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ self.og_description() }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ self.og_image() }}{% endblock %}">
+
     {% if site_config and site_config.site_favicon %}
     <link rel="icon" type="image/x-icon" href="{{ site_config.site_favicon }}">
     <link rel="shortcut icon" href="{{ site_config.site_favicon }}">
@@ -14,6 +39,11 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     {% block extra_css %}{% endblock %}
+
+    <!-- 사용자 정의 헤더 스크립트 (Google Analytics, 메타태그 등) -->
+    {% if site_config and site_config.header_script %}
+    {{ site_config.header_script|safe }}
+    {% endif %}
 </head>
 <body>
     <!-- Sidebar Overlay -->
@@ -106,5 +136,10 @@
             crossorigin="anonymous"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}
+
+    <!-- 사용자 정의 푸터 스크립트 (채팅, 트래킹 등) -->
+    {% if site_config and site_config.footer_script %}
+    {{ site_config.footer_script|safe }}
+    {% endif %}
 </body>
 </html>

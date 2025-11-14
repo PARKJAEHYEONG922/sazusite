@@ -2,6 +2,16 @@
 
 {% block title %}{{ service.title }} 결과 - {{ site_config.site_name if site_config else "명월헌" }}{% endblock %}
 
+{% block meta_description %}{{ data.name if data else '고객' }}님의 {{ service.title }} 풀이 결과입니다. {{ service.character_name }}이 자세히 풀어드렸습니다.{% endblock %}
+
+{% block meta_keywords %}{{ service.title }}, {% if service.code == 'today' %}오늘의 운세, 띠별운세{% elif service.code == 'newyear2026' %}2026년 운세, 신년운세{% elif service.code == 'match' %}궁합, 사주궁합{% elif service.code == 'dream' %}꿈해몽, 꿈풀이{% endif %}, 운세 결과{% endblock %}
+
+{% block og_title %}{{ data.name if data else '고객' }}님의 {{ service.title }} 결과{% endblock %}
+
+{% block og_description %}{{ service.character_name }}이 자세히 풀어드린 {{ service.title }} 결과를 확인하세요.{% endblock %}
+
+{% block og_image %}{{ service.character_image if service.character_image else url_for('static', path='/images/og-fortune.jpg') }}{% endblock %}
+
 {% block extra_css %}
 <style>
     .result-header {

@@ -37,7 +37,13 @@
       "Bash(cat:*)",
       "Bash(del \"C:\\사주사이트\\app\\templates\\public\\index.html.backup\")",
       "Bash(del myeongwolheon.db)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(del:*)",
+      "Bash(pip show:*)",
+      "Bash(curl:*)",
+      "Bash(test:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

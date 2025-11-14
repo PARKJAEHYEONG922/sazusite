@@ -1,0 +1,263 @@
+{% extends "layout/admin_base.html" %}
+
+{% block title %}SEO & 스크립트 설정 - 관리자{% endblock %}
+
+{% block page_title %}SEO & 스크립트 설정{% endblock %}
+
+{% block admin_content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>🔍 SEO & 스크립트 설정</h1>
+        <p>검색엔진 최적화 및 외부 스크립트 관리</p>
+    </div>
+
+    {% if success %}
+    <div class="alert alert-success">
+        {{ success }}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/admin/settings/seo" enctype="multipart/form-data">
+        <!-- SEO 메타태그 섹션 -->
+        <div class="settings-section">
+            <h2>📊 SEO 메타태그</h2>
+            <p class="section-description">검색엔진 노출을 위한 기본 메타태그를 설정하세요. 각 페이지에서 개별 설정이 없을 경우 이 값이 사용됩니다.</p>
+
+            <div class="form-group">
+                <label>기본 SEO 타이틀</label>
+                <input type="text" name="seo_title" value="{{ config.seo_title if config and config.seo_title else '명월헌 - 전통 사주팔자, 신년운세, 궁합, 꿈해몽' }}" maxlength="200">
+                <p class="info-text">검색 결과에 표시될 기본 타이틀 (50-60자 권장)</p>
+            </div>
+
+            <div class="form-group">
+                <label>기본 SEO 설명 (Description)</label>
+                <textarea name="seo_description" rows="3" maxlength="500">{{ config.seo_description if config and config.seo_description else '명월헌 - 전통 사주팔자, 2026년 신년운세, 궁합, 오늘의 운세, 꿈해몽까지. 30년 경력 명리학자의 정확한 운세 풀이를 AI로 만나보세요.' }}</textarea>
+                <p class="info-text">검색 결과에 표시될 설명 (150-160자 권장)</p>
+            </div>
+
+            <div class="form-group">
+                <label>기본 SEO 키워드 (Keywords)</label>
+                <input type="text" name="seo_keywords" value="{{ config.seo_keywords if config and config.seo_keywords else '사주, 사주팔자, 신년운세, 2026년 운세, 궁합, 꿈해몽, 오늘의 운세, 명리학, 운세, 무료운세, 타로' }}">
+                <p class="info-text">쉼표로 구분된 키워드 (10-15개 권장)</p>
+            </div>
+
+            <div class="form-group">
+                <label>저자 (Author)</label>
+                <input type="text" name="seo_author" value="{{ config.seo_author if config and config.seo_author else '명월헌' }}" maxlength="100">
+                <p class="info-text">사이트 운영자 또는 회사명</p>
+            </div>
+
+            <div class="form-group">
+                <label>기본 OG 이미지 (소셜 공유용)</label>
+                <input type="file" name="seo_og_image_file" accept="image/*">
+                {% if config and config.seo_og_image %}
+                <div style="margin-top: 10px;">
+                    <img src="{{ config.seo_og_image }}" alt="OG 이미지" style="max-width: 300px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <p class="info-text">현재 OG 이미지 (카카오톡, 페이스북 공유 시 표시)</p>
+                </div>
+                {% endif %}
+                <p class="info-text">권장 크기: 1200x630px (2:1 비율). 카카오톡, 페이스북 등 소셜미디어 공유 시 표시됩니다.</p>
+            </div>
+        </div>
+
+        <!-- 헤더 스크립트 섹션 -->
+        <div class="settings-section">
+            <h2>📝 헤더 스크립트 (&lt;head&gt;)</h2>
+            <p class="section-description">Google Analytics, 네이버/다음 사이트 인증, Facebook Pixel 등 &lt;head&gt; 태그 안에 삽입할 코드를 입력하세요.</p>
+
+            <div class="form-group">
+                <label>헤더 스크립트</label>
+                <textarea name="header_script" rows="10" style="font-family: 'Courier New', monospace; font-size: 13px;">{{ config.header_script if config and config.header_script else '' }}</textarea>
+                <p class="info-text">예시: Google Analytics, 네이버 웹마스터 도구 인증 메타태그, Facebook Pixel 등</p>
+                <details style="margin-top: 10px;">
+                    <summary style="cursor: pointer; color: #4299e1; font-weight: 500;">예시 코드 보기</summary>
+                    <pre style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 8px; margin-top: 10px; overflow-x: auto; font-size: 12px;"><!-- Google Analytics -->
+&lt;script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+&lt;/script&gt;
+
+<!-- 네이버 웹마스터 도구 -->
+&lt;meta name="naver-site-verification" content="xxxxxxxxxxxxxxxxxxx" /&gt;
+
+<!-- Facebook Pixel -->
+&lt;script&gt;
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', 'YOUR_PIXEL_ID');
+  fbq('track', 'PageView');
+&lt;/script&gt;</pre>
+                </details>
+            </div>
+        </div>
+
+        <!-- 푸터 스크립트 섹션 -->
+        <div class="settings-section">
+            <h2>📝 푸터 스크립트 (&lt;/body&gt; 전)</h2>
+            <p class="section-description">채팅 위젯, 추가 트래킹 코드 등 &lt;/body&gt; 태그 직전에 삽입할 코드를 입력하세요.</p>
+
+            <div class="form-group">
+                <label>푸터 스크립트</label>
+                <textarea name="footer_script" rows="10" style="font-family: 'Courier New', monospace; font-size: 13px;">{{ config.footer_script if config and config.footer_script else '' }}</textarea>
+                <p class="info-text">예시: 채널톡, 카카오톡 상담, Hotjar 등</p>
+                <details style="margin-top: 10px;">
+                    <summary style="cursor: pointer; color: #4299e1; font-weight: 500;">예시 코드 보기</summary>
+                    <pre style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 8px; margin-top: 10px; overflow-x: auto; font-size: 12px;"><!-- 채널톡 -->
+&lt;script&gt;
+  (function(){var w=window;if(w.ChannelIO){return w.console.error("ChannelIO script included twice.");}var ch=function(){ch.c(arguments);};ch.q=[];ch.c=function(args){ch.q.push(args);};w.ChannelIO=ch;function l(){if(w.ChannelIOInitialized){return;}w.ChannelIOInitialized=true;var s=document.createElement("script");s.type="text/javascript";s.async=true;s.src="https://cdn.channel.io/plugin/ch-plugin-web.js";var x=document.getElementsByTagName("script")[0];if(x.parentNode){x.parentNode.insertBefore(s,x);}}if(document.readyState==="complete"){l();}else{w.addEventListener("DOMContentLoaded",l);w.addEventListener("load",l);}})();
+  ChannelIO('boot', {
+    "pluginKey": "YOUR_PLUGIN_KEY"
+  });
+&lt;/script&gt;
+
+<!-- Hotjar -->
+&lt;script&gt;
+  (function(h,o,t,j,a,r){
+    h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+    h._hjSettings={hjid:YOUR_SITE_ID,hjsv:6};
+    a=o.getElementsByTagName('head')[0];
+    r=o.createElement('script');r.async=1;
+    r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+    a.appendChild(r);
+  })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+&lt;/script&gt;</pre>
+                </details>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">저장하기</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.settings-section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+.settings-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    color: #2d3748;
+}
+
+.section-description {
+    color: #718096;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2d3748;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.form-group input[type="file"] {
+    padding: 10px;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+    background: #f7fafc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: #4299e1;
+    background: #ebf8ff;
+}
+
+.info-text {
+    font-size: 13px;
+    color: #718096;
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background: #c6f6d5;
+    color: #22543d;
+    border-left: 4px solid #38a169;
+}
+
+.alert-error {
+    background: #fed7d7;
+    color: #742a2a;
+    border-left: 4px solid #e53e3e;
+}
+</style>
+{% endblock %}

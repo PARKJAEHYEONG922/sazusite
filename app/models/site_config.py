@@ -14,6 +14,7 @@ class SiteConfig(Base):
 
     # 기본 정보
     site_name = Column(String(100), default="명월헌")
+    site_url = Column(String(200), nullable=True)  # 사이트 URL (예: https://yourdomain.com)
     site_logo = Column(String(500), nullable=True)  # 사이트 로고 이미지
     site_favicon = Column(String(500), nullable=True)  # 사이트 파비콘 (.ico, .png)
     main_title = Column(String(200), default="명월헌 – 야광묘가 알려주는 오늘의 기운")
@@ -96,6 +97,17 @@ class SiteConfig(Base):
     adsense_client_id = Column(String(100), nullable=True)
     adsense_slot_main = Column(String(100), nullable=True)
     adsense_slot_result = Column(String(100), nullable=True)
+
+    # SEO 메타태그
+    seo_title = Column(String(200), nullable=True)  # 기본 SEO 타이틀
+    seo_description = Column(Text, nullable=True)  # 기본 SEO 설명
+    seo_keywords = Column(Text, nullable=True)  # 기본 SEO 키워드
+    seo_author = Column(String(100), default="명월헌")
+    seo_og_image = Column(String(500), nullable=True)  # 기본 OG 이미지
+
+    # 헤더/푸터 스크립트
+    header_script = Column(Text, nullable=True)  # <head> 안에 삽입할 스크립트 (Google Analytics, 메타태그 등)
+    footer_script = Column(Text, nullable=True)  # </body> 전에 삽입할 스크립트 (채팅, 트래킹 등)
 
     # 타임스탬프
     created_at = Column(DateTime(timezone=True), server_default=func.now())
