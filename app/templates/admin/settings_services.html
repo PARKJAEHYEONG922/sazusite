@@ -337,14 +337,21 @@
                         </div>
 
                         <div class="form-row">
-                            <label>시작 페이지 캐릭터 이미지</label>
+                            <label>시작 페이지 캐릭터 이미지/영상</label>
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="file" name="character_form_image_file" accept="image/*">
-                                <small style="color: #718096;">3:4 비율 이미지 권장 (예: 300x400px). 시작 페이지 상단에 표시됩니다.</small>
+                                <input type="file" name="character_form_image_file" accept="image/*,video/mp4,video/webm">
+                                <small style="color: #718096;">3:4 비율 이미지/영상 권장 (예: 300x400px). 시작 페이지 상단에 표시됩니다.</small>
                                 {% if service.character_form_image %}
                                     <div style="margin-top: 10px;">
-                                        <img src="{{ service.character_form_image }}" alt="현재 시작 페이지 이미지" class="form-start-image">
-                                        <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 시작 페이지 이미지</p>
+                                        {% if service.character_form_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_form_image or '.webm?' in service.character_form_image %}
+                                            <video class="form-start-image" autoplay loop muted playsinline>
+                                                <source src="{{ service.character_form_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_form_image else 'webm' }}">
+                                            </video>
+                                            <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 시작 페이지 영상</p>
+                                        {% else %}
+                                            <img src="{{ service.character_form_image }}" alt="현재 시작 페이지 이미지" class="form-start-image">
+                                            <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 시작 페이지 이미지</p>
+                                        {% endif %}
                                     </div>
                                 {% endif %}
                             </div>
@@ -366,14 +373,21 @@
                         </div>
 
                         <div class="form-row">
-                            <label>결과 페이지 캐릭터 이미지</label>
+                            <label>결과 페이지 캐릭터 이미지/영상</label>
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="file" name="character_image_file" accept="image/*">
-                                <small style="color: #718096;">3:4 비율 이미지 권장 (예: 300x400px). 결과 페이지 상단에 이모지 대신 표시됩니다.</small>
+                                <input type="file" name="character_image_file" accept="image/*,video/mp4,video/webm">
+                                <small style="color: #718096;">3:4 비율 이미지/영상 권장 (예: 300x400px). 결과 페이지 상단에 이모지 대신 표시됩니다.</small>
                                 {% if service.character_image %}
                                     <div style="margin-top: 10px;">
-                                        <img src="{{ service.character_image }}" alt="현재 결과 페이지 이미지" class="form-result-image">
-                                        <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 결과 페이지 이미지</p>
+                                        {% if service.character_image.endswith(('.mp4', '.webm')) or '.mp4?' in service.character_image or '.webm?' in service.character_image %}
+                                            <video class="form-result-image" autoplay loop muted playsinline>
+                                                <source src="{{ service.character_image }}" type="video/{{ 'mp4' if '.mp4' in service.character_image else 'webm' }}">
+                                            </video>
+                                            <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 결과 페이지 영상</p>
+                                        {% else %}
+                                            <img src="{{ service.character_image }}" alt="현재 결과 페이지 이미지" class="form-result-image">
+                                            <p style="color: #718096; font-size: 12px; margin-top: 5px;">현재 결과 페이지 이미지</p>
+                                        {% endif %}
                                     </div>
                                 {% endif %}
                             </div>

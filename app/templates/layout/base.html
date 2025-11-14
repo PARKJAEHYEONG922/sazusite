@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_config.site_name if site_config else "명월헌" }}{% endblock %}</title>
+    {% if site_config and site_config.site_favicon %}
+    <link rel="icon" type="image/x-icon" href="{{ site_config.site_favicon }}">
+    <link rel="shortcut icon" href="{{ site_config.site_favicon }}">
+    {% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Nanum+Myeongjo:wght@400;700;800&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">

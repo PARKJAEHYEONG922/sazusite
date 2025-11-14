@@ -223,8 +223,8 @@ class SajuCalculator:
         # 오행 분석
         ohang_analysis = self.analyze_ohang(pillars)
 
-        # 대운 계산
-        daeun = self.calculate_daeun(year, pillars['month'][0], pillars['month'][1], gender)
+        # 대운 계산 (생월과 생일 정보 전달)
+        daeun = self.calculate_daeun(year, pillars['month'][0], pillars['month'][1], gender, month, day)
 
         # 신강신약 계산
         strength = self.calculate_strength(pillars, ohang_analysis)
@@ -320,7 +320,7 @@ class SajuCalculator:
             return '과다'
 
     def calculate_daeun(self, birth_year: int, month_gan: str, month_ji: str,
-                       gender: str) -> Dict:
+                       gender: str, birth_month: int = 1, birth_day: int = 1) -> Dict:
         """대운 계산"""
         # 양남음녀는 순행, 음남양녀는 역행
         year_gan_index = (birth_year - 4) % 10
@@ -329,8 +329,16 @@ class SajuCalculator:
 
         is_forward = (is_yang_year and is_male) or (not is_yang_year and not is_male)
 
-        # 대운 시작 나이 (간단히 5세로 설정, 실제로는 절기 기준 계산 필요)
-        start_age = 5
+        # 대운 시작 나이 계산 (절기 기준 간략화)
+        # 실제로는 생월생일에 따라 다음/이전 절기까지 일수를 계산하지만,
+        # 여기서는 생월을 기준으로 근사치 계산
+        # 생월 초순(1-10일): 1~3세, 중순(11-20일): 4~6세, 하순(21-31일): 7~9세
+        if birth_day <= 10:
+            start_age = 2
+        elif birth_day <= 20:
+            start_age = 5
+        else:
+            start_age = 8
 
         # 대운 주기 생성
         month_gan_index = self.CHEONGAN.index(month_gan)

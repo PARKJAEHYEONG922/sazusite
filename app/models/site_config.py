@@ -15,6 +15,7 @@ class SiteConfig(Base):
     # 기본 정보
     site_name = Column(String(100), default="명월헌")
     site_logo = Column(String(500), nullable=True)  # 사이트 로고 이미지
+    site_favicon = Column(String(500), nullable=True)  # 사이트 파비콘 (.ico, .png)
     main_title = Column(String(200), default="명월헌 – 야광묘가 알려주는 오늘의 기운")
     main_subtitle = Column(Text, default="전통 운세와 AI가 만나 더욱 정확한 운세를 알려드립니다")
 

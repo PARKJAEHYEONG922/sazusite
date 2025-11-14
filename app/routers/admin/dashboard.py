@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 import os
 import shutil
@@ -50,7 +50,7 @@ async def dashboard(
 
     # 서비스별 조회수
     stats = {}
-    for service_code in ["today", "saju", "match", "dream"]:
+    for service_code in ["today", "saju", "newyear2026", "match", "dream"]:
         count = db.query(FortuneResult).filter(
             FortuneResult.service_code == service_code,
             FortuneResult.date == today
@@ -112,6 +112,7 @@ async def update_site_settings(
     admin_token: Optional[str] = Cookie(None),
     site_name: str = Form(...),
     site_logo_file: Optional[UploadFile] = File(None),
+    site_favicon_file: Optional[UploadFile] = File(None),
     main_title: str = Form(...),
     main_subtitle: str = Form(...),
     footer_text: str = Form(...),
@@ -202,22 +203,93 @@ async def update_site_settings(
             new_filename = f"site_logo{file_ext}"
             file_path = upload_dir / new_filename
 
+            # 기존 파일 삭제
+            if file_path.exists():
+                file_path.unlink()
+
             # 파일 저장
             with file_path.open("wb") as buffer:
                 shutil.copyfileobj(site_logo_file.file, buffer)
 
-            # URL 경로 저장
-            site_logo_url = f"/static/uploads/{new_filename}"
+            # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+            timestamp = int(datetime.now().timestamp())
+            site_logo_url = f"/static/uploads/{new_filename}?v={timestamp}"
         else:
             # 파일 업로드가 없으면 기존 값 유지
             if current_config and current_config.site_logo:
                 site_logo_url = current_config.site_logo
 
+        # 사이트 파비콘 처리
+        site_favicon_url = None
+        if site_favicon_file and site_favicon_file.filename:
+            # 파일 확장자 확인
+            file_ext = os.path.splitext(site_favicon_file.filename)[1].lower()
+            if file_ext not in ['.ico', '.png']:
+                raise ValueError("파비콘: 지원하지 않는 파일 형식입니다. (.ico 또는 .png만 가능)")
+
+            # 파일명 생성
+            new_filename = f"favicon{file_ext}"
+            file_path = upload_dir / new_filename
+
+            # 기존 파일 삭제
+            if file_path.exists():
+                file_path.unlink()
+
+            # 파일 저장
+            with file_path.open("wb") as buffer:
+                shutil.copyfileobj(site_favicon_file.file, buffer)
+
+            # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+            timestamp = int(datetime.now().timestamp())
+            site_favicon_url = f"/static/uploads/{new_filename}?v={timestamp}"
+        else:
+            # 파일 업로드가 없으면 기존 값 유지
+            if current_config and current_config.site_favicon:
+                site_favicon_url = current_config.site_favicon
+
+        # 배너 파일 매핑
+        banner_files = {
+            1: banner_file_1,
+            2: banner_file_2,
+            3: banner_file_3,
+            4: banner_file_4
+        }
+        banner_pc_files = {
+            1: banner_pc_file_1,
+            2: banner_pc_file_2,
+            3: banner_pc_file_3,
+            4: banner_pc_file_4
+        }
+        banner_titles = {
+            1: banner_title_1,
+            2: banner_title_2,
+            3: banner_title_3,
+            4: banner_title_4
+        }
+        banner_subtitles = {
+            1: banner_subtitle_1,
+            2: banner_subtitle_2,
+            3: banner_subtitle_3,
+            4: banner_subtitle_4
+        }
+        banner_descriptions = {
+            1: banner_description_1,
+            2: banner_description_2,
+            3: banner_description_3,
+            4: banner_description_4
+        }
+        banner_links = {
+            1: banner_link_1,
+            2: banner_link_2,
+            3: banner_link_3,
+            4: banner_link_4
+        }
+
         # 배너 설정 처리
         banner_updates = {}
         for i in range(1, 5):
             # 모바일 배너 파일 업로드 처리
-            banner_file = locals().get(f"banner_file_{i}")
+            banner_file = banner_files[i]
             if banner_file and banner_file.filename:
                 # 파일 확장자 확인
                 file_ext = os.path.splitext(banner_file.filename)[1].lower()
@@ -228,12 +300,17 @@ async def update_site_settings(
                 new_filename = f"banner_{i}{file_ext}"
                 file_path = upload_dir / new_filename
 
+                # 기존 파일 삭제
+                if file_path.exists():
+                    file_path.unlink()
+
                 # 파일 저장
                 with file_path.open("wb") as buffer:
                     shutil.copyfileobj(banner_file.file, buffer)
 
-                # URL 경로 저장
-                banner_updates[f"banner_image_{i}"] = f"/static/uploads/{new_filename}"
+                # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+                timestamp = int(datetime.now().timestamp())
+                banner_updates[f"banner_image_{i}"] = f"/static/uploads/{new_filename}?v={timestamp}"
             else:
                 # 파일 업로드가 없으면 기존 값 유지
                 if current_config:
@@ -242,7 +319,7 @@ async def update_site_settings(
                         banner_updates[f"banner_image_{i}"] = existing_value
 
             # PC 배너 파일 업로드 처리
-            banner_pc_file = locals().get(f"banner_pc_file_{i}")
+            banner_pc_file = banner_pc_files[i]
             if banner_pc_file and banner_pc_file.filename:
                 # 파일 확장자 확인
                 file_ext = os.path.splitext(banner_pc_file.filename)[1].lower()
@@ -253,12 +330,17 @@ async def update_site_settings(
                 new_filename = f"banner_pc_{i}{file_ext}"
                 file_path = upload_dir / new_filename
 
+                # 기존 파일 삭제
+                if file_path.exists():
+                    file_path.unlink()
+
                 # 파일 저장
                 with file_path.open("wb") as buffer:
                     shutil.copyfileobj(banner_pc_file.file, buffer)
 
-                # URL 경로 저장
-                banner_updates[f"banner_image_pc_{i}"] = f"/static/uploads/{new_filename}"
+                # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+                timestamp = int(datetime.now().timestamp())
+                banner_updates[f"banner_image_pc_{i}"] = f"/static/uploads/{new_filename}?v={timestamp}"
             else:
                 # 파일 업로드가 없으면 기존 값 유지
                 if current_config:
@@ -267,10 +349,10 @@ async def update_site_settings(
                         banner_updates[f"banner_image_pc_{i}"] = existing_value
 
             # 텍스트 필드 업데이트
-            banner_title = locals().get(f"banner_title_{i}")
-            banner_subtitle = locals().get(f"banner_subtitle_{i}")
-            banner_description = locals().get(f"banner_description_{i}")
-            banner_link = locals().get(f"banner_link_{i}")
+            banner_title = banner_titles[i]
+            banner_subtitle = banner_subtitles[i]
+            banner_description = banner_descriptions[i]
+            banner_link = banner_links[i]
 
             if banner_title:
                 banner_updates[f"banner_title_{i}"] = banner_title
@@ -281,27 +363,70 @@ async def update_site_settings(
             if banner_link:
                 banner_updates[f"banner_link_{i}"] = banner_link
 
+        # 서브배너 파일 매핑
+        sub_banner_files = {
+            1: sub_banner_file_1,
+            2: sub_banner_file_2,
+            3: sub_banner_file_3,
+            4: sub_banner_file_4
+        }
+        sub_banner_emojis = {
+            1: sub_banner_emoji_1,
+            2: sub_banner_emoji_2,
+            3: sub_banner_emoji_3,
+            4: sub_banner_emoji_4
+        }
+        sub_banner_titles = {
+            1: sub_banner_title_1,
+            2: sub_banner_title_2,
+            3: sub_banner_title_3,
+            4: sub_banner_title_4
+        }
+        sub_banner_subtitles = {
+            1: sub_banner_subtitle_1,
+            2: sub_banner_subtitle_2,
+            3: sub_banner_subtitle_3,
+            4: sub_banner_subtitle_4
+        }
+        sub_banner_descriptions = {
+            1: sub_banner_description_1,
+            2: sub_banner_description_2,
+            3: sub_banner_description_3,
+            4: sub_banner_description_4
+        }
+        sub_banner_links = {
+            1: sub_banner_link_1,
+            2: sub_banner_link_2,
+            3: sub_banner_link_3,
+            4: sub_banner_link_4
+        }
+
         # 서브배너 설정 처리
         sub_banner_updates = {}
         for i in range(1, 5):
-            # 파일 업로드 처리
-            sub_banner_file = locals().get(f"sub_banner_file_{i}")
+            # 파일 업로드 처리 (이미지 및 비디오)
+            sub_banner_file = sub_banner_files[i]
             if sub_banner_file and sub_banner_file.filename:
                 # 파일 확장자 확인
                 file_ext = os.path.splitext(sub_banner_file.filename)[1].lower()
-                if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-                    raise ValueError(f"서브배너 {i}: 지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+                if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
+                    raise ValueError(f"서브배너 {i}: 지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
 
                 # 파일명 생성 (sub_banner_1.jpg 형식)
                 new_filename = f"sub_banner_{i}{file_ext}"
                 file_path = upload_dir / new_filename
 
+                # 기존 파일 삭제
+                if file_path.exists():
+                    file_path.unlink()
+
                 # 파일 저장
                 with file_path.open("wb") as buffer:
                     shutil.copyfileobj(sub_banner_file.file, buffer)
 
-                # URL 경로 저장
-                sub_banner_updates[f"sub_banner_image_{i}"] = f"/static/uploads/{new_filename}"
+                # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+                timestamp = int(datetime.now().timestamp())
+                sub_banner_updates[f"sub_banner_image_{i}"] = f"/static/uploads/{new_filename}?v={timestamp}"
             else:
                 # 파일 업로드가 없으면 기존 값 유지
                 if current_config:
@@ -310,11 +435,11 @@ async def update_site_settings(
                         sub_banner_updates[f"sub_banner_image_{i}"] = existing_value
 
             # 텍스트 필드 업데이트
-            sub_banner_emoji = locals().get(f"sub_banner_emoji_{i}")
-            sub_banner_title = locals().get(f"sub_banner_title_{i}")
-            sub_banner_subtitle = locals().get(f"sub_banner_subtitle_{i}")
-            sub_banner_description = locals().get(f"sub_banner_description_{i}")
-            sub_banner_link = locals().get(f"sub_banner_link_{i}")
+            sub_banner_emoji = sub_banner_emojis[i]
+            sub_banner_title = sub_banner_titles[i]
+            sub_banner_subtitle = sub_banner_subtitles[i]
+            sub_banner_description = sub_banner_descriptions[i]
+            sub_banner_link = sub_banner_links[i]
 
             if sub_banner_emoji:
                 sub_banner_updates[f"sub_banner_emoji_{i}"] = sub_banner_emoji
@@ -330,6 +455,7 @@ async def update_site_settings(
         updates = {
             "site_name": site_name,
             "site_logo": site_logo_url,
+            "site_favicon": site_favicon_url,
             "main_title": main_title,
             "main_subtitle": main_subtitle,
             "footer_text": footer_text,
@@ -416,7 +542,7 @@ async def update_service_settings(
     try:
         site_service = SiteService(db)
 
-        # 캐릭터 이미지 업로드 처리
+        # 캐릭터 이미지/영상 업로드 처리
         character_image_url = None
         if character_image_file and character_image_file.filename:
             # 업로드 디렉토리 설정
@@ -425,8 +551,8 @@ async def update_service_settings(
 
             # 파일 확장자 확인
             file_ext = os.path.splitext(character_image_file.filename)[1].lower()
-            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-                raise ValueError("지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
+                raise ValueError("지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
 
             # 임시 파일 저장
             temp_filename = f"temp_character_{service_code}{file_ext}"
@@ -435,51 +561,56 @@ async def update_service_settings(
             with temp_path.open("wb") as buffer:
                 shutil.copyfileobj(character_image_file.file, buffer)
 
-            # 이미지 비율 검증 (3:4 비율 권장, ±10% 허용)
-            try:
-                img = Image.open(temp_path)
-                width, height = img.size
-                img.close()  # 파일 핸들 명시적으로 닫기
+            # 이미지인 경우에만 비율 검증 (3:4 비율 권장, ±10% 허용)
+            if file_ext not in ['.mp4', '.webm']:
+                try:
+                    img = Image.open(temp_path)
+                    width, height = img.size
+                    img.close()  # 파일 핸들 명시적으로 닫기
 
-                aspect_ratio = width / height
-                target_ratio = 3 / 4
+                    aspect_ratio = width / height
+                    target_ratio = 3 / 4
 
-                # ±10% 허용 범위
-                if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
+                    # ±10% 허용 범위
+                    if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
+                        if temp_path.exists():
+                            temp_path.unlink()  # 임시 파일 삭제
+                        raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
+                except ValueError:
+                    # 비율 오류는 그대로 전달
+                    raise
+                except Exception as e:
                     if temp_path.exists():
-                        temp_path.unlink()  # 임시 파일 삭제
-                    raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
-            except ValueError:
-                # 비율 오류는 그대로 전달
-                raise
-            except Exception as e:
-                if temp_path.exists():
-                    try:
-                        temp_path.unlink()
-                    except:
-                        pass  # 삭제 실패는 무시
-                raise ValueError(f"이미지 검증 실패: {str(e)}")
+                        try:
+                            temp_path.unlink()
+                        except:
+                            pass  # 삭제 실패는 무시
+                    raise ValueError(f"이미지 검증 실패: {str(e)}")
+
+            # 모든 확장자의 기존 파일 삭제 (이미지 및 영상)
+            all_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']
+            for ext in all_extensions:
+                old_file = upload_dir / f"character_{service_code}{ext}"
+                if old_file.exists():
+                    old_file.unlink()
 
             # 최종 파일명 생성
             final_filename = f"character_{service_code}{file_ext}"
             final_path = upload_dir / final_filename
 
-            # 기존 파일이 있으면 삭제
-            if final_path.exists():
-                final_path.unlink()
-
             # 임시 파일을 최종 경로로 이동
             temp_path.rename(final_path)
 
-            # URL 경로 저장
-            character_image_url = f"/static/uploads/{final_filename}"
+            # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+            timestamp = int(datetime.now().timestamp())
+            character_image_url = f"/static/uploads/{final_filename}?v={timestamp}"
         else:
             # 파일 업로드가 없으면 기존 값 유지
             current_service = site_service.get_service_by_code(service_code)
             if current_service and current_service.character_image:
                 character_image_url = current_service.character_image
 
-        # 시작 페이지 캐릭터 이미지 업로드 처리
+        # 시작 페이지 캐릭터 이미지/영상 업로드 처리
         character_form_image_url = None
         if character_form_image_file and character_form_image_file.filename:
             # 업로드 디렉토리 설정
@@ -488,8 +619,8 @@ async def update_service_settings(
 
             # 파일 확장자 확인
             file_ext = os.path.splitext(character_form_image_file.filename)[1].lower()
-            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-                raise ValueError("지원하지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)")
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
+                raise ValueError("지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
 
             # 임시 파일 저장
             temp_filename = f"temp_character_form_{service_code}{file_ext}"
@@ -498,44 +629,49 @@ async def update_service_settings(
             with temp_path.open("wb") as buffer:
                 shutil.copyfileobj(character_form_image_file.file, buffer)
 
-            # 이미지 비율 검증 (3:4 비율 권장, ±10% 허용)
-            try:
-                img = Image.open(temp_path)
-                width, height = img.size
-                img.close()  # 파일 핸들 명시적으로 닫기
+            # 이미지인 경우에만 비율 검증 (3:4 비율 권장, ±10% 허용)
+            if file_ext not in ['.mp4', '.webm']:
+                try:
+                    img = Image.open(temp_path)
+                    width, height = img.size
+                    img.close()  # 파일 핸들 명시적으로 닫기
 
-                aspect_ratio = width / height
-                target_ratio = 3 / 4
+                    aspect_ratio = width / height
+                    target_ratio = 3 / 4
 
-                # ±10% 허용 범위
-                if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
+                    # ±10% 허용 범위
+                    if not (target_ratio * 0.9 <= aspect_ratio <= target_ratio * 1.1):
+                        if temp_path.exists():
+                            temp_path.unlink()  # 임시 파일 삭제
+                        raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
+                except ValueError:
+                    # 비율 오류는 그대로 전달
+                    raise
+                except Exception as e:
                     if temp_path.exists():
-                        temp_path.unlink()  # 임시 파일 삭제
-                    raise ValueError(f"이미지 비율이 3:4에 가깝지 않습니다. 현재 비율: {width}:{height} ({aspect_ratio:.2f})")
-            except ValueError:
-                # 비율 오류는 그대로 전달
-                raise
-            except Exception as e:
-                if temp_path.exists():
-                    try:
-                        temp_path.unlink()
-                    except:
-                        pass  # 삭제 실패는 무시
-                raise ValueError(f"이미지 검증 실패: {str(e)}")
+                        try:
+                            temp_path.unlink()
+                        except:
+                            pass  # 삭제 실패는 무시
+                    raise ValueError(f"이미지 검증 실패: {str(e)}")
+
+            # 모든 확장자의 기존 파일 삭제 (이미지 및 영상)
+            all_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']
+            for ext in all_extensions:
+                old_file = upload_dir / f"character_form_{service_code}{ext}"
+                if old_file.exists():
+                    old_file.unlink()
 
             # 최종 파일명 생성
             final_filename = f"character_form_{service_code}{file_ext}"
             final_path = upload_dir / final_filename
 
-            # 기존 파일이 있으면 삭제
-            if final_path.exists():
-                final_path.unlink()
-
             # 임시 파일을 최종 경로로 이동
             temp_path.rename(final_path)
 
-            # URL 경로 저장
-            character_form_image_url = f"/static/uploads/{final_filename}"
+            # URL 경로 저장 (캐시 우회를 위한 타임스탬프 추가)
+            timestamp = int(datetime.now().timestamp())
+            character_form_image_url = f"/static/uploads/{final_filename}?v={timestamp}"
         else:
             # 파일 업로드가 없으면 기존 값 유지
             current_service = site_service.get_service_by_code(service_code)

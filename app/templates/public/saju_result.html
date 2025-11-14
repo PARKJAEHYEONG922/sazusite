@@ -1,0 +1,1542 @@
+{% extends "layout/base.html" %}
+
+{% block title %}{{ service.title }} 결과 - {{ site_config.site_name if site_config else "명월헌" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-header {
+        text-align: center;
+        padding: 100px 20px 40px;
+        margin-top: 60px;
+    }
+
+    .character-emoji {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+
+    .character-image {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        margin: 0 auto 20px;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .character-image {
+            max-width: 90vw;
+        }
+    }
+
+    .result-title {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .result-date {
+        color: #5a4a3a;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        margin-top: 5px;
+    }
+
+    .cache-notice {
+        display: inline-block;
+        padding: 8px 16px;
+        background: rgba(76, 175, 80, 0.2);
+        border: 1px solid #4CAF50;
+        border-radius: 20px;
+        color: #4CAF50;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+    .result-container {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    /* 사주팔자 표 */
+    .saju-table-container {
+        background: #f9f7f4;
+        border: 3px double #8b7355;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .saju-table-title {
+        color: #5a4a3a;
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 10px;
+        font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
+    }
+
+    .saju-table-subtitle {
+        color: #8b7355;
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 16px;
+    }
+
+    .saju-decoration {
+        display: none;
+    }
+
+    .saju-table {
+        background: white;
+        border: 2px solid #d4c4b0;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .saju-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .saju-table th {
+        background: #8b7355;
+        color: #fff9f0;
+        padding: 15px;
+        font-weight: 600;
+        text-align: center;
+        font-size: 15px;
+        border: 1px solid #6d5940;
+    }
+
+    .saju-table td {
+        padding: 18px;
+        text-align: center;
+        border: 1px solid #e8dcc8;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .saju-table .pillar-header {
+        background: #6d5940;
+        color: #fff9f0;
+        font-weight: 700;
+        font-size: 18px;
+        border: 1px solid #5a4a3a;
+    }
+
+    .saju-char {
+        font-size: 28px;
+        font-weight: 700;
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    /* 오행 색상 */
+    .ohang-wood { background: #4ade80; color: white; }  /* 목 - 초록 */
+    .ohang-fire { background: #f87171; color: white; }  /* 화 - 빨강 */
+    .ohang-earth { background: #fbbf24; color: white; } /* 토 - 노랑 */
+    .ohang-metal { background: #94a3b8; color: white; } /* 금 - 회색 */
+    .ohang-water { background: #3b82f6; color: white; } /* 수 - 파랑 */
+
+    /* 대운표 */
+    .daeun-container {
+        background: #f9f7f4;
+        border: 3px double #8b7355;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .daeun-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #5a4a3a;
+        text-align: center;
+    }
+
+    .daeun-subtitle {
+        color: #8b7355;
+        margin-bottom: 25px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .daeun-table {
+        background: white;
+        border: 2px solid #d4c4b0;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+
+    .daeun-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .daeun-table th {
+        background: #8b7355;
+        color: #fff9f0;
+        padding: 12px;
+        font-weight: 600;
+        text-align: center;
+        font-size: 14px;
+        border: 1px solid #6d5940;
+    }
+
+    .daeun-table td {
+        padding: 15px;
+        text-align: center;
+        border: 1px solid #e8dcc8;
+        font-size: 15px;
+        color: #333;
+    }
+
+    .daeun-ganzhi {
+        font-size: 22px;
+        font-weight: 700;
+        color: #5a4a3a;
+        margin-bottom: 5px;
+    }
+
+    .daeun-year {
+        font-size: 13px;
+        color: #8b7355;
+        margin-bottom: 3px;
+    }
+
+    .daeun-age {
+        font-size: 12px;
+        color: #999;
+        font-weight: 600;
+    }
+
+    /* 오행 분석 */
+    .ohang-container {
+        background: #f9f7f4;
+        border: 3px double #8b7355;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .ohang-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #5a4a3a;
+        text-align: center;
+    }
+
+    .ohang-subtitle {
+        color: #8b7355;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    /* 오행 순환 다이어그램 */
+    .ohang-cycle-diagram {
+        position: relative;
+        width: 500px;
+        height: 500px;
+        margin: 40px auto;
+    }
+
+    .ohang-element {
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        font-weight: 700;
+        color: white;
+        border: 3px solid rgba(0, 0, 0, 0.2);
+        z-index: 10;
+    }
+
+    .ohang-element .count {
+        font-size: 15px;
+        margin-top: 3px;
+        font-weight: 600;
+    }
+
+    .ohang-element.wood {
+        background: rgba(74, 222, 128, 0.85);
+        top: 6%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .ohang-element.fire {
+        background: rgba(248, 113, 113, 0.85);
+        top: 24%;
+        right: 14%;
+    }
+
+    .ohang-element.earth {
+        background: rgba(251, 191, 36, 0.85);
+        bottom: 18%;
+        right: 18%;
+    }
+
+    .ohang-element.metal {
+        background: rgba(148, 163, 184, 0.85);
+        bottom: 18%;
+        left: 18%;
+    }
+
+    .ohang-element.water {
+        background: rgba(59, 130, 246, 0.85);
+        top: 24%;
+        left: 14%;
+    }
+
+    /* 생/극 범례 */
+    .cycle-legend {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 20px;
+        padding: 15px;
+        background: white;
+        border: 2px solid #d4c4b0;
+        border-radius: 6px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #5a4a3a;
+    }
+
+    .legend-arrow {
+        width: 40px;
+        height: 3px;
+        position: relative;
+    }
+
+    .legend-arrow.sheng {
+        background: #2563eb;
+    }
+
+    .legend-arrow.sheng::after {
+        content: '';
+        position: absolute;
+        right: -5px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid #2563eb;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+    }
+
+    .legend-arrow.ke {
+        background: repeating-linear-gradient(
+            to right,
+            #dc2626 0px,
+            #dc2626 8px,
+            transparent 8px,
+            transparent 12px
+        );
+        height: 2.5px;
+    }
+
+    .legend-arrow.ke::after {
+        content: '';
+        position: absolute;
+        right: -5px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid #dc2626;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+    }
+
+    /* SVG 화살표 스타일 */
+    .cycle-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    /* 생 화살표 (파란색) */
+    .sheng-arrow {
+        stroke: #2563eb;
+        stroke-width: 4;
+        fill: none;
+        marker-end: url(#arrowhead-sheng);
+    }
+
+    /* 극 화살표 (빨간색 점선) */
+    .ke-arrow {
+        stroke: #dc2626;
+        stroke-width: 3;
+        stroke-dasharray: 10, 6;
+        fill: none;
+        marker-end: url(#arrowhead-ke);
+    }
+
+    /* 오행 비율 그래프 */
+    .ohang-ratio-section {
+        margin-top: 30px;
+        background: white;
+        border: 2px solid #d4c4b0;
+        border-radius: 6px;
+        padding: 25px;
+    }
+
+    .ohang-ratio-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #5a4a3a;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .ohang-ratio-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        gap: 15px;
+    }
+
+    .ohang-ratio-label {
+        min-width: 60px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #5a4a3a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ohang-ratio-label-hanja {
+        font-size: 20px;
+    }
+
+    .ohang-ratio-bar-wrapper {
+        flex: 1;
+        height: 30px;
+        background: #f0f0f0;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .ohang-ratio-bar {
+        height: 100%;
+        border-radius: 15px;
+        transition: width 0.8s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .ohang-ratio-bar.wood {
+        background: linear-gradient(90deg, rgba(74, 222, 128, 0.6), rgba(74, 222, 128, 0.9));
+    }
+
+    .ohang-ratio-bar.fire {
+        background: linear-gradient(90deg, rgba(248, 113, 113, 0.6), rgba(248, 113, 113, 0.9));
+    }
+
+    .ohang-ratio-bar.earth {
+        background: linear-gradient(90deg, rgba(251, 191, 36, 0.6), rgba(251, 191, 36, 0.9));
+    }
+
+    .ohang-ratio-bar.metal {
+        background: linear-gradient(90deg, rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0.9));
+    }
+
+    .ohang-ratio-bar.water {
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.6), rgba(59, 130, 246, 0.9));
+    }
+
+    /* 용신 */
+    .yongsin-container {
+        margin-top: 30px;
+        background: white;
+        border: 2px solid #d4c4b0;
+        border-radius: 6px;
+        padding: 25px;
+    }
+
+    .yongsin-title-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .yongsin-main-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #5a4a3a;
+    }
+
+    .yongsin-grid {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        gap: 0;
+    }
+
+    .yongsin-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+    }
+
+    .yongsin-item:not(:last-child)::after {
+        content: '|';
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #d4c4b0;
+        font-size: 24px;
+        font-weight: 300;
+    }
+
+    .yongsin-label-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .yongsin-label {
+        font-size: 14px;
+        color: #8b7355;
+        font-weight: 600;
+    }
+
+    .yongsin-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f9f7f4;
+        border: 2px solid #d4c4b0;
+        margin-bottom: 8px;
+    }
+
+    .yongsin-hanja {
+        font-size: 28px;
+        font-weight: 700;
+        color: #5a4a3a;
+        line-height: 1;
+    }
+
+    .yongsin-hangul {
+        font-size: 13px;
+        color: #8b7355;
+        margin-top: 4px;
+    }
+
+    /* 도움말 아이콘 */
+    .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #8b7355;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .help-icon:hover {
+        background: #6d5940;
+        transform: scale(1.1);
+    }
+
+    /* 툴팁 */
+    .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #5a4a3a;
+        color: white;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        line-height: 1.5;
+        white-space: normal;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+        z-index: 1000;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        max-width: 200px;
+        min-width: 180px;
+        text-align: left;
+        font-weight: normal;
+    }
+
+    .tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #5a4a3a;
+    }
+
+    .help-icon:hover .tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* 신강신약 게이지 */
+    .strength-container {
+        margin-top: 30px;
+        background: white;
+        border: 2px solid #d4c4b0;
+        border-radius: 6px;
+        padding: 25px;
+    }
+
+    .strength-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #5a4a3a;
+        text-align: center;
+    }
+
+    .strength-bar {
+        position: relative;
+        height: 40px;
+        background: linear-gradient(to right,
+            #dc2626 0%,
+            #fb923c 25%,
+            #fbbf24 50%,
+            #4ade80 75%,
+            #3b82f6 100%);
+        border-radius: 6px;
+        margin-bottom: 10px;
+        border: 2px solid #d4c4b0;
+    }
+
+    .strength-marker {
+        position: absolute;
+        top: -10px;
+        width: 4px;
+        height: 60px;
+        background: #5a4a3a;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        border-radius: 3px;
+        transition: left 0.5s;
+    }
+
+    .strength-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #8b7355;
+        margin-top: 10px;
+        font-weight: 600;
+    }
+
+    .strength-result {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #5a4a3a;
+    }
+
+    /* 운세 카드 */
+    .fortune-card {
+        background: #ffffff;
+        border: 2px solid rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        color: #000000;
+    }
+
+    .fortune-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .fortune-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .fortune-card-icon {
+        font-size: 28px;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .fortune-card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .fortune-card-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #444;
+    }
+
+    .actions {
+        text-align: center;
+        margin: 40px 0;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(245, 87, 108, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .result-container {
+            padding: 0 15px;
+        }
+
+        .saju-table-container,
+        .daeun-container,
+        .ohang-container {
+            padding: 20px;
+        }
+
+        .ohang-cycle-diagram {
+            width: 300px;
+            height: 300px;
+            margin: 30px auto;
+        }
+
+        .ohang-element {
+            width: 55px;
+            height: 55px;
+            font-size: 18px;
+        }
+
+        .ohang-element .count {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .cycle-legend {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .legend-item {
+            font-size: 14px;
+        }
+
+        .ohang-ratio-section {
+            padding: 20px;
+        }
+
+        .ohang-ratio-title {
+            font-size: 18px;
+        }
+
+        .ohang-ratio-label {
+            min-width: 50px;
+            font-size: 14px;
+        }
+
+        .ohang-ratio-label-hanja {
+            font-size: 18px;
+        }
+
+        .yongsin-container {
+            padding: 20px;
+        }
+
+        .yongsin-main-title {
+            font-size: 18px;
+        }
+
+        .yongsin-circle {
+            width: 60px;
+            height: 60px;
+        }
+
+        .yongsin-hanja {
+            font-size: 24px;
+        }
+
+        .yongsin-item:not(:last-child)::after {
+            font-size: 20px;
+        }
+
+        .saju-char {
+            font-size: 20px;
+        }
+
+        .daeun-table {
+            overflow-x: auto;
+        }
+
+        .daeun-table table {
+            font-size: 12px;
+        }
+
+        .daeun-table th {
+            padding: 8px 4px;
+            font-size: 11px;
+        }
+
+        .daeun-table td {
+            padding: 10px 4px;
+            font-size: 11px;
+        }
+
+        .daeun-ganzhi {
+            font-size: 16px;
+        }
+
+        .daeun-year {
+            font-size: 10px;
+        }
+
+        .daeun-age {
+            font-size: 9px;
+        }
+
+        .tooltip {
+            max-width: 160px;
+            min-width: 140px;
+            font-size: 10px;
+            padding: 8px 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="result-header">
+    <div class="character-emoji">
+        {% if service.character_image %}
+            <img src="{{ service.character_image }}" alt="{{ service.character_name }}" class="character-image">
+        {% else %}
+            {{ service.character_emoji }}
+        {% endif %}
+    </div>
+    <h1 class="result-title">{{ service.title }}</h1>
+    <p class="result-date">{{ today.strftime('%Y년 %m월 %d일') }}</p>
+    {% if is_cached %}
+    <div class="cache-notice">이미 확인하신 사주예요</div>
+    {% endif %}
+</div>
+
+<div class="result-container">
+    <!-- 사주팔자 표 -->
+    <div class="saju-table-container">
+        <div class="saju-decoration">
+            <span>☁️</span>
+            <span>🌙</span>
+            <span>⭐</span>
+        </div>
+        <h2 class="saju-table-title" id="sajuTableTitle"></h2>
+        <p class="saju-table-subtitle" id="sajuTableSubtitle"></p>
+
+        <div class="saju-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th class="pillar-header">時 (시)</th>
+                        <th class="pillar-header">日 (일)</th>
+                        <th class="pillar-header">月 (월)</th>
+                        <th class="pillar-header">年 (년)</th>
+                    </tr>
+                </thead>
+                <tbody id="sajuTableBody">
+                    <!-- JavaScript로 동적 생성 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 대운표 -->
+    <div class="daeun-container">
+        <h2 class="daeun-title" id="daeunTitle"></h2>
+        <p class="daeun-subtitle" id="daeunSubtitle"></p>
+        <div class="daeun-table" id="daeunTable">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+    </div>
+
+    <!-- 오행 & 용신 -->
+    <div class="ohang-container">
+        <h2 class="ohang-title">
+            오행분포: 겉으로 보이는 오행의 균형
+            <span class="help-icon">
+                ?
+                <span class="tooltip">오행분포란? 사주팔자에 오행이 각각 몇개씩 존재하는지와 오행간의 상생/상극을 나타낸 표입니다</span>
+            </span>
+        </h2>
+
+        <!-- 오행 순환 다이어그램 -->
+        <div class="ohang-cycle-diagram" id="ohangCycleDiagram">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+
+        <!-- 생/극 범례 -->
+        <div class="cycle-legend">
+            <div class="legend-item">
+                <div class="legend-arrow sheng"></div>
+                <span>생(生): 서로 돕는 관계</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-arrow ke"></div>
+                <span>극(克): 서로 견제하는 관계</span>
+            </div>
+        </div>
+
+        <!-- 오행 비율 그래프 -->
+        <div class="ohang-ratio-section">
+            <h3 class="ohang-ratio-title">오행 비율</h3>
+            <div id="ohangRatioGraph">
+                <!-- JavaScript로 동적 생성 -->
+            </div>
+        </div>
+
+        <!-- 용신 -->
+        <div class="yongsin-container" id="yongsinContainer">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+
+        <!-- 신강신약 -->
+        <div class="strength-container">
+            <h3 class="strength-title">신강신약</h3>
+            <div class="strength-bar">
+                <div class="strength-marker" id="strengthMarker"></div>
+            </div>
+            <div class="strength-labels">
+                <span>극약</span>
+                <span>태약</span>
+                <span>신약</span>
+                <span>중화</span>
+                <span>신강</span>
+                <span>태강</span>
+                <span>극왕</span>
+            </div>
+            <div class="strength-result" id="strengthResult"></div>
+        </div>
+    </div>
+
+    <!-- 운세 해석 -->
+    <div id="fortuneContent">
+        <!-- JavaScript로 동적 생성 -->
+    </div>
+</div>
+
+<div class="actions">
+    <a href="/" class="btn btn-primary">메인으로</a>
+    <a href="/fortune/{{ service.code }}" class="btn btn-secondary">다시 보기</a>
+</div>
+
+<script>
+    // 백엔드에서 계산된 사주 데이터
+    const backendSajuData = {{ result.saju_data | tojson if result.saju_data else 'null' }};
+
+    // 사주 데이터 구성
+    const sajuData = {
+        name: backendSajuData && backendSajuData.name ? backendSajuData.name : ("{{ request_data.name if request_data.name else '고객' }}" || "고객"),
+        birthdate: "{{ request_data.birthdate }}",
+        birthTime: "{{ request_data.birth_time if request_data.birth_time else '미상' }}",
+        gender: "{{ request_data.gender }}",
+        pillars: backendSajuData ? backendSajuData.pillars : {},
+        daeun: backendSajuData ? backendSajuData.daeun : { start_age: 0, periods: [] },
+        ohang: backendSajuData ? backendSajuData.ohang : {},
+        yongsin: backendSajuData ? backendSajuData.yongsin : {},
+        strength: backendSajuData ? backendSajuData.strength : { level: '중화', position: 50 }
+    };
+
+    // 운세 텍스트
+    const fortuneText = {{ result.result_text | tojson }};
+
+    // 천간/지지 오행 매핑
+    const OHANG_MAP = {
+        '甲': 'wood', '乙': 'wood',
+        '丙': 'fire', '丁': 'fire',
+        '戊': 'earth', '己': 'earth',
+        '庚': 'metal', '辛': 'metal',
+        '壬': 'water', '癸': 'water',
+        '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+        '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+        '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water'
+    };
+
+    // 시간 한글 매핑
+    const TIME_MAP = {
+        '23': '子', '01': '丑', '03': '寅', '05': '卯',
+        '07': '辰', '09': '巳', '11': '午', '13': '未',
+        '15': '申', '17': '酉', '19': '戌', '21': '亥'
+    };
+
+    // 지지 한글 발음
+    const JIJI_PRONUNCIATION = {
+        '子': '자', '丑': '축', '寅': '인', '卯': '묘',
+        '辰': '진', '巳': '사', '午': '오', '未': '미',
+        '申': '신', '酉': '유', '戌': '술', '亥': '해'
+    };
+
+    // 십이운성 한글 이름
+    const SIPIUNSUNG_KOREAN = {
+        '長生': '장생', '沐浴': '목욕', '冠帶': '관대', '建祿': '건록',
+        '帝旺': '제왕', '衰': '쇠', '病': '병', '死': '사',
+        '墓': '묘', '絶': '절', '胎': '태', '養': '양'
+    };
+
+    // 오행 한자 매핑 (한자 키 + 한글 키 모두 지원)
+    const OHANG_HANJA_MAP = {
+        // 한자 키
+        '木': { hanja: '木', hangul: '목', type: 'wood' },
+        '火': { hanja: '火', hangul: '화', type: 'fire' },
+        '土': { hanja: '土', hangul: '토', type: 'earth' },
+        '金': { hanja: '金', hangul: '금', type: 'metal' },
+        '水': { hanja: '水', hangul: '수', type: 'water' },
+        // 한글 키 (백엔드에서 한글로 반환하는 경우 대응)
+        '목': { hanja: '木', hangul: '목', type: 'wood' },
+        '화': { hanja: '火', hangul: '화', type: 'fire' },
+        '토': { hanja: '土', hangul: '토', type: 'earth' },
+        '금': { hanja: '金', hangul: '금', type: 'metal' },
+        '수': { hanja: '水', hangul: '수', type: 'water' }
+    };
+
+    // 생년월일 한글 형식으로 변환
+    function formatBirthdateKorean(dateStr, timeStr) {
+        const [year, month, day] = dateStr.split('-');
+        const timeKorean = TIME_MAP[timeStr] || '';
+
+        if (!timeKorean) {
+            return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일 미상`;
+        }
+        return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일 ${timeKorean}시`;
+    }
+
+    // 사주팔자 표 렌더링
+    function renderSajuTable() {
+        document.getElementById('sajuTableTitle').textContent = `${sajuData.name}님의 사주`;
+        document.getElementById('sajuTableSubtitle').textContent =
+            formatBirthdateKorean(sajuData.birthdate, sajuData.birthTime);
+
+        const tbody = document.getElementById('sajuTableBody');
+        const rows = [
+            { label: '十星<br>(십성)', data: sajuData.pillars.sipsung || [] },
+            { label: '天干<br>(천간)', data: sajuData.pillars.cheongan || [], isChar: true },
+            { label: '地支<br>(지지)', data: sajuData.pillars.jiji || [], isChar: true },
+            { label: '十星<br>(십성)', data: sajuData.pillars.sipsung_jiji || [] },
+            { label: '十二運星<br>(십이운성)', data: sajuData.pillars.sipiunsung || [] }
+        ];
+
+        // 신살 데이터가 있으면 추가
+        if (sajuData.pillars.sinsal && sajuData.pillars.sinsal.length > 0) {
+            rows.push({ label: '神殺<br>(신살)', data: sajuData.pillars.sinsal });
+        }
+
+        rows.forEach(row => {
+            if (!row.data || row.data.length === 0) return; // 데이터가 없으면 스킵
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="background: #f8f9fa; font-weight: 600;">${row.label}</td>
+                ${row.data.map(item => {
+                    if (row.isChar && item) {
+                        const ohangType = OHANG_MAP[item] || '';
+                        // 지지인 경우 한글 발음 추가
+                        if (row.label.includes('지지') && JIJI_PRONUNCIATION[item]) {
+                            return `<td><span class="saju-char ohang-${ohangType}">${item}<br><small style="font-size:12px; font-weight:400;">(${JIJI_PRONUNCIATION[item]})</small></span></td>`;
+                        }
+                        return `<td><span class="saju-char ohang-${ohangType}">${item}</span></td>`;
+                    } else if (row.label.includes('십이운성') && item && SIPIUNSUNG_KOREAN[item]) {
+                        // 십이운성에 한글 이름 추가
+                        return `<td>${item}<br><small style="font-size:12px; color:#666;">(${SIPIUNSUNG_KOREAN[item]})</small></td>`;
+                    } else {
+                        return `<td>${item || '(없음)'}</td>`;
+                    }
+                }).join('')}
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 대운표 렌더링
+    function renderDaeun() {
+        document.getElementById('daeunTitle').textContent = `${sajuData.name}님의 대운표`;
+
+        const tableContainer = document.getElementById('daeunTable');
+        const subtitleEl = document.getElementById('daeunSubtitle');
+
+        if (sajuData.daeun && sajuData.daeun.periods && sajuData.daeun.periods.length > 0) {
+            const startAge = sajuData.daeun.start_age || 0;
+            subtitleEl.textContent = `${sajuData.name}님의 대운주기는 ${startAge}세부터 시작해 10년 주기로 찾아와요`;
+
+            const table = document.createElement('table');
+
+            // 헤더
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th>대운</th>';
+
+            sajuData.daeun.periods.forEach(period => {
+                headerRow.innerHTML += `<th>${period.gan || ''}${period.ji || ''}</th>`;
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 바디 - 년도
+            const tbody = document.createElement('tbody');
+            const yearRow = document.createElement('tr');
+            yearRow.innerHTML = '<td style="background: #f8f9fa; font-weight: 600;">년도</td>';
+            sajuData.daeun.periods.forEach(period => {
+                yearRow.innerHTML += `<td>${period.year}년</td>`;
+            });
+            tbody.appendChild(yearRow);
+
+            // 나이
+            const ageRow = document.createElement('tr');
+            ageRow.innerHTML = '<td style="background: #f8f9fa; font-weight: 600;">나이</td>';
+            sajuData.daeun.periods.forEach(period => {
+                ageRow.innerHTML += `<td>${period.age}세</td>`;
+            });
+            tbody.appendChild(ageRow);
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        } else {
+            subtitleEl.textContent = '대운 정보를 불러올 수 없습니다';
+        }
+    }
+
+    // 오행 차트 렌더링
+    function renderOhang() {
+        const diagram = document.getElementById('ohangCycleDiagram');
+
+        // 오행 데이터 구성
+        const elements = {
+            wood: { name: '木', count: sajuData.ohang['木'] ? sajuData.ohang['木'].count : 0 },
+            fire: { name: '火', count: sajuData.ohang['火'] ? sajuData.ohang['火'].count : 0 },
+            earth: { name: '土', count: sajuData.ohang['土'] ? sajuData.ohang['土'].count : 0 },
+            metal: { name: '金', count: sajuData.ohang['金'] ? sajuData.ohang['金'].count : 0 },
+            water: { name: '水', count: sajuData.ohang['水'] ? sajuData.ohang['水'].count : 0 }
+        };
+
+        // 다이어그램 크기에 따른 동적 위치 계산
+        const diagramSize = 500;  // SVG viewBox 크기
+        const centerX = diagramSize / 2;
+        const centerY = diagramSize / 2;
+        const radius = diagramSize * 0.35;  // 중심에서 원소까지의 거리
+
+        // 요소 위치 (5각형 배치, 木이 위)
+        const positions = {
+            wood:  { x: centerX, y: centerY - radius },                           // 상단
+            fire:  { x: centerX + radius * 0.95, y: centerY - radius * 0.31 },    // 우상
+            earth: { x: centerX + radius * 0.59, y: centerY + radius * 0.81 },    // 우하
+            metal: { x: centerX - radius * 0.59, y: centerY + radius * 0.81 },    // 좌하
+            water: { x: centerX - radius * 0.95, y: centerY - radius * 0.31 }     // 좌상
+        };
+
+        // SVG 생성
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'cycle-svg');
+        svg.setAttribute('viewBox', '0 0 500 500');
+
+        // 화살표 마커 정의
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+        // 생 화살표 마커 (파란색)
+        const markerSheng = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        markerSheng.setAttribute('id', 'arrowhead-sheng');
+        markerSheng.setAttribute('markerWidth', '10');
+        markerSheng.setAttribute('markerHeight', '10');
+        markerSheng.setAttribute('refX', '8');
+        markerSheng.setAttribute('refY', '3');
+        markerSheng.setAttribute('orient', 'auto');
+        const pathSheng = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathSheng.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+        pathSheng.setAttribute('fill', '#2563eb');
+        markerSheng.appendChild(pathSheng);
+        defs.appendChild(markerSheng);
+
+        // 극 화살표 마커 (빨간색)
+        const markerKe = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        markerKe.setAttribute('id', 'arrowhead-ke');
+        markerKe.setAttribute('markerWidth', '10');
+        markerKe.setAttribute('markerHeight', '10');
+        markerKe.setAttribute('refX', '8');
+        markerKe.setAttribute('refY', '3');
+        markerKe.setAttribute('orient', 'auto');
+        const pathKe = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathKe.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+        pathKe.setAttribute('fill', '#dc2626');
+        markerKe.appendChild(pathKe);
+        defs.appendChild(markerKe);
+
+        svg.appendChild(defs);
+
+        // 생 화살표 그리기 (水→木→火→土→金→水)
+        const shengCycle = [
+            { from: 'water', to: 'wood' },
+            { from: 'wood', to: 'fire' },
+            { from: 'fire', to: 'earth' },
+            { from: 'earth', to: 'metal' },
+            { from: 'metal', to: 'water' }
+        ];
+
+        // 화살표를 더 짧게 만들기 위한 함수
+        function shortenLine(fromPos, toPos, startOffset, endOffset) {
+            const dx = toPos.x - fromPos.x;
+            const dy = toPos.y - fromPos.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const unitX = dx / length;
+            const unitY = dy / length;
+
+            return {
+                start: {
+                    x: fromPos.x + unitX * startOffset,
+                    y: fromPos.y + unitY * startOffset
+                },
+                end: {
+                    x: toPos.x - unitX * endOffset,
+                    y: toPos.y - unitY * endOffset
+                }
+            };
+        }
+
+        shengCycle.forEach(({ from, to }) => {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const fromPos = positions[from];
+            const toPos = positions[to];
+
+            // 화살표를 원의 가장자리에서 시작/끝나도록 조정 (반지름 40px)
+            const shortened = shortenLine(fromPos, toPos, 45, 45);
+
+            // 곡선 경로 계산
+            const midX = (shortened.start.x + shortened.end.x) / 2;
+            const midY = (shortened.start.y + shortened.end.y) / 2;
+            const curveOffset = 15;
+
+            path.setAttribute('d', `M ${shortened.start.x} ${shortened.start.y} Q ${midX + curveOffset} ${midY - curveOffset} ${shortened.end.x} ${shortened.end.y}`);
+            path.setAttribute('class', 'sheng-arrow');
+            svg.appendChild(path);
+        });
+
+        // 극 화살표 그리기 (水→火→金→木→土→水) - 오각형
+        const keCycle = [
+            { from: 'water', to: 'fire' },
+            { from: 'fire', to: 'metal' },
+            { from: 'metal', to: 'wood' },
+            { from: 'wood', to: 'earth' },
+            { from: 'earth', to: 'water' }
+        ];
+
+        keCycle.forEach(({ from, to }) => {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const fromPos = positions[from];
+            const toPos = positions[to];
+
+            // 화살표를 원의 가장자리에서 시작/끝나도록 조정
+            const shortened = shortenLine(fromPos, toPos, 45, 45);
+
+            path.setAttribute('d', `M ${shortened.start.x} ${shortened.start.y} L ${shortened.end.x} ${shortened.end.y}`);
+            path.setAttribute('class', 'ke-arrow');
+            svg.appendChild(path);
+        });
+
+        diagram.appendChild(svg);
+
+        // 오행 원 생성
+        Object.keys(elements).forEach(type => {
+            const elem = elements[type];
+            const div = document.createElement('div');
+            div.className = `ohang-element ${type}`;
+            div.innerHTML = `
+                ${elem.name}
+                <div class="count">${elem.count}개</div>
+            `;
+            diagram.appendChild(div);
+        });
+
+        // 오행 비율 그래프 렌더링
+        const ratioGraph = document.getElementById('ohangRatioGraph');
+        const ohangOrder = [
+            { key: '木', name: '목', type: 'wood' },
+            { key: '火', name: '화', type: 'fire' },
+            { key: '土', name: '토', type: 'earth' },
+            { key: '金', name: '금', type: 'metal' },
+            { key: '水', name: '수', type: 'water' }
+        ];
+
+        ohangOrder.forEach(({ key, name, type }) => {
+            const ohangInfo = sajuData.ohang[key] || { count: 0, percent: 0 };
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'ohang-ratio-item';
+            itemDiv.innerHTML = `
+                <div class="ohang-ratio-label">
+                    <span class="ohang-ratio-label-hanja">${key}</span>
+                    <span>${name}</span>
+                </div>
+                <div class="ohang-ratio-bar-wrapper">
+                    <div class="ohang-ratio-bar ${type}" style="width: ${ohangInfo.percent || 0}%">
+                        ${ohangInfo.percent ? ohangInfo.percent.toFixed(1) + '%' : ''}
+                    </div>
+                </div>
+            `;
+            ratioGraph.appendChild(itemDiv);
+        });
+
+        // 용신 섹션 렌더링
+        const yongsinContainer = document.getElementById('yongsinContainer');
+        console.log('Yongsin data:', sajuData.yongsin); // 디버깅용
+
+        if (sajuData.yongsin && sajuData.yongsin.yongsin) {
+            const yongsinData = [
+                {
+                    label: '용신',
+                    value: sajuData.yongsin.yongsin,
+                    tooltip: '용신이란? 사주의 균형을 맞춰주는 가장 중요한 오행으로, 부족한 기운을 채워주거나 과한 기운을 조절합니다.'
+                },
+                {
+                    label: '희신',
+                    value: sajuData.yongsin.heesin,
+                    tooltip: '희신이란? 용신을 도와주는 오행으로, 용신의 힘을 강화시켜 사주의 균형을 더욱 안정적으로 만듭니다.'
+                },
+                {
+                    label: '기신',
+                    value: sajuData.yongsin.gisin,
+                    tooltip: '기신이란? 사주의 균형을 해치는 오행으로, 이 기운이 강하면 운이 불안정해질 수 있습니다.'
+                }
+            ];
+
+            // 타이틀 추가
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'yongsin-title-wrapper';
+            titleDiv.innerHTML = '<h3 class="yongsin-main-title">용신 분석</h3>';
+            yongsinContainer.appendChild(titleDiv);
+
+            // 그리드 생성
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'yongsin-grid';
+
+            yongsinData.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'yongsin-item';
+
+                // 값이 있을 때만 한자 매핑 시도
+                let hanjaInfo;
+                if (item.value && item.value !== '-' && item.value !== '') {
+                    hanjaInfo = OHANG_HANJA_MAP[item.value] || { hanja: item.value, hangul: '-' };
+                } else {
+                    hanjaInfo = { hanja: '-', hangul: '-' };
+                }
+
+                console.log(`${item.label}: ${item.value} -> ${hanjaInfo.hanja} (${hanjaInfo.hangul})`); // 디버깅용
+
+                itemDiv.innerHTML = `
+                    <div class="yongsin-label-wrapper">
+                        <span class="yongsin-label">${item.label}</span>
+                        <span class="help-icon">
+                            ?
+                            <span class="tooltip">${item.tooltip}</span>
+                        </span>
+                    </div>
+                    <div class="yongsin-circle">
+                        <div class="yongsin-hanja">${hanjaInfo.hanja}</div>
+                    </div>
+                    <div class="yongsin-hangul">${hanjaInfo.hangul}</div>
+                `;
+                gridDiv.appendChild(itemDiv);
+            });
+
+            yongsinContainer.appendChild(gridDiv);
+        } else {
+            // 용신 데이터가 없을 경우
+            yongsinContainer.innerHTML = '<p style="text-align: center; color: #8b7355;">용신 정보를 불러올 수 없습니다.</p>';
+        }
+
+        // 신강신약 마커
+        if (sajuData.strength && sajuData.strength.position !== undefined) {
+            const marker = document.getElementById('strengthMarker');
+            marker.style.left = `${sajuData.strength.position}%`;
+            const dayGan = sajuData.pillars.cheongan && sajuData.pillars.cheongan[1] ? sajuData.pillars.cheongan[1] : '?';
+            document.getElementById('strengthResult').textContent =
+                `일간 '${dayGan}', '${sajuData.strength.level || '중화'}'한 사주입니다`;
+        }
+    }
+
+    // 운세 텍스트 렌더링
+    function renderFortune() {
+        const lines = fortuneText.split('\n');
+        const sections = [];
+        let currentSection = null;
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+
+            const headerMatch = line.match(/^\*\*(.+?)\*\*$/);
+            if (headerMatch) {
+                if (currentSection) {
+                    sections.push(currentSection);
+                }
+
+                let title = headerMatch[1].trim();
+                title = title.replace(/^\d+\.\s*/, '');
+
+                currentSection = {
+                    title: title,
+                    content: ''
+                };
+            } else if (currentSection) {
+                currentSection.content += line + '\n';
+            }
+        }
+
+        if (currentSection) {
+            sections.push(currentSection);
+        }
+
+        const container = document.getElementById('fortuneContent');
+        let html = '';
+
+        sections.forEach((section, index) => {
+            if (index === 0) return; // 인사말 스킵
+
+            const icons = {
+                '전체적인 성격과 특징': '🎭',
+                '2025년 운세': '📅',
+                '직업운과 재물운': '💼',
+                '연애운과 결혼운': '💖',
+                '건강운': '💪',
+                '한 줄 조언': '💡'
+            };
+
+            let icon = '✨';
+            for (const [key, value] of Object.entries(icons)) {
+                if (section.title.includes(key)) {
+                    icon = value;
+                    break;
+                }
+            }
+
+            html += `
+                <div class="fortune-card">
+                    <div class="fortune-card-header">
+                        <div class="fortune-card-icon">${icon}</div>
+                        <h3 class="fortune-card-title">${section.title}</h3>
+                    </div>
+                    <div class="fortune-card-content">
+                        ${formatContent(section.content)}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function formatContent(content) {
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+        let html = '';
+
+        for (const line of lines) {
+            let processedLine = line.replace(/^-\s*/, '');
+            processedLine = processedLine.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html += `<p style="margin-bottom: 12px; line-height: 1.8;">${processedLine}</p>`;
+        }
+
+        return html;
+    }
+
+    // 페이지 로드시 실행
+    renderSajuTable();
+    renderDaeun();
+    renderOhang();
+    renderFortune();
+</script>
+{% endblock %}
