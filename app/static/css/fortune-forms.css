@@ -67,7 +67,7 @@ label {
     font-weight: 600;
     color: #333333;
     margin-bottom: 8px;
-    font-size: 14px;
+    font-size: 18px;
 }
 
 /* ============================================
@@ -82,7 +82,7 @@ textarea {
     background: #ffffff;
     border: 1px solid #dcdcdc;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 18px;
     color: #333333;
     transition: all 0.3s;
 }
@@ -363,7 +363,7 @@ select {
     }
 
     label {
-        font-size: 14px;
+        font-size: 18px;
     }
 
     input[type="text"],
@@ -371,7 +371,7 @@ select {
     select,
     textarea {
         padding: 12px;
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .btn-submit {

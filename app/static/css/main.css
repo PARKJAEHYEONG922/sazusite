@@ -453,13 +453,13 @@ nav {
 }
 
 .service-subtitle {
-    font-size: 0.95rem;
+    font-size: 1.3rem;
     color: var(--secondary-color);
     margin-bottom: 0.8rem;
 }
 
 .service-description {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     line-height: 1.6;
 }
@@ -489,7 +489,7 @@ nav {
     font-weight: 600;
     color: #333333;
     margin-bottom: 8px;
-    font-size: 14px;
+    font-size: 18px;
 }
 
 .form-group input,
