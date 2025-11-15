@@ -16,9 +16,15 @@ class LogService:
         self.db = db
 
     # ===== 에러 로그 =====
-    def get_recent_errors(self, limit: int = 100, offset: int = 0) -> List[ErrorLog]:
+    def get_recent_errors(self, limit: int = 100, offset: int = 0, hours: Optional[int] = None) -> List[ErrorLog]:
         """최근 에러 목록 조회"""
-        return self.db.query(ErrorLog)\
+        query = self.db.query(ErrorLog)
+
+        if hours is not None:
+            since = datetime.now() - timedelta(hours=hours)
+            query = query.filter(ErrorLog.timestamp >= since)
+
+        return query\
             .order_by(desc(ErrorLog.timestamp))\
             .offset(offset)\
             .limit(limit)\
@@ -49,9 +55,15 @@ class LogService:
         return [{"type": r.error_type, "count": r.count} for r in results]
 
     # ===== API 사용 로그 =====
-    def get_recent_api_usage(self, limit: int = 100, offset: int = 0) -> List[APIUsageLog]:
+    def get_recent_api_usage(self, limit: int = 100, offset: int = 0, days: Optional[int] = None) -> List[APIUsageLog]:
         """최근 API 사용 내역"""
-        return self.db.query(APIUsageLog)\
+        query = self.db.query(APIUsageLog)
+
+        if days is not None:
+            since = datetime.now() - timedelta(days=days)
+            query = query.filter(APIUsageLog.timestamp >= since)
+
+        return query\
             .order_by(desc(APIUsageLog.timestamp))\
             .offset(offset)\
             .limit(limit)\
@@ -111,9 +123,15 @@ class LogService:
         ]
 
     # ===== 접속 로그 =====
-    def get_recent_access(self, limit: int = 100, offset: int = 0) -> List[AccessLog]:
+    def get_recent_access(self, limit: int = 100, offset: int = 0, days: Optional[int] = None) -> List[AccessLog]:
         """최근 접속 로그"""
-        return self.db.query(AccessLog)\
+        query = self.db.query(AccessLog)
+
+        if days is not None:
+            since = datetime.now() - timedelta(days=days)
+            query = query.filter(AccessLog.timestamp >= since)
+
+        return query\
             .order_by(desc(AccessLog.timestamp))\
             .offset(offset)\
             .limit(limit)\
@@ -166,9 +184,15 @@ class LogService:
         return [{"service": r.service_code, "count": r.count} for r in results]
 
     # ===== Rate Limit 로그 =====
-    def get_recent_rate_limit_violations(self, limit: int = 100, offset: int = 0) -> List[RateLimitLog]:
+    def get_recent_rate_limit_violations(self, limit: int = 100, offset: int = 0, days: Optional[int] = None) -> List[RateLimitLog]:
         """최근 Rate Limit 위반 내역"""
-        return self.db.query(RateLimitLog)\
+        query = self.db.query(RateLimitLog)
+
+        if days is not None:
+            since = datetime.now() - timedelta(days=days)
+            query = query.filter(RateLimitLog.timestamp >= since)
+
+        return query\
             .order_by(desc(RateLimitLog.timestamp))\
             .offset(offset)\
             .limit(limit)\
@@ -298,3 +322,64 @@ class LogService:
             },
             "total_count": sum(total_logs.values())
         }
+
+    # ===== 운세 생성 에러 =====
+    def get_fortune_errors(self, limit: int = 100, offset: int = 0, days: Optional[int] = None) -> List:
+        """운세 생성 에러 목록 조회"""
+        from app.models.fortune_result import FortuneResult
+
+        query = self.db.query(FortuneResult)\
+            .filter(FortuneResult.status == "error")
+
+        if days is not None:
+            since = datetime.now() - timedelta(days=days)
+            query = query.filter(FortuneResult.created_at >= since)
+
+        return query\
+            .order_by(desc(FortuneResult.created_at))\
+            .offset(offset)\
+            .limit(limit)\
+            .all()
+
+    def get_fortune_error_stats(self, days: int = 7) -> Dict:
+        """운세 생성 에러 통계"""
+        from app.models.fortune_result import FortuneResult
+
+        since = datetime.now() - timedelta(days=days)
+
+        # 전체 에러 개수
+        total_errors = self.db.query(func.count(FortuneResult.id))\
+            .filter(FortuneResult.status == "error", FortuneResult.created_at >= since)\
+            .scalar() or 0
+
+        # 서비스별 에러
+        errors_by_service = self.db.query(
+            FortuneResult.service_code,
+            func.count(FortuneResult.id).label('count')
+        ).filter(
+            FortuneResult.status == "error",
+            FortuneResult.created_at >= since
+        ).group_by(
+            FortuneResult.service_code
+        ).order_by(
+            desc('count')
+        ).all()
+
+        return {
+            "total_errors": total_errors,
+            "errors_by_service": [
+                {"service": r.service_code, "count": r.count}
+                for r in errors_by_service
+            ]
+        }
+
+    def delete_fortune_errors(self, days: int) -> int:
+        """운세 생성 에러 삭제"""
+        from app.models.fortune_result import FortuneResult
+
+        cutoff = datetime.now() - timedelta(days=days)
+        deleted = self.db.query(FortuneResult)\
+            .filter(FortuneResult.status == "error", FortuneResult.created_at < cutoff)\
+            .delete(synchronize_session=False)
+        self.db.commit()
+        return deleted

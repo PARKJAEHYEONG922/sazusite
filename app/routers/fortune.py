@@ -111,17 +111,25 @@ async def check_fortune_status(
             "message": "운세 생성을 준비 중입니다..."
         })
 
-    # 상태 반환
-    if result.result_text:
+    # 에러 상태 체크
+    if result.status == "error":
+        return JSONResponse(content={
+            "status": "error",
+            "message": result.error_message or "AI 분석 중 오류가 발생했습니다."
+        })
+
+    # 완료 상태 체크
+    if result.result_text or result.status == "completed":
         return JSONResponse(content={
             "status": "completed",
             "message": "분석이 완료되었습니다!"
         })
-    else:
-        return JSONResponse(content={
-            "status": "processing",
-            "message": "분석 중입니다..."
-        })
+
+    # 처리 중
+    return JSONResponse(content={
+        "status": result.status or "processing",
+        "message": "분석 중입니다..."
+    })
 
 
 @router.get("/pages/results/{service_code}/{share_code}", response_class=HTMLResponse)
@@ -289,16 +297,39 @@ async def fortune_result(
     elif service_code == "dream":
         request_data["dream_content"] = dream_content
 
-    # 즉시 share_code 생성 (빠른 리디렉션)
+    # 캐시 확인 (동기)
+    client_ip = request.client.host if request.client else "unknown"
+    fortune_service = FortuneService(db, client_ip=client_ip)
+
+    # user_key 생성
+    user_key = fortune_service.generate_user_key(service_code, request_data)
+
+    # 오늘 날짜로 캐시 조회
+    from datetime import date as dt_date
+    today = dt_date.today()
+    cached = fortune_service.find_cached_result(service_code, user_key, today)
+
+    import logging
+    logging.warning(f"[DEBUG] Cache check - service: {service_code}, user_key: {user_key[:20]}..., found: {cached is not None}")
+
+    if cached:
+        # 캐시가 있으면 바로 결과 페이지로 리다이렉트 (로딩 페이지 건너뛰기)
+        redirect_url = f"/pages/results/{service_code}/{cached.share_code}"
+        logging.warning(f"[DEBUG] Cache HIT! Redirecting to: {redirect_url}")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=redirect_url, status_code=303)
+
+    # 캐시가 없으면 새로 생성 (비동기)
     import secrets
     share_code = secrets.token_urlsafe(8)
-
-    client_ip = request.client.host if request.client else "unknown"
 
     # 백그라운드에서 운세 생성 (비동기)
     def generate_fortune_bg():
         # 새로운 DB 세션 생성 (백그라운드 태스크용)
         from app.database import SessionLocal
+        from app.models import FortuneResult
+        import logging
+
         bg_db = SessionLocal()
         try:
             fortune_service = FortuneService(bg_db, client_ip=client_ip)
@@ -306,8 +337,39 @@ async def fortune_result(
             bg_db.commit()
         except Exception as e:
             bg_db.rollback()
-            import logging
             logging.error(f"Background fortune generation error: {str(e)}", exc_info=True)
+
+            # DB에 에러 상태 기록
+            try:
+                # share_code로 레코드 찾기 (이미 생성된 경우)
+                result = bg_db.query(FortuneResult).filter(
+                    FortuneResult.share_code == share_code
+                ).first()
+
+                if result:
+                    # 기존 레코드 업데이트
+                    result.status = "error"
+                    result.error_message = f"AI 분석 중 오류가 발생했습니다: {str(e)}"
+                else:
+                    # 새 에러 레코드 생성
+                    from datetime import date as dt_date
+                    error_result = FortuneResult(
+                        service_code=service_code,
+                        user_key="error",  # 임시 키
+                        share_code=share_code,
+                        date=dt_date.today(),
+                        request_payload=request_data,
+                        result_text=None,
+                        status="error",
+                        error_message=f"AI 분석 중 오류가 발생했습니다: {str(e)}",
+                        is_from_cache=False
+                    )
+                    bg_db.add(error_result)
+
+                bg_db.commit()
+            except Exception as db_error:
+                logging.error(f"Failed to save error status to DB: {str(db_error)}", exc_info=True)
+                bg_db.rollback()
         finally:
             bg_db.close()
 

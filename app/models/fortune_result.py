@@ -28,6 +28,10 @@ class FortuneResult(Base):
     request_payload = Column(JSON)  # 입력 정보 (이름, 생년월일, 성별 등)
     result_text = Column(Text)  # 운세 결과 전체 텍스트
 
+    # 상태 관리
+    status = Column(String(20), default="pending")  # pending, processing, completed, error
+    error_message = Column(Text, nullable=True)  # 에러 발생 시 메시지
+
     # 캐시 여부
     is_from_cache = Column(Boolean, default=False)
 

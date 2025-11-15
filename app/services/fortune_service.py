@@ -140,6 +140,7 @@ class FortuneService:
                 date=date.today(),
                 request_payload=serializable_data,
                 result_text=result_text,
+                status="completed",
                 is_from_cache=False
             )
 
@@ -200,6 +201,7 @@ class FortuneService:
             date=date.today(),
             request_payload=serializable_data,
             result_text=result_text,
+            status="completed",
             is_from_cache=False
         )
 
@@ -256,14 +258,40 @@ class FortuneService:
         cached = self.find_cached_result(service_code, user_key, today)
 
         if cached:
-            result = {
-                "id": cached.id,
-                "share_code": cached.share_code,
-                "service_code": service_code,
-                "is_cached": True,
-                "result_text": cached.result_text,
-                "date": cached.date
-            }
+            # share_code가 전달되었으면 새 레코드 생성 (공유용)
+            if share_code:
+                new_record = FortuneResult(
+                    service_code=service_code,
+                    user_key=user_key,
+                    share_code=share_code,
+                    date=today,
+                    request_payload=cached.request_payload,
+                    result_text=cached.result_text,
+                    status="completed",
+                    is_from_cache=True
+                )
+                self.db.add(new_record)
+                self.db.commit()
+                self.db.refresh(new_record)
+
+                result = {
+                    "id": new_record.id,
+                    "share_code": new_record.share_code,
+                    "service_code": service_code,
+                    "is_cached": True,
+                    "result_text": cached.result_text,
+                    "date": cached.date
+                }
+            else:
+                # share_code가 없으면 캐시된 레코드 그대로 사용
+                result = {
+                    "id": cached.id,
+                    "share_code": cached.share_code,
+                    "service_code": service_code,
+                    "is_cached": True,
+                    "result_text": cached.result_text,
+                    "date": cached.date
+                }
 
             # 캐시된 결과의 경우 사주 서비스면 다시 계산
             if service_code == "saju":

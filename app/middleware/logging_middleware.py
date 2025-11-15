@@ -16,8 +16,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # 시작 시간 기록
         start_time = time.time()
 
-        # 관리자 페이지와 정적 파일은 로깅 제외 (너무 많음)
-        exclude_paths = ["/admin/", "/static/", "/favicon.ico", "/.well-known/"]
+        # 관리자 페이지, 정적 파일, API 상태 체크는 로깅 제외 (너무 많음)
+        exclude_paths = ["/admin/", "/static/", "/favicon.ico", "/.well-known/", "/api/fortune/status/"]
         should_log = not any(request.url.path.startswith(path) for path in exclude_paths)
 
         # 응답 처리

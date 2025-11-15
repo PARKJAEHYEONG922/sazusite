@@ -20,6 +20,9 @@
         <a href="#" onclick="changeTab('rate-limit'); return false;" class="tab {{ 'active' if tab == 'rate-limit' else '' }}">
             Rate Limit
         </a>
+        <a href="#" onclick="changeTab('fortune-errors'); return false;" class="tab {{ 'active' if tab == 'fortune-errors' else '' }}">
+            운세 생성 에러
+        </a>
     </div>
 
     <!-- 메시지 표시 -->
@@ -93,7 +96,7 @@
         </table>
         {% endif %}
 
-        <h2>최근 에러 내역 (최근 50개)</h2>
+        <h2>최근 에러 내역</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -104,7 +107,7 @@
                     <th>IP</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="errors-tbody">
                 {% for error in errors %}
                 <tr>
                     <td>{{ error.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
@@ -116,6 +119,9 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="load-more-container">
+            <button id="load-more-errors" class="btn-load-more" onclick="loadMoreLogs('errors')">더보기</button>
+        </div>
     </div>
     {% endif %}
 
@@ -191,7 +197,7 @@
         </table>
         {% endif %}
 
-        <h2>최근 API 사용 내역 (최근 50개)</h2>
+        <h2>최근 API 사용 내역</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -202,7 +208,7 @@
                     <th>캐시</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="api-tbody">
                 {% for log in api_logs %}
                 <tr>
                     <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
@@ -214,16 +220,19 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="load-more-container">
+            <button id="load-more-api" class="btn-load-more" onclick="loadMoreLogs('api')">더보기</button>
+        </div>
     </div>
     {% endif %}
 
     <!-- 접속 로그 탭 -->
     {% if tab == 'access' %}
     <div class="tab-content">
-        <!-- 조회 기간 & 로그 삭제 -->
+        <!-- 로그 삭제만 (조회 기간은 통계에만 적용) -->
         <div class="control-section">
             <div class="period-selector">
-                <label for="period_access">조회 기간:</label>
+                <label for="period_access">통계 조회 기간:</label>
                 <select id="period_access" onchange="changePeriod(this.value)">
                     <option value="7" {% if period == 7 %}selected{% endif %}>최근 7일</option>
                     <option value="30" {% if period == 30 %}selected{% endif %}>최근 30일</option>
@@ -283,7 +292,7 @@
         </table>
         {% endif %}
 
-        <h2>최근 접속 내역 (최근 50개)</h2>
+        <h2>최근 접속 내역</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -294,11 +303,11 @@
                     <th>응답시간</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="access-tbody">
                 {% for log in access_logs %}
                 <tr>
                     <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                    <td class="url-cell">{{ log.url[:50] }}</td>
+                    <td class="url-cell" title="{{ log.url }}">{{ log.url[:60] }}{% if log.url|length > 60 %}...{% endif %}</td>
                     <td>{{ log.status_code }}</td>
                     <td>{{ log.client_ip }}</td>
                     <td>{{ log.response_time_ms or '-' }}ms</td>
@@ -306,6 +315,9 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="load-more-container">
+            <button id="load-more-access" class="btn-load-more" onclick="loadMoreLogs('access')">더보기</button>
+        </div>
     </div>
     {% endif %}
 
@@ -378,7 +390,7 @@
         </table>
         {% endif %}
 
-        <h2>최근 위반 내역 (최근 50개)</h2>
+        <h2>최근 위반 내역</h2>
         <table class="log-table">
             <thead>
                 <tr>
@@ -389,7 +401,7 @@
                     <th>최대 허용</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="rate-limit-tbody">
                 {% for log in rate_limit_logs %}
                 <tr>
                     <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
@@ -401,6 +413,100 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="load-more-container">
+            <button id="load-more-rate-limit" class="btn-load-more" onclick="loadMoreLogs('rate-limit')">더보기</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 운세 생성 에러 탭 -->
+    {% if tab == 'fortune-errors' %}
+    <div class="tab-content">
+        <!-- 조회 기간 & 로그 삭제 -->
+        <div class="control-section">
+            <div class="period-selector">
+                <label for="period_fortune">조회 기간:</label>
+                <select id="period_fortune" onchange="changePeriod(this.value)">
+                    <option value="7" {% if period == 7 %}selected{% endif %}>최근 7일</option>
+                    <option value="30" {% if period == 30 %}selected{% endif %}>최근 30일</option>
+                    <option value="90" {% if period == 90 %}selected{% endif %}>최근 90일</option>
+                    <option value="365" {% if period == 365 %}selected{% endif %}>최근 1년</option>
+                    <option value="0" {% if period == 0 %}selected{% endif %}>전체</option>
+                </select>
+            </div>
+            <div class="delete-log-section">
+                <form method="POST" action="/admin/logs/delete/fortune-errors" onsubmit="return confirmDelete('운세 생성 에러')" class="delete-form">
+                    <input type="hidden" name="period" value="{{ period }}">
+                    <label for="fortune_days">에러 로그 삭제:</label>
+                    <select name="days" id="fortune_days">
+                        <option value="7">7일 이상 경과</option>
+                        <option value="30" selected>30일 이상 경과</option>
+                        <option value="60">60일 이상 경과</option>
+                        <option value="90">90일 이상 경과</option>
+                    </select>
+                    <button type="submit" class="btn-delete">🗑️ 삭제</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <h3>총 에러 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h3>
+                <p class="stat-number">{{ fortune_error_stats.total_errors }}</p>
+            </div>
+        </div>
+
+        {% if fortune_error_stats.errors_by_service %}
+        <h2>서비스별 에러 통계 ({% if period == 0 %}전체{% elif period == 365 %}1년{% else %}{{ period }}일{% endif %})</h2>
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>서비스</th>
+                    <th>에러 횟수</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in fortune_error_stats.errors_by_service %}
+                <tr>
+                    <td>{{ stat.service }}</td>
+                    <td>{{ stat.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h2>최근 운세 생성 에러</h2>
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>시간</th>
+                    <th>서비스</th>
+                    <th>Share Code</th>
+                    <th>에러 메시지</th>
+                    <th>사용자 정보</th>
+                </tr>
+            </thead>
+            <tbody id="fortune-errors-tbody">
+                {% for error in fortune_errors %}
+                <tr>
+                    <td>{{ error.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ error.service_code }}</td>
+                    <td><code style="background:#f0f0f0; padding:2px 6px; border-radius:3px; font-size:11px;">{{ error.share_code }}</code></td>
+                    <td class="error-message" title="{{ error.error_message }}">{{ error.error_message[:100] if error.error_message else '-' }}</td>
+                    <td style="font-size: 12px;">
+                        {% if error.request_payload %}
+                            {% if error.request_payload.name %}이름: {{ error.request_payload.name }}<br>{% endif %}
+                            {% if error.request_payload.birthdate %}생년월일: {{ error.request_payload.birthdate }}{% endif %}
+                        {% else %}-{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="load-more-container">
+            <button id="load-more-fortune-errors" class="btn-load-more" onclick="loadMoreLogs('fortune-errors')">더보기</button>
+        </div>
     </div>
     {% endif %}
 
@@ -670,11 +776,79 @@
 .btn-delete:active {
     transform: translateY(0);
 }
+
+/* 더보기 버튼 */
+.load-more-container {
+    text-align: center;
+    margin: 20px 0 30px 0;
+}
+
+.btn-load-more {
+    background: linear-gradient(135deg, #8B4513 0%, #6d3410 100%);
+    color: white;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
+}
+
+.btn-load-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.4);
+}
+
+.btn-load-more:active {
+    transform: translateY(0);
+}
+
+.btn-load-more:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-load-more.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-load-more.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// 로그 타입별 offset 추적
+const logOffsets = {
+    'errors': {{ errors|length }},
+    'api': {{ api_logs|length if api_logs is defined else 0 }},
+    'access': {{ access_logs|length if access_logs is defined else 0 }},
+    'rate-limit': {{ rate_limit_logs|length if rate_limit_logs is defined else 0 }},
+    'fortune-errors': {{ fortune_errors|length if fortune_errors is defined else 0 }}
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOMContentLoaded에서는 아무것도 하지 않음
     // 서버에서 제공한 기본값(7일)을 그대로 사용
@@ -701,6 +875,116 @@ function confirmDelete(logType) {
                     `계속하시겠습니까?`;
 
     return confirm(message);
+}
+
+async function loadMoreLogs(logType) {
+    const button = document.getElementById(`load-more-${logType}`);
+    const tbody = document.getElementById(`${logType}-tbody`);
+
+    if (!tbody) {
+        console.error(`tbody not found for ${logType}`);
+        return;
+    }
+
+    // 버튼 로딩 상태
+    button.classList.add('loading');
+    button.disabled = true;
+
+    try {
+        const offset = logOffsets[logType];
+        const response = await fetch(`/admin/logs/load-more/${logType}?offset=${offset}&limit=50`);
+        const data = await response.json();
+
+        if (!data.success) {
+            alert('로그를 불러오는데 실패했습니다: ' + data.error);
+            return;
+        }
+
+        // 테이블에 새 로그 추가
+        data.logs.forEach(log => {
+            const row = createLogRow(logType, log);
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+
+        // offset 업데이트
+        logOffsets[logType] += data.logs.length;
+
+        // 더 이상 로그가 없으면 버튼 숨기기
+        if (!data.has_more || data.logs.length === 0) {
+            button.style.display = 'none';
+        }
+
+    } catch (error) {
+        console.error('Error loading logs:', error);
+        alert('로그를 불러오는 중 오류가 발생했습니다.');
+    } finally {
+        button.classList.remove('loading');
+        button.disabled = false;
+    }
+}
+
+function createLogRow(logType, log) {
+    switch(logType) {
+        case 'errors':
+            return `
+                <tr>
+                    <td>${log.timestamp}</td>
+                    <td>${log.error_type}</td>
+                    <td class="error-message">${(log.message || '').substring(0, 100)}</td>
+                    <td>${log.client_ip || '-'}</td>
+                    <td>${log.url || '-'}</td>
+                </tr>
+            `;
+
+        case 'api':
+            return `
+                <tr>
+                    <td>${log.timestamp}</td>
+                    <td>${log.service_code}</td>
+                    <td>${log.model_name}</td>
+                    <td>${log.response_time_ms || '-'}ms</td>
+                    <td>${log.cache_hit ? '✓' : '-'}</td>
+                </tr>
+            `;
+
+        case 'access':
+            const urlText = log.url || '';
+            const displayUrl = urlText.length > 60 ? urlText.substring(0, 60) + '...' : urlText;
+            return `
+                <tr>
+                    <td>${log.timestamp}</td>
+                    <td class="url-cell" title="${urlText}">${displayUrl}</td>
+                    <td>${log.status_code}</td>
+                    <td>${log.client_ip}</td>
+                    <td>${log.response_time_ms || '-'}ms</td>
+                </tr>
+            `;
+
+        case 'rate-limit':
+            return `
+                <tr>
+                    <td>${log.timestamp}</td>
+                    <td>${log.client_ip}</td>
+                    <td>${log.limit_type}</td>
+                    <td>${log.attempt_count}</td>
+                    <td>-</td>
+                </tr>
+            `;
+
+        case 'fortune-errors':
+            return `
+                <tr>
+                    <td>${log.created_at}</td>
+                    <td>${log.service_code}</td>
+                    <td><code style="background:#f0f0f0; padding:2px 6px; border-radius:3px; font-size:11px;">${log.share_code}</code></td>
+                    <td class="error-message" title="${log.error_message || ''}">${(log.error_message || '-').substring(0, 100)}</td>
+                    <td>-</td>
+                </tr>
+            `;
+
+        default:
+            return '';
+    }
 }
 </script>
 {% endblock %}
