@@ -477,6 +477,18 @@ async def update_site_settings(
             if sub_banner_link:
                 sub_banner_updates[f"sub_banner_link_{i}"] = sub_banner_link
 
+        # AdSense Client ID 자동 포맷팅 (pub-xxx 입력 시 ca-pub-xxx로 변환)
+        formatted_adsense_id = None
+        if adsense_client_id:
+            adsense_client_id = adsense_client_id.strip()
+            if adsense_client_id.startswith("pub-"):
+                formatted_adsense_id = f"ca-{adsense_client_id}"
+            elif adsense_client_id.startswith("ca-pub-"):
+                formatted_adsense_id = adsense_client_id
+            else:
+                # 숫자만 입력한 경우 (예: 1234567890)
+                formatted_adsense_id = f"ca-pub-{adsense_client_id}"
+
         updates = {
             "site_name": site_name,
             "site_url": site_url if site_url else None,
@@ -487,7 +499,7 @@ async def update_site_settings(
             "footer_text": footer_text,
             **banner_updates,
             **sub_banner_updates,
-            "adsense_client_id": adsense_client_id if adsense_client_id else None,
+            "adsense_client_id": formatted_adsense_id,
             "adsense_slot_main": adsense_slot_main if adsense_slot_main else None,
             "adsense_slot_result": adsense_slot_result if adsense_slot_result else None
         }

@@ -1,8 +1,8 @@
 """
 운세 생성 공개 라우터
 """
-from fastapi import APIRouter, Request, Depends, Form
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Depends, Form, BackgroundTasks
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import date, datetime
@@ -52,6 +52,75 @@ async def fortune_form(
             "service": service
         }
     )
+
+
+@router.get("/loading/{service_code}/{share_code}", response_class=HTMLResponse)
+async def loading_page(
+    request: Request,
+    service_code: str,
+    share_code: str,
+    db: Session = Depends(get_db)
+):
+    """로딩 페이지 (광고 표시 + 자동 리디렉션)"""
+    site_service = SiteService(db)
+    site_config = site_service.get_site_config()
+    service = site_service.get_service_by_code(service_code)
+
+    if not service:
+        return templates.TemplateResponse(
+            "results/error.html",
+            {
+                "request": request,
+                "site_config": site_config,
+                "message": "서비스를 찾을 수 없습니다."
+            },
+            status_code=404
+        )
+
+    # 결과 페이지 URL 생성
+    result_url = f"/pages/results/{service_code}/{share_code}"
+
+    return templates.TemplateResponse(
+        "loading.html",
+        {
+            "request": request,
+            "site_config": site_config,
+            "service": service,
+            "share_code": share_code,
+            "result_url": result_url
+        }
+    )
+
+
+@router.get("/api/fortune/status/{share_code}")
+async def check_fortune_status(
+    share_code: str,
+    db: Session = Depends(get_db)
+):
+    """운세 생성 상태 체크 API (AJAX 폴링용)"""
+    from app.models import FortuneResult
+
+    result = db.query(FortuneResult).filter(
+        FortuneResult.share_code == share_code
+    ).first()
+
+    if not result:
+        return JSONResponse(
+            status_code=404,
+            content={"status": "not_found", "message": "결과를 찾을 수 없습니다."}
+        )
+
+    # 상태 반환
+    if result.result_text:
+        return JSONResponse(content={
+            "status": "completed",
+            "message": "분석이 완료되었습니다!"
+        })
+    else:
+        return JSONResponse(content={
+            "status": "processing",
+            "message": "분석 중입니다..."
+        })
 
 
 @router.get("/pages/results/{service_code}/{share_code}", response_class=HTMLResponse)
@@ -149,6 +218,7 @@ async def view_fortune_result(
 async def fortune_result(
     request: Request,
     service_code: str,
+    background_tasks: BackgroundTasks,
     name: Optional[str] = Form(None),
     birthdate: Optional[date] = Form(None),
     gender: Optional[str] = Form(None),
@@ -161,7 +231,7 @@ async def fortune_result(
     dream_content: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
-    """운세 생성 및 결과 페이지 (HTML 리다이렉트 또는 JSON 응답)"""
+    """운세 생성 및 결과 페이지 (비동기 처리)"""
     # Rate Limiting 체크 (API 비용 폭탄 방지) + 위반 로깅
     rate_limiter.check_rate_limit(request, db)
 
@@ -218,40 +288,32 @@ async def fortune_result(
     elif service_code == "dream":
         request_data["dream_content"] = dream_content
 
-    # 운세 생성
+    # 즉시 share_code 생성 (빠른 리디렉션)
+    import secrets
+    share_code = secrets.token_urlsafe(8)
+
     client_ip = request.client.host if request.client else "unknown"
-    fortune_service = FortuneService(db, client_ip=client_ip)
 
-    try:
-        result = fortune_service.get_or_create_fortune(service_code, request_data)
-
-        share_code = result["share_code"]
-        redirect_url = f"/pages/results/{service_code}/{share_code}"
-
-        # POST-Redirect-GET 패턴으로 리다이렉트
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=redirect_url, status_code=303)
-
-    except Exception as e:
-        # 에러 로깅 (DB에 저장)
-        from app.utils.logger import log_exception
-        log_exception(db, e, request, service_code=service_code)
-
-        # 개발 환경에서만 상세 에러 표시, 프로덕션에서는 숨김
-        if settings.environment == "development":
-            error_message = f"운세 생성 중 오류가 발생했습니다: {str(e)}"
-        else:
-            error_message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-            # 프로덕션 환경에서는 서버 로그에도 기록
+    # 백그라운드에서 운세 생성 (비동기)
+    def generate_fortune_bg():
+        # 새로운 DB 세션 생성 (백그라운드 태스크용)
+        from app.database import SessionLocal
+        bg_db = SessionLocal()
+        try:
+            fortune_service = FortuneService(bg_db, client_ip=client_ip)
+            fortune_service.get_or_create_fortune(service_code, request_data, share_code=share_code)
+            bg_db.commit()
+        except Exception as e:
+            bg_db.rollback()
             import logging
-            logging.error(f"Fortune generation error: {str(e)}", exc_info=True)
+            logging.error(f"Background fortune generation error: {str(e)}", exc_info=True)
+        finally:
+            bg_db.close()
 
-        return templates.TemplateResponse(
-            "results/error.html",
-            {
-                "request": request,
-                "site_config": site_config,
-                "message": error_message
-            },
-            status_code=500
-        )
+    # 백그라운드 태스크 등록
+    background_tasks.add_task(generate_fortune_bg)
+
+    # 즉시 로딩 페이지로 리디렉션 (광고 표시)
+    redirect_url = f"/loading/{service_code}/{share_code}"
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=redirect_url, status_code=303)

@@ -37,6 +37,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Nanum+Myeongjo:wght@400;700;800&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/fortune-forms.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/icons.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     {% block extra_css %}{% endblock %}
@@ -113,29 +114,13 @@
         <p>{{ site_config.footer_text if site_config else "© 2025 명월헌. All rights reserved." }}</p>
     </footer>
 
-    <!-- 모바일 하단 고정 광고 -->
-    {% if site_config and site_config.adsense_client_id %}
-    <div class="mobile-bottom-ad" id="mobileBottomAd">
-        <button class="ad-close-btn" onclick="closeMobileAd()" aria-label="광고 닫기">&times;</button>
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="{{ site_config.adsense_client_id }}"
-             data-ad-slot="{{ site_config.adsense_slot_main if site_config.adsense_slot_main else '' }}"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-    {% endif %}
+    <!-- 모바일 하단 고정 광고 - 로딩 페이지에서만 사용 -->
+    <!-- 다른 페이지에서는 광고 제거 (AdSense 에러 방지) -->
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="{{ url_for('static', path='/js/main.js') }}"></script>
-    {% if site_config and site_config.adsense_client_id %}
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site_config.adsense_client_id }}"
-            crossorigin="anonymous"></script>
-    {% endif %}
+    <!-- AdSense 스크립트는 loading.html에서만 로드 -->
 
     <!-- 카카오톡 SDK -->
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
@@ -148,17 +133,12 @@
             // 관리자 페이지에서 설정한 키 사용
             try {
                 Kakao.init('{{ site_config.kakao_javascript_key }}');
-                console.log('[명월헌] 카카오톡 SDK 초기화 완료');
+                // console.log('[명월헌] 카카오톡 SDK 초기화 완료'); // 로그 제거
             } catch (e) {
                 console.error('[명월헌] 카카오톡 SDK 초기화 실패:', e.message);
             }
             {% else %}
-            // 테스트용 더미 초기화 (실제로는 작동 안 함, 에러 메시지만 명확하게 표시)
-            console.warn('[명월헌] ⚠️ 카카오톡 JavaScript 키가 설정되지 않았습니다.');
-            console.warn('카카오톡 공유 기능을 사용하려면:');
-            console.warn('1. https://developers.kakao.com 에서 앱 등록');
-            console.warn('2. JavaScript 키 발급');
-            console.warn('3. 관리자 페이지에서 키 입력');
+            // 카카오톡 JavaScript 키가 설정되지 않음 (콘솔 로그 없이 무시)
             {% endif %}
         }
     </script>

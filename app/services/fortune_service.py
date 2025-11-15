@@ -105,7 +105,8 @@ class FortuneService:
         self,
         service_code: str,
         user_key: str,
-        request_data: dict
+        request_data: dict,
+        share_code: str = None
     ) -> tuple[FortuneResult, Optional[Dict]]:
         """
         새로운 운세 생성
@@ -114,6 +115,7 @@ class FortuneService:
             service_code: 서비스 코드
             user_key: 사용자 식별 키
             request_data: 요청 데이터
+            share_code: 미리 생성된 share_code (선택적)
 
         Returns:
             (생성된 운세 결과, 사주 데이터 또는 None)
@@ -127,8 +129,9 @@ class FortuneService:
 
             serializable_data = self._make_json_serializable(request_data)
 
-            # 고유한 share_code 생성
-            share_code = self._generate_unique_share_code()
+            # share_code가 없으면 생성
+            if not share_code:
+                share_code = self._generate_unique_share_code()
 
             fortune_result = FortuneResult(
                 service_code=service_code,
@@ -185,8 +188,9 @@ class FortuneService:
         # request_data를 JSON 직렬화 가능하게 변환 (date 객체를 문자열로)
         serializable_data = self._make_json_serializable(request_data)
 
-        # 고유한 share_code 생성
-        share_code = self._generate_unique_share_code()
+        # share_code가 없으면 생성
+        if not share_code:
+            share_code = self._generate_unique_share_code()
 
         # DB 저장
         fortune_result = FortuneResult(
@@ -228,7 +232,8 @@ class FortuneService:
     def get_or_create_fortune(
         self,
         service_code: str,
-        request_data: dict
+        request_data: dict,
+        share_code: str = None
     ) -> Dict:
         """
         운세 조회 또는 생성 (메인 로직)
@@ -236,6 +241,7 @@ class FortuneService:
         Args:
             service_code: 서비스 코드
             request_data: 요청 데이터
+            share_code: 미리 생성된 share_code (선택적)
 
         Returns:
             운세 결과 딕셔너리 (사주인 경우 saju_data 포함)
@@ -306,7 +312,7 @@ class FortuneService:
             return result
 
         # 새로 생성
-        new_result, saju_data = self.create_fortune_result(service_code, user_key, request_data)
+        new_result, saju_data = self.create_fortune_result(service_code, user_key, request_data, share_code=share_code)
 
         result = {
             "id": new_result.id,

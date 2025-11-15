@@ -1,0 +1,429 @@
+{% extends "layout/base.html" %}
+
+{% block title %}분석 중... - {{ site_config.site_name if site_config else "명월헌" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #ffffff;
+        min-height: 100vh;
+    }
+
+    /* 푸터를 하단에 고정 */
+    footer {
+        margin-top: auto !important;
+    }
+
+    .loading-container {
+        max-width: 800px;
+        margin: 100px auto 0;
+        padding: 0 20px 4rem;
+        min-height: calc(100vh - 200px);
+    }
+
+    .loading-card {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 50px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    /* 사주 풀이 애니메이션 - 한자 떨어지는 효과 */
+    .fortune-animation {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 40px;
+    }
+
+    .fortune-circle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150px;
+        height: 150px;
+        border: 3px solid #d4af37;
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.8;
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 1;
+        }
+    }
+
+    .fortune-symbols {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+    }
+
+    .fortune-symbol {
+        position: absolute;
+        font-size: 24px;
+        color: #d4af37;
+        font-weight: bold;
+        animation: orbit 8s linear infinite;
+    }
+
+    .fortune-symbol:nth-child(1) {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        animation-delay: 0s;
+    }
+
+    .fortune-symbol:nth-child(2) {
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        animation-delay: -2s;
+    }
+
+    .fortune-symbol:nth-child(3) {
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        animation-delay: -4s;
+    }
+
+    .fortune-symbol:nth-child(4) {
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        animation-delay: -6s;
+    }
+
+    @keyframes orbit {
+        0% {
+            opacity: 0.3;
+        }
+        25% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.3;
+        }
+        75% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0.3;
+        }
+    }
+
+    .fortune-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 40px;
+        color: #d4af37;
+        animation: rotate 4s linear infinite;
+    }
+
+    @keyframes rotate {
+        0% {
+            transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+            transform: translate(-50%, -50%) rotate(360deg);
+        }
+    }
+
+    .loading-title {
+        font-size: 32px;
+        color: #333333;
+        margin-bottom: 15px;
+        font-weight: 800;
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading-subtitle {
+        font-size: 18px;
+        color: #666666;
+        margin-bottom: 30px;
+        font-weight: 600;
+        line-height: 1.6;
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading-detail {
+        font-size: 14px;
+        color: #999999;
+        margin-bottom: 40px;
+        font-style: italic;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 광고 영역 - 콘텐츠처럼 보이도록 */
+    .ad-section {
+        margin: 40px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .ad-label {
+        font-size: 11px;
+        color: #999999;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .ad-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 280px;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f0f0f0;
+        border-top-color: #d4af37;
+        border-right-color: #c4a137;
+        border-radius: 50%;
+        animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        margin-top: 30px;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+        .loading-container {
+            margin: 60px auto 0;
+        }
+
+        .loading-card {
+            padding: 40px 30px;
+            border-radius: 20px;
+        }
+
+        .fortune-animation {
+            width: 150px;
+            height: 150px;
+        }
+
+        .fortune-circle {
+            width: 120px;
+            height: 120px;
+        }
+
+        .fortune-symbol {
+            font-size: 20px;
+        }
+
+        .fortune-center {
+            font-size: 32px;
+        }
+
+        .loading-title {
+            font-size: 26px;
+        }
+
+        .loading-subtitle {
+            font-size: 16px;
+        }
+
+        .loading-detail {
+            font-size: 13px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border-width: 4px;
+        }
+
+        .ad-container {
+            min-height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="loading-container">
+    <div class="loading-card">
+        <!-- 사주 풀이 애니메이션 -->
+        <div class="fortune-animation">
+            <div class="fortune-circle"></div>
+            <div class="fortune-symbols">
+                <div class="fortune-symbol">甲</div>
+                <div class="fortune-symbol">乙</div>
+                <div class="fortune-symbol">丙</div>
+                <div class="fortune-symbol">丁</div>
+            </div>
+            <div class="fortune-center">☯</div>
+        </div>
+
+        <h1 class="loading-title" id="loadingTitle">사주를 분석하고 있습니다</h1>
+        <p class="loading-subtitle" id="loadingSubtitle">AI가 음양오행의 기운을 살피고 있어요</p>
+        <p class="loading-detail" id="loadingDetail">수천 년 역사의 사주 이론과 AI가 만나는 순간...</p>
+
+        <!-- 애드센스 광고 영역 -->
+        {% if site_config and site_config.adsense_client_id %}
+        <div class="ad-section">
+            <div class="ad-label">Advertisement</div>
+            <div class="ad-container">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="{{ site_config.adsense_client_id }}"
+                     data-ad-slot="{{ site_config.adsense_slot_main if site_config.adsense_slot_main else '' }}"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="loading-spinner"></div>
+    </div>
+</div>
+
+<script>
+    // 서비스별 로딩 메시지
+    const loadingMessages = {
+        'today': {
+            title: '오늘의 운세를 분석하고 있습니다',
+            subtitle: 'AI가 당신의 사주를 깊이 살펴보고 있어요',
+            detail: '음양오행의 기운을 정밀하게 계산 중...'
+        },
+        'saju': {
+            title: '정통 사주팔자를 풀이하고 있습니다',
+            subtitle: 'AI가 천간·지지와 음양오행을 분석하고 있어요',
+            detail: '수천 년 역사의 사주 이론과 AI가 만나는 순간...'
+        },
+        'newyear2026': {
+            title: '2026년 신년운세를 점성하고 있습니다',
+            subtitle: 'AI가 병오년의 기운과 당신의 사주를 분석 중이에요',
+            detail: '새해의 운명을 음양오행으로 풀어내는 중...'
+        },
+        'match': {
+            title: '두 분의 궁합을 분석하고 있습니다',
+            subtitle: 'AI가 사주의 상생상극 관계를 살펴보고 있어요',
+            detail: '천생연분인지 음양오행이 말해줄 거예요...'
+        },
+        'dream': {
+            title: '백운선생께서 꿈을 풀이하고 계십니다',
+            subtitle: '꿈 속 상징과 의미를 해석하고 있어요',
+            detail: '오랜 경험으로 꿈의 길흉화복을 살피는 중...'
+        }
+    };
+
+    const serviceCode = '{{ service.code }}';
+    const resultUrl = '{{ result_url }}';
+
+    // 서비스별 메시지 설정
+    if (loadingMessages[serviceCode]) {
+        document.getElementById('loadingTitle').textContent = loadingMessages[serviceCode].title;
+        document.getElementById('loadingSubtitle').textContent = loadingMessages[serviceCode].subtitle;
+        document.getElementById('loadingDetail').textContent = loadingMessages[serviceCode].detail;
+    }
+
+    // 애드센스 광고 로드 (설정된 경우에만)
+    {% if site_config and site_config.adsense_client_id %}
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    {% endif %}
+
+    // 비동기 운세 처리 로직
+    const shareCode = '{{ share_code }}';
+    const minWaitTime = 5000; // 최소 5초 대기 (광고 vCPM 보장)
+    const startTime = Date.now();
+    let isCompleted = false;
+    let pollCount = 0;
+
+    // 상태 체크 함수
+    async function checkStatus() {
+        try {
+            const response = await fetch(`/api/fortune/status/${shareCode}`);
+
+            // HTTP 에러 체크
+            if (!response.ok) {
+                console.warn(`Status check failed: ${response.status}`);
+                // 404나 다른 에러도 재시도
+                setTimeout(checkStatus, 1000);
+                return;
+            }
+
+            const data = await response.json();
+            pollCount++;
+
+            if (data.status === 'completed') {
+                isCompleted = true;
+                const elapsed = Date.now() - startTime;
+
+                // 최소 5초를 보장
+                if (elapsed < minWaitTime) {
+                    const remainingTime = minWaitTime - elapsed;
+                    setTimeout(() => {
+                        window.location.href = resultUrl;
+                    }, remainingTime);
+                } else {
+                    window.location.href = resultUrl;
+                }
+            } else if (data.status === 'processing' || data.status === 'not_found') {
+                const elapsed = Date.now() - startTime;
+
+                // 10초 이상 경과 시 메시지 변경
+                if (elapsed > 10000) {
+                    document.getElementById('loadingDetail').textContent =
+                        '사주가 복잡하여 정확한 분석을 위해 조금 더 시간이 걸립니다...';
+                }
+
+                // 20초 이상 경과 시 추가 메시지
+                if (elapsed > 20000) {
+                    document.getElementById('loadingDetail').textContent =
+                        '깊이 있는 분석을 진행하고 있습니다. 잠시만 더 기다려주세요...';
+                }
+
+                // 1초 후 다시 체크
+                setTimeout(checkStatus, 1000);
+            } else {
+                // 알 수 없는 상태
+                console.warn('Unknown status:', data.status);
+                setTimeout(checkStatus, 1000);
+            }
+        } catch (error) {
+            console.error('Status check error:', error);
+            // 에러 시에도 재시도
+            setTimeout(checkStatus, 1000);
+        }
+    }
+
+    // 즉시 상태 체크 시작
+    checkStatus();
+</script>
+
+<!-- AdSense 스크립트 (로딩 페이지 전용) -->
+{% if site_config and site_config.adsense_client_id %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site_config.adsense_client_id }}"
+        crossorigin="anonymous"></script>
+{% endif %}
+{% endblock %}
