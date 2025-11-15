@@ -40,6 +40,14 @@
                 "달빛이 닿는 곳엔 반드시 이유가 있다."
             </blockquote>
 
+            <!-- [영상] 달빛 장면 (9:16 세로 영상) -->
+            <div class="section-video">
+                <video autoplay muted loop playsinline preload="metadata" style="width: 100%; max-width: 500px; border-radius: 15px; margin: 0 auto; display: block;">
+                    <source src="{{ url_for('static', path='/images/about/moonlight.mp4') }}" type="video/mp4">
+                    영상을 재생할 수 없습니다.
+                </video>
+            </div>
+
             <p class="story-text">
                 명월헌은 단순한 건물이 아니다.<br>
                 과거와 미래가 교차하고, 보이지 않는 인연의 실이 엮이며,<br>
@@ -49,11 +57,6 @@
             <p class="story-text">
                 그리고 이곳엔, 각기 다른 달빛을 받고 태어난 다섯 존재가 깃들어 있다.
             </p>
-        </div>
-
-        <!-- [이미지] 달빛 장면 -->
-        <div class="section-image">
-            <img src="{{ url_for('static', path='/images/about/moonlight.png') }}" alt="달빛" style="width: 100%; border-radius: 15px;">
         </div>
     </div>
 </section>
@@ -214,11 +217,19 @@
     <div class="container">
         <h2 class="section-title">🌑 아직 열리지 않은 방들</h2>
 
-        <div class="content-box">
-            <p class="story-text center">
-                명월헌의 복도 끝엔, 아직 문이 닫힌 방들이 있다.
-            </p>
+        <p class="story-text center" style="max-width: 800px; margin: 0 auto 2rem;">
+            명월헌의 복도 끝엔, 아직 문이 닫힌 방들이 있다.
+        </p>
 
+        <!-- [영상] 미래의 방 영상 (9:16 세로 영상) -->
+        <div class="section-video">
+            <video autoplay muted loop playsinline preload="metadata" style="width: 100%; max-width: 500px; border-radius: 15px; margin: 0 auto; display: block;">
+                <source src="{{ url_for('static', path='/images/about/future_rooms.mp4') }}" type="video/mp4">
+                영상을 재생할 수 없습니다.
+            </video>
+        </div>
+
+        <div class="content-box">
             <p class="story-text">
                 촛불도 닿지 않는 어두운 문틈 사이로<br>
                 누군가의 발소리가 가끔 들려오지만,<br>
@@ -275,6 +286,14 @@
 <section class="conclusion-section section">
     <div class="container">
         <h2 class="section-title">🌕 모든 길은 명월헌으로 통한다</h2>
+
+        <!-- [영상] 결론 영상 (9:16 세로 영상) -->
+        <div class="section-video">
+            <video autoplay muted loop playsinline preload="metadata" style="width: 100%; max-width: 500px; border-radius: 15px; margin: 0 auto; display: block;">
+                <source src="{{ url_for('static', path='/images/about/conclusion.mp4') }}" type="video/mp4">
+                영상을 재생할 수 없습니다.
+            </video>
+        </div>
 
         <div class="content-box">
             <div class="paths-grid">
