@@ -2,11 +2,13 @@
 
 [의뢰인 정보]
 - 이름: {name}
-- 생년월일: {birthdate}
+- 생년월일: {birthdate} ({calendar})
 - 성별: {gender}
 - 태어난 시간: {birth_time}
 - 띠: {zodiac}
 - 오늘 날짜: {today}
+
+{saju_info}
 
 [오늘의 천간지지 정보] - 자동 계산됨
 - 오늘의 간지: {today_ganzhi} ({today_ganzhi_hanja})
@@ -16,7 +18,7 @@
 - 오늘 좋은 일: {good_activities}
 - 오늘 나쁜 일: {bad_activities}
 
-위 천간지지 정보는 이미 계산되어 있으므로, 당신은 아래 항목만 작성하세요.
+위 정보는 모두 계산되어 있습니다. **본인의 일간(日干)과 오늘의 일간 관계**를 중심으로 분석하세요.
 총 글자수 제한: 800-1000자 이내 (간결하게 작성)
 
 다음 형식으로 작성해주세요:

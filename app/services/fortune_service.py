@@ -354,9 +354,12 @@ class FortuneService:
         if saju_data:
             result["saju_data"] = saju_data
 
-        # 오늘의 운세인 경우 daily_fortune_info 추가
-        if service_code == "today" and "daily_fortune_info" in request_data:
-            result["daily_fortune_info"] = request_data["daily_fortune_info"]
+        # 오늘의 운세인 경우 daily_fortune_info와 saju_data 추가
+        if service_code == "today":
+            if "daily_fortune_info" in request_data:
+                result["daily_fortune_info"] = request_data["daily_fortune_info"]
+            if "saju_data" in request_data:
+                result["saju_data"] = request_data["saju_data"]
 
         # 궁합인 경우 compatibility_info 추가
         if service_code == "match" and "compatibility_info" in request_data:
@@ -439,16 +442,36 @@ class FortuneService:
         birthdate = data["birthdate"]
         gender = "남성" if data["gender"] == "male" else "여성"
         birth_time = data.get("birth_time", "모름")
+        calendar = data.get("calendar", "solar")
+        calendar_text = "양력" if calendar == "solar" else "음력"
         year = int(str(birthdate)[:4])
         zodiac = get_zodiac(year)
         today_str = date.today().strftime("%Y년 %m월 %d일")
 
-        # 오늘의 길흉일 정보 계산
         calculator = SajuCalculator()
+
+        # 본인 사주팔자 계산
+        birthdate_obj = datetime.fromisoformat(str(birthdate)).date()
+        saju_data = calculator.calculate_saju(birthdate_obj, birth_time, calendar, data["gender"])
+
+        # 오늘의 길흉일 정보 계산
         daily_info = calculator.get_daily_fortune_info(date.today())
 
         # 계산된 데이터를 data에 추가 (결과 화면에서 사용)
         data['daily_fortune_info'] = daily_info
+        data['saju_data'] = saju_data
+
+        # 사주 정보 텍스트 구성
+        pillars = saju_data['pillars']
+        saju_info = f"""
+[본인의 사주팔자]
+- 년주(年柱): {pillars['cheongan'][3]}{pillars['jiji'][3]}
+- 월주(月柱): {pillars['cheongan'][2]}{pillars['jiji'][2]}
+- 일주(日柱): {pillars['cheongan'][1]}{pillars['jiji'][1]} ← 일간(日干): {pillars['cheongan'][1]} (본인의 핵심)
+- 시주(時柱): {pillars['cheongan'][0]}{pillars['jiji'][0]}
+- 오행 분포: {saju_data['ohang']}
+- 신강신약: {saju_data['strength']}
+"""
 
         return template.format(
             character_name=config.character_name,
@@ -457,8 +480,10 @@ class FortuneService:
             birthdate=birthdate,
             gender=gender,
             birth_time=birth_time,
+            calendar=calendar_text,
             zodiac=zodiac,
             today=today_str,
+            saju_info=saju_info,
             today_ganzhi=daily_info['ganzhi_kr'],
             today_ganzhi_hanja=daily_info['ganzhi_full'],
             today_ohang=daily_info['ohang'],
@@ -513,6 +538,71 @@ class FortuneService:
             saju_info += f"- 희신: {yongsin.get('heesin')}\n"
             saju_info += f"- 기신: {yongsin.get('gisin')}\n"
 
+            # 합충형파해 분석 추가
+            hap_chung = sd.get("hap_chung_hyeong_pa_hae", {})
+            if hap_chung:
+                saju_info += f"\n[합충형파해]\n"
+                saju_info += f"- 요약: {hap_chung.get('summary', '없음')}\n"
+
+                if hap_chung.get('cheongan_hap'):
+                    saju_info += "- 천간합: "
+                    for item in hap_chung['cheongan_hap']:
+                        saju_info += f"{item['description']} "
+                    saju_info += "\n"
+
+                if hap_chung.get('jiji_yukhap'):
+                    saju_info += "- 지지육합: "
+                    for item in hap_chung['jiji_yukhap']:
+                        saju_info += f"{item['description']} "
+                    saju_info += "\n"
+
+                if hap_chung.get('jiji_samhap'):
+                    saju_info += "- 지지삼합: "
+                    for item in hap_chung['jiji_samhap']:
+                        saju_info += f"{item['description']} "
+                    saju_info += "\n"
+
+                if hap_chung.get('jiji_chung'):
+                    saju_info += "- 지지충: "
+                    for item in hap_chung['jiji_chung']:
+                        saju_info += f"{item['description']} "
+                    saju_info += "\n"
+
+                if hap_chung.get('jiji_hyeong'):
+                    saju_info += "- 지지형: "
+                    for item in hap_chung['jiji_hyeong']:
+                        saju_info += f"{item['description']} "
+                    saju_info += "\n"
+
+                if hap_chung.get('jiji_hae'):
+                    saju_info += "- 지지해: "
+                    for item in hap_chung['jiji_hae']:
+                        saju_info += f"{item['description']} "
+                    saju_info += "\n"
+
+            # 신살 분석 추가
+            sinsals = sd.get("sinsals", {})
+            if sinsals:
+                saju_info += f"\n[신살]\n"
+
+                if sinsals.get('beneficial'):
+                    saju_info += "- 길신: "
+                    for item in sinsals['beneficial']:
+                        saju_info += f"{item['name']}({item['description']}) "
+                    saju_info += "\n"
+
+                if sinsals.get('neutral'):
+                    saju_info += "- 중립신살: "
+                    for item in sinsals['neutral']:
+                        saju_info += f"{item['name']}({item['description']}) "
+                    saju_info += "\n"
+
+                if sinsals.get('harmful'):
+                    saju_info += "- 흉신: "
+                    for item in sinsals['harmful']:
+                        saju_info += f"{item['name']}({item['description']}) "
+                    saju_info += "\n"
+
         return template.format(
             character_name=config.character_name,
             name=name,
@@ -529,22 +619,28 @@ class FortuneService:
         name = data.get("name", "고객")
         birthdate = data["birthdate"]
         gender = "남성" if data["gender"] == "male" else "여성"
-        birth_time = data.get("birth_time")
+        birth_time = data.get("birth_time", "모름")
         calendar = data.get("calendar", "solar")
         calendar_text = "양력" if calendar == "solar" else "음력"
 
         partner_name = data.get("partner_name", "상대방")
         partner_birthdate = data["partner_birthdate"]
         partner_gender = "남성" if data["partner_gender"] == "male" else "여성"
-        partner_birth_time = data.get("partner_birth_time")
+        partner_birth_time = data.get("partner_birth_time", "모름")
         partner_calendar = data.get("partner_calendar", "solar")
         partner_calendar_text = "양력" if partner_calendar == "solar" else "음력"
 
-        # 궁합 분석 계산
         calculator = SajuCalculator()
         birthdate_obj = datetime.fromisoformat(str(birthdate)).date()
         partner_birthdate_obj = datetime.fromisoformat(str(partner_birthdate)).date()
 
+        # 본인 사주 계산
+        person1_saju = calculator.calculate_saju(birthdate_obj, birth_time, calendar, data["gender"])
+
+        # 상대방 사주 계산
+        person2_saju = calculator.calculate_saju(partner_birthdate_obj, partner_birth_time, partner_calendar, data["partner_gender"])
+
+        # 궁합 분석 계산
         compatibility = calculator.calculate_compatibility(
             birthdate_obj, data["gender"],
             partner_birthdate_obj, data["partner_gender"]
@@ -552,15 +648,84 @@ class FortuneService:
 
         # 계산된 데이터를 data에 추가 (결과 화면에서 사용)
         data['compatibility_info'] = compatibility
+        data['person1_saju'] = person1_saju
+        data['person2_saju'] = person2_saju
+
+        # 본인 사주 정보 텍스트 구성
+        p1_pillars = person1_saju['pillars']
+        person1_info = f"""
+[{name}님의 사주팔자]
+- 년주: {p1_pillars['cheongan'][3]}{p1_pillars['jiji'][3]}
+- 월주: {p1_pillars['cheongan'][2]}{p1_pillars['jiji'][2]}
+- 일주: {p1_pillars['cheongan'][1]}{p1_pillars['jiji'][1]} ← 일간: {p1_pillars['cheongan'][1]}
+- 시주: {p1_pillars['cheongan'][0]}{p1_pillars['jiji'][0]}
+- 오행: {person1_saju['ohang']}
+- 신강신약: {person1_saju['strength']}
+"""
+
+        # 상대방 사주 정보 텍스트 구성
+        p2_pillars = person2_saju['pillars']
+        person2_info = f"""
+[{partner_name}님의 사주팔자]
+- 년주: {p2_pillars['cheongan'][3]}{p2_pillars['jiji'][3]}
+- 월주: {p2_pillars['cheongan'][2]}{p2_pillars['jiji'][2]}
+- 일주: {p2_pillars['cheongan'][1]}{p2_pillars['jiji'][1]} ← 일간: {p2_pillars['cheongan'][1]}
+- 시주: {p2_pillars['cheongan'][0]}{p2_pillars['jiji'][0]}
+- 오행: {person2_saju['ohang']}
+- 신강신약: {person2_saju['strength']}
+"""
+
+        # 두 사람의 합충형파해 분석
+        hap_chung_analysis = ""
+
+        # 본인 합충형파해
+        p1_hap = person1_saju.get("hap_chung_hyeong_pa_hae", {})
+        if p1_hap.get('summary'):
+            hap_chung_analysis += f"\n[{name}님 사주 내부 관계]\n"
+            hap_chung_analysis += f"- {p1_hap.get('summary')}\n"
+
+        # 상대방 합충형파해
+        p2_hap = person2_saju.get("hap_chung_hyeong_pa_hae", {})
+        if p2_hap.get('summary'):
+            hap_chung_analysis += f"\n[{partner_name}님 사주 내부 관계]\n"
+            hap_chung_analysis += f"- {p2_hap.get('summary')}\n"
+
+        # 두 사람의 신살
+        sinsal_analysis = ""
+
+        # 본인 신살
+        p1_sinsals = person1_saju.get("sinsals", {})
+        if p1_sinsals.get('beneficial') or p1_sinsals.get('harmful'):
+            sinsal_analysis += f"\n[{name}님의 신살]\n"
+            if p1_sinsals.get('beneficial'):
+                sinsal_analysis += "- 길신: "
+                for item in p1_sinsals['beneficial']:
+                    sinsal_analysis += f"{item['name']} "
+                sinsal_analysis += "\n"
+            if p1_sinsals.get('harmful'):
+                sinsal_analysis += "- 흉신: "
+                for item in p1_sinsals['harmful']:
+                    sinsal_analysis += f"{item['name']} "
+                sinsal_analysis += "\n"
+
+        # 상대방 신살
+        p2_sinsals = person2_saju.get("sinsals", {})
+        if p2_sinsals.get('beneficial') or p2_sinsals.get('harmful'):
+            sinsal_analysis += f"\n[{partner_name}님의 신살]\n"
+            if p2_sinsals.get('beneficial'):
+                sinsal_analysis += "- 길신: "
+                for item in p2_sinsals['beneficial']:
+                    sinsal_analysis += f"{item['name']} "
+                sinsal_analysis += "\n"
+            if p2_sinsals.get('harmful'):
+                sinsal_analysis += "- 흉신: "
+                for item in p2_sinsals['harmful']:
+                    sinsal_analysis += f"{item['name']} "
+                sinsal_analysis += "\n"
 
         # 시간 정보 텍스트 생성
-        birth_time_text = ""
-        if birth_time:
-            birth_time_text = f"\n  - 태어난 시간: {birth_time}시"
-
-        partner_birth_time_text = ""
-        if partner_birth_time:
-            partner_birth_time_text = f"\n  - 태어난 시간: {partner_birth_time}시"
+        birth_time_text = f"- 태어난 시간: {birth_time}"
+        partner_birth_time_text = f"- 태어난 시간: {partner_birth_time}"
 
         return template.format(
             character_name=config.character_name,
@@ -574,12 +739,12 @@ class FortuneService:
             partner_gender=partner_gender,
             partner_calendar=partner_calendar_text,
             partner_birth_time=partner_birth_time_text,
+            person1_info=person1_info,
+            person2_info=person2_info,
+            hap_chung_analysis=hap_chung_analysis,
+            sinsal_analysis=sinsal_analysis,
             compatibility_score=compatibility['score'],
             compatibility_level=compatibility['level'],
-            person1_ilju=compatibility['person1']['day_pillar'],
-            person1_ohang=compatibility['person1']['ohang'],
-            person2_ilju=compatibility['person2']['day_pillar'],
-            person2_ohang=compatibility['person2']['ohang'],
             ohang_relation_type=compatibility['ohang_relation']['type'],
             ohang_relation_desc=compatibility['ohang_relation']['description'],
             ilju_relation=compatibility['ilju_compatibility']['gan_relation'],

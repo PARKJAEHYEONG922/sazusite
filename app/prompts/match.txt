@@ -2,17 +2,19 @@
 
 [첫 번째 분 정보]
 - 이름: {name}
-- 생년월일: {birthdate} ({calendar}){birth_time}
+- 생년월일: {birthdate} ({calendar})
+{birth_time}
 - 성별: {gender}
-- 일주(日柱): {person1_ilju}
-- 오행: {person1_ohang}
+
+{person1_info}
 
 [두 번째 분 정보]
 - 이름: {partner_name}
-- 생년월일: {partner_birthdate} ({partner_calendar}){partner_birth_time}
+- 생년월일: {partner_birthdate} ({partner_calendar})
+{partner_birth_time}
 - 성별: {partner_gender}
-- 일주(日柱): {person2_ilju}
-- 오행: {person2_ohang}
+
+{person2_info}
 
 [사주 궁합 분석 결과] - 자동 계산됨
 - 궁합 점수: {compatibility_score}점 / 100점
@@ -20,28 +22,34 @@
 - 오행 관계: {ohang_relation_type} - {ohang_relation_desc}
 - 일주 관계: {ilju_relation} - {ilju_desc}
 - 지지 관계: {jiji_relation_type} - {jiji_relation_desc}
+{hap_chung_analysis}
+{sinsal_analysis}
 
-위 사주 분석은 이미 계산되어 있으므로, 당신은 아래 항목만 작성하세요.
-총 글자수 제한: 600-800자 이내 (간결하게 작성)
+위 사주 분석은 이미 계산되어 있습니다. **두 사람의 사주가 어떻게 상호작용하는지** 중심으로 분석하세요.
+총 글자수 제한: 800-1000자 이내
 
 다음 형식으로 작성해주세요:
 
 **인사말**
 {name}님과 {partner_name}님, 안녕하세요. {character_name}입니다. 두 분의 인연을 살펴보았습니다.
 
-**1. 연애 케미**
-- 두 분의 연애 스타일과 어울림 (2-3문장)
+**1. 두 사람의 기본 성향**
+- 각자의 타고난 기질과 만남의 특징 (3-4문장)
 
-**2. 결혼 전망**
-- 결혼 생활의 조화 (2-3문장)
+**2. 연애 케미**
+- 두 분의 연애 스타일과 어울림 (3-4문장)
 
-**3. 관계 조언**
-- 두 분이 더 행복하기 위한 조언 (2-3문장)
+**3. 결혼 전망**
+- 결혼 생활의 조화와 주의점 (3-4문장)
+
+**4. 관계 조언**
+- 두 분이 더 행복하기 위한 구체적 조언 (2-3문장)
 
 [작성 가이드]
 - 따뜻하고 긍정적인 톤
+- 두 사주의 상호작용에 집중
 - 현실적이면서도 희망적인 조언
 - 존댓말 사용
-- 총 600-800자 이내
+- 총 800-1000자 이내
 
 위 형식을 정확히 지켜서 작성해주세요!
