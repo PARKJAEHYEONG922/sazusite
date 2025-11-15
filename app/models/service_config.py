@@ -26,6 +26,12 @@ class FortuneServiceConfig(Base):
     character_image = Column(String(200), nullable=True)  # "/static/uploads/character_saju.png" (결과 페이지용)
     character_form_image = Column(String(200), nullable=True)  # "/static/uploads/character_form_saju.png" (시작 페이지용)
 
+    # 로딩 페이지 설정
+    loading_media = Column(String(200), nullable=True)  # 로딩 페이지 동영상/이미지 (4:3 비율)
+    loading_title = Column(String(100), nullable=True)  # 로딩 페이지 타이틀
+    loading_subtitle = Column(String(200), nullable=True)  # 로딩 페이지 서브타이틀
+    loading_detail = Column(String(200), nullable=True)  # 로딩 페이지 상세 설명
+
     # 활성화
     is_active = Column(Boolean, default=True)
 

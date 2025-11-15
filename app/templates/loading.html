@@ -34,16 +34,35 @@
     /* 사주 풀이 애니메이션 - 한자 떨어지는 효과 */
     .fortune-animation {
         position: relative;
-        width: 200px;
-        height: 200px;
+        width: 100%;
+        max-width: 400px;
+        aspect-ratio: 4 / 3;
         margin: 0 auto 40px;
+    }
+
+    /* 배경 미디어 (4:3 비율) */
+    .loading-background-media {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .loading-background-media img,
+    .loading-background-media video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .fortune-circle {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        top: 20px;
+        left: 20px;
         width: 150px;
         height: 150px;
         border: 3px solid #d4af37;
@@ -53,22 +72,21 @@
 
     @keyframes pulse {
         0%, 100% {
-            transform: translate(-50%, -50%) scale(1);
+            transform: scale(1);
             opacity: 0.8;
         }
         50% {
-            transform: translate(-50%, -50%) scale(1.1);
+            transform: scale(1.1);
             opacity: 1;
         }
     }
 
     .fortune-symbols {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
+        top: 5px;
+        left: 5px;
+        width: 180px;
+        height: 180px;
     }
 
     .fortune-symbol {
@@ -127,8 +145,8 @@
 
     .fortune-center {
         position: absolute;
-        top: 50%;
-        left: 50%;
+        top: 95px;
+        left: 95px;
         transform: translate(-50%, -50%);
         font-size: 40px;
         color: #d4af37;
@@ -219,29 +237,31 @@
     @media (max-width: 768px) {
         .loading-container {
             margin: 60px auto 0;
+            padding: 0 10px 4rem;
         }
 
         .loading-card {
-            padding: 40px 30px;
+            padding: 40px 20px;
             border-radius: 20px;
         }
 
         .fortune-animation {
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 4 / 3;
+        }
+
+        .fortune-circle {
             width: 150px;
             height: 150px;
         }
 
-        .fortune-circle {
-            width: 120px;
-            height: 120px;
-        }
-
         .fortune-symbol {
-            font-size: 20px;
+            font-size: 24px;
         }
 
         .fortune-center {
-            font-size: 32px;
+            font-size: 40px;
         }
 
         .loading-title {
@@ -274,6 +294,19 @@
     <div class="loading-card">
         <!-- 사주 풀이 애니메이션 -->
         <div class="fortune-animation">
+            <!-- 배경 미디어 (있으면 표시) -->
+            {% if service.loading_media %}
+            <div class="loading-background-media">
+                {% if service.loading_media.endswith(('.mp4', '.webm')) or '.mp4?' in service.loading_media or '.webm?' in service.loading_media %}
+                    <video autoplay loop muted playsinline>
+                        <source src="{{ service.loading_media }}" type="video/{{ 'mp4' if '.mp4' in service.loading_media else 'webm' }}">
+                    </video>
+                {% else %}
+                    <img src="{{ service.loading_media }}" alt="Loading background">
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="fortune-circle"></div>
             <div class="fortune-symbols">
                 <div class="fortune-symbol">甲</div>
@@ -284,9 +317,9 @@
             <div class="fortune-center">☯</div>
         </div>
 
-        <h1 class="loading-title" id="loadingTitle">사주를 분석하고 있습니다</h1>
-        <p class="loading-subtitle" id="loadingSubtitle">AI가 음양오행의 기운을 살피고 있어요</p>
-        <p class="loading-detail" id="loadingDetail">수천 년 역사의 사주 이론과 AI가 만나는 순간...</p>
+        <h1 class="loading-title" id="loadingTitle">{{ service.loading_title or "사주를 분석하고 있습니다" }}</h1>
+        <p class="loading-subtitle" id="loadingSubtitle">{{ service.loading_subtitle or "AI가 음양오행의 기운을 살피고 있어요" }}</p>
+        <p class="loading-detail" id="loadingDetail">{{ service.loading_detail or "수천 년 역사의 사주 이론과 AI가 만나는 순간..." }}</p>
 
         <!-- 애드센스 광고 영역 -->
         {% if site_config and site_config.adsense_client_id %}

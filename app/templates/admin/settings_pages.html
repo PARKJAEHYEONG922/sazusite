@@ -90,6 +90,9 @@
                 <button type="button" class="tab-button active" onclick="switchServiceTab(event, '{{ service.code }}', 'start')">
                     시작 페이지
                 </button>
+                <button type="button" class="tab-button" onclick="switchServiceTab(event, '{{ service.code }}', 'loading')">
+                    로딩 페이지
+                </button>
                 <button type="button" class="tab-button" onclick="switchServiceTab(event, '{{ service.code }}', 'result')">
                     결과 페이지
                 </button>
@@ -139,6 +142,57 @@
                         </div>
                         {% endif %}
                         <div id="character_form_preview_{{ service.code }}" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 로딩 페이지 탭 -->
+            <div id="tab-loading-{{ service.code }}" class="tab-content">
+                <div class="form-grid form-grid-2">
+                    <div class="form-group full-width">
+                        <label class="form-label">로딩 페이지 배경 미디어 (4:3 비율)</label>
+                        <input type="file" id="loading_media_{{ service.code }}" name="loading_media_file"
+                               class="form-file-input" accept="image/*,video/mp4,video/webm"
+                               onchange="previewImage(this, 'loading_media_preview_{{ service.code }}')">
+                        <label for="loading_media_{{ service.code }}" class="form-file-label">📁 파일 선택</label>
+                        <span class="form-hint">4:3 비율 권장 (예: 400x300px). 로딩 애니메이션(甲乙丙丁☯) 뒤에 배경으로 표시됩니다.</span>
+
+                        {% if service.loading_media %}
+                        <div class="image-preview-wrapper mt-2">
+                            <div class="image-preview-item sub-banner">
+                                {% if service.loading_media.endswith(('.mp4', '.webm')) or '.mp4?' in service.loading_media or '.webm?' in service.loading_media %}
+                                    <video src="{{ service.loading_media }}" controls></video>
+                                {% else %}
+                                    <img src="{{ service.loading_media }}" alt="로딩 페이지 미디어">
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div id="loading_media_preview_{{ service.code }}" class="mt-2"></div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label">로딩 페이지 타이틀</label>
+                        <input type="text" name="loading_title" class="form-input"
+                               value="{{ service.loading_title or '' }}"
+                               placeholder="예: 사주를 분석하고 있습니다">
+                        <span class="form-hint">비워두면 기본값 사용: "사주를 분석하고 있습니다"</span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label">로딩 페이지 서브타이틀</label>
+                        <input type="text" name="loading_subtitle" class="form-input"
+                               value="{{ service.loading_subtitle or '' }}"
+                               placeholder="예: AI가 음양오행의 기운을 살피고 있어요">
+                        <span class="form-hint">비워두면 기본값 사용</span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label">로딩 페이지 상세 설명</label>
+                        <input type="text" name="loading_detail" class="form-input"
+                               value="{{ service.loading_detail or '' }}"
+                               placeholder="예: 수천 년 역사의 사주 이론과 AI가 만나는 순간...">
+                        <span class="form-hint">비워두면 기본값 사용</span>
                     </div>
                 </div>
             </div>

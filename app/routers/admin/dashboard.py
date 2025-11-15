@@ -903,6 +903,10 @@ async def update_service_settings(
     character_emoji: str = Form(...),
     character_image_file: Optional[UploadFile] = File(None),
     character_form_image_file: Optional[UploadFile] = File(None),
+    loading_media_file: Optional[UploadFile] = File(None),
+    loading_title: Optional[str] = Form(None),
+    loading_subtitle: Optional[str] = Form(None),
+    loading_detail: Optional[str] = Form(None),
     is_active: Optional[str] = Form(None)
 ):
     """서비스 설정 업데이트"""
@@ -1029,6 +1033,55 @@ async def update_service_settings(
             if current_service and current_service.character_form_image:
                 character_form_image_url = current_service.character_form_image
 
+        # 로딩 페이지 미디어 업로드 처리 (4:3 비율)
+        loading_media_url = None
+        if loading_media_file and loading_media_file.filename:
+            upload_dir = Path("app/static/uploads")
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            file_ext = os.path.splitext(loading_media_file.filename)[1].lower()
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm']:
+                raise ValueError("지원하지 않는 파일 형식입니다. (이미지: jpg, png, gif, webp / 동영상: mp4, webm)")
+
+            image_data = await loading_media_file.read()
+
+            if file_ext in ['.mp4', '.webm']:
+                # 동영상 파일 저장
+                temp_filename = f"temp_loading_{service_code}{file_ext}"
+                temp_path = upload_dir / temp_filename
+                with temp_path.open("wb") as buffer:
+                    buffer.write(image_data)
+
+                # 기존 파일 삭제
+                for old_ext in ['.mp4', '.webm', '.webp']:
+                    old_file = upload_dir / f"loading_{service_code}{old_ext}"
+                    if old_file.exists():
+                        old_file.unlink()
+
+                # 최종 파일로 이름 변경
+                final_path = upload_dir / f"loading_{service_code}{file_ext}"
+                temp_path.rename(final_path)
+                final_filename = f"loading_{service_code}{file_ext}"
+            else:
+                # 이미지 파일 - WebP로 변환
+                for old_ext in ['.mp4', '.webm', '.webp']:
+                    old_file = upload_dir / f"loading_{service_code}{old_ext}"
+                    if old_file.exists():
+                        old_file.unlink()
+
+                # WebP로 변환 및 저장 (4:3 비율)
+                output_path = upload_dir / f"loading_{service_code}"
+                convert_to_webp(image_data, output_path, quality=85, max_width=400)
+                final_filename = f"loading_{service_code}.webp"
+
+            timestamp = int(datetime.now().timestamp())
+            loading_media_url = f"/static/uploads/{final_filename}?v={timestamp}"
+        else:
+            # 파일 업로드가 없으면 기존 값 유지
+            current_service = site_service.get_service_by_code(service_code)
+            if current_service and current_service.loading_media:
+                loading_media_url = current_service.loading_media
+
         # URL 경로 검증
         if url_path:
             url_path = url_path.strip()
@@ -1044,6 +1097,10 @@ async def update_service_settings(
             "character_emoji": character_emoji,
             "character_image": character_image_url,
             "character_form_image": character_form_image_url,
+            "loading_media": loading_media_url,
+            "loading_title": loading_title if loading_title else None,
+            "loading_subtitle": loading_subtitle if loading_subtitle else None,
+            "loading_detail": loading_detail if loading_detail else None,
             "is_active": is_active == "on"
         }
         site_service.update_service_config(service_code, updates)
