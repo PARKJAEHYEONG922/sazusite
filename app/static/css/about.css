@@ -1,0 +1,517 @@
+/* 명월헌 소개 페이지 전용 스타일 */
+
+/* 변수 정의 */
+:root {
+    --moonlight: #e8f4f8;
+    --dark-blue: #2c3e50;
+    --gold: #d4af37;
+    --soft-gray: #f8f9fa;
+}
+
+/* 히어로 섹션 */
+.hero-section {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+
+.hero-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    overflow: hidden;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 8%;
+    align-items: center;
+    color: white;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    letter-spacing: 0.5rem;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* 공통 섹션 스타일 */
+.section {
+    padding: 4rem 0;
+}
+
+.section:nth-child(even) {
+    background-color: var(--soft-gray);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--dark-blue);
+}
+
+.section-description {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 3rem;
+}
+
+/* 스토리 텍스트 */
+.content-box {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.story-text {
+    font-size: 1.2rem;
+    line-height: 2;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.story-text.center {
+    text-align: center;
+}
+
+.story-text.highlight {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--dark-blue);
+    margin: 2rem 0;
+}
+
+.story-text.final {
+    font-size: 1.3rem;
+    margin-top: 2rem;
+}
+
+/* 강조 텍스트 */
+.highlight-text {
+    color: var(--gold);
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* 인용구 박스 */
+.quote-box {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-left: 4px solid var(--gold);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--dark-blue);
+    border-radius: 0 10px 10px 0;
+}
+
+.quote-box.large {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    border-top: 3px solid var(--gold);
+    border-bottom: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+/* 구분선 */
+.divider {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--gold) 20%,
+        var(--gold) 80%,
+        transparent 100%);
+    margin: 4rem 0;
+}
+
+.divider-small {
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        #ddd 50%,
+        transparent 100%);
+    margin: 3rem auto;
+}
+
+/* 의미 박스 */
+.meaning-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    margin: 2rem 0;
+    color: white;
+}
+
+.meaning-item {
+    font-size: 1.2rem;
+    line-height: 2;
+    margin: 0.5rem 0;
+}
+
+.hanja {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-right: 0.5rem;
+}
+
+/* 섹션 이미지 */
+.section-image {
+    margin: 3rem auto;
+    max-width: 600px;
+}
+
+/* 이미지 플레이스홀더 */
+.image-placeholder {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4rem;
+    color: #999;
+    border-radius: 15px;
+    border: 3px dashed #ccc;
+}
+
+/* 캐릭터 카드 */
+.character-card {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 4rem;
+    align-items: center;
+}
+
+.character-card.reverse {
+    flex-direction: row-reverse;
+}
+
+.character-image {
+    flex: 0 0 300px;
+}
+
+.character-image .image-placeholder {
+    aspect-ratio: 1 / 1;
+}
+
+.character-info {
+    flex: 1;
+}
+
+.character-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-blue);
+    margin-bottom: 0.5rem;
+}
+
+.character-role {
+    font-size: 1.2rem;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.character-story p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.character-quote {
+    background: var(--moonlight);
+    padding: 1.5rem;
+    border-left: 4px solid var(--gold);
+    font-style: italic;
+    font-size: 1.1rem;
+    margin: 1.5rem 0;
+    color: var(--dark-blue);
+}
+
+.character-trait {
+    font-size: 1rem;
+    color: #888;
+    font-style: italic;
+}
+
+/* 미래 방들 */
+.future-rooms {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.room-card {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.05) 0%, rgba(52, 73, 94, 0.1) 100%);
+    border-radius: 15px;
+    border: 2px dashed #ccc;
+    transition: all 0.3s ease;
+}
+
+.room-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.room-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.room-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dark-blue);
+    margin-bottom: 0.5rem;
+}
+
+.room-sound {
+    font-size: 0.9rem;
+    color: #888;
+    font-style: italic;
+}
+
+/* 결론 섹션 paths */
+.paths-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.path-item {
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.path-item:hover {
+    transform: translateY(-5px);
+}
+
+.path-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.path-text {
+    font-size: 1.1rem;
+    color: var(--dark-blue);
+    line-height: 1.6;
+}
+
+/* CTA 섹션 */
+.cta-section {
+    background: linear-gradient(135deg, #1e2a38 0%, #2c3e50 100%);
+    padding: 5rem 0;
+    text-align: center;
+    color: white;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.cta-description {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+}
+
+.btn-cta {
+    display: inline-block;
+    padding: 1rem 3rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    background: white;
+    color: #667eea;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 모바일 대응 */
+@media (max-width: 1024px) {
+    .future-rooms {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .paths-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+        letter-spacing: 0.2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-image-container {
+        aspect-ratio: 4 / 3;
+    }
+
+    .section {
+        padding: 3rem 0;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .story-text {
+        font-size: 1.1rem;
+    }
+
+    .story-text.highlight {
+        font-size: 1.3rem;
+    }
+
+    .meaning-item {
+        font-size: 1.1rem;
+    }
+
+    /* 캐릭터 카드 모바일 세로 배치 */
+    .character-card,
+    .character-card.reverse {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .character-image {
+        flex: none;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .character-name {
+        font-size: 1.7rem;
+    }
+
+    .character-role {
+        font-size: 1.1rem;
+    }
+
+    .character-story p {
+        font-size: 1rem;
+    }
+
+    /* 미래 방들 & 결론 모바일 */
+    .future-rooms,
+    .paths-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .room-icon,
+    .path-icon {
+        font-size: 2.5rem;
+    }
+
+    .quote-box {
+        font-size: 1.1rem;
+        padding: 1.2rem 1.5rem;
+    }
+
+    .quote-box.large {
+        font-size: 1.3rem;
+    }
+
+    .cta-title {
+        font-size: 2rem;
+    }
+
+    .cta-description {
+        font-size: 1.1rem;
+    }
+
+    .btn-cta {
+        padding: 0.8rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.7rem;
+    }
+
+    .story-text {
+        font-size: 1rem;
+    }
+
+    .character-name {
+        font-size: 1.5rem;
+    }
+}

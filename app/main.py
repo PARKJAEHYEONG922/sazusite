@@ -54,6 +54,21 @@ async def index(request: Request, db: Session = Depends(get_db)):
     )
 
 
+@app.get("/about", response_class=HTMLResponse)
+async def about(request: Request, db: Session = Depends(get_db)):
+    """명월헌 소개 페이지"""
+    site_service = SiteService(db)
+    site_config = site_service.get_site_config()
+
+    return templates.TemplateResponse(
+        "about.html",
+        {
+            "request": request,
+            "site_config": site_config
+        }
+    )
+
+
 @app.get("/health")
 async def health_check():
     """헬스 체크"""
@@ -130,6 +145,14 @@ async def sitemap_xml(db: Session = Depends(get_db)):
         <lastmod>{today}</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
+    </url>
+
+    <!-- 명월헌 소개 -->
+    <url>
+        <loc>{base_url}/about</loc>
+        <lastmod>{today}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
     </url>
 
     <!-- 오늘의 운세 -->

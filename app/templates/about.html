@@ -1,0 +1,328 @@
+{% extends "layout/base.html" %}
+
+{% block title %}명월헌 소개 - {{ site_config.site_name if site_config else '명월헌' }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/about.css') }}">
+
+<!-- 히어로 섹션 -->
+<section class="hero-section">
+    <div class="hero-image-container">
+        <!-- [이미지] 명월헌 전경 -->
+        <picture>
+            <source media="(min-width: 768px)" srcset="{{ url_for('static', path='/images/about/hero_pc.png') }}">
+            <img src="{{ url_for('static', path='/images/about/hero_mobile.png') }}" alt="명월헌" class="hero-image">
+        </picture>
+        <div class="hero-overlay">
+            <h1 class="hero-title">明月軒</h1>
+            <p class="hero-subtitle">달빛 아래 펼쳐진 운명의 누각</p>
+        </div>
+    </div>
+</section>
+
+<!-- 기원 섹션 -->
+<section class="origin-section section">
+    <div class="container">
+        <h2 class="section-title">기원 — 달이 남긴 첫 번째 비밀</h2>
+
+        <div class="content-box">
+            <p class="story-text">
+                아득한 옛날, 세상이 아직 어둠과 빛을 구분하지 못하던 시절.<br>
+                하늘에서 가장 밝았던 보름달이 한 줄기 은빛 실을 드리웠다.
+            </p>
+
+            <p class="story-text">
+                그 빛은 산 깊은 곳, 안개에 싸인 작은 누각 하나를 비추었고,<br>
+                그날부터 그곳은 <strong class="highlight-text">명월헌(明月軒)</strong>이라 불리게 되었다.
+            </p>
+
+            <blockquote class="quote-box">
+                "달빛이 닿는 곳엔 반드시 이유가 있다."
+            </blockquote>
+
+            <p class="story-text">
+                명월헌은 단순한 건물이 아니다.<br>
+                과거와 미래가 교차하고, 보이지 않는 인연의 실이 엮이며,<br>
+                무수한 운명의 조각들이 모여 하나의 흐름을 이루는 <strong class="highlight-text">신비의 공간</strong>이다.
+            </p>
+
+            <p class="story-text">
+                그리고 이곳엔, 각기 다른 달빛을 받고 태어난 다섯 존재가 깃들어 있다.
+            </p>
+        </div>
+
+        <!-- [이미지] 달빛 장면 -->
+        <div class="section-image">
+            <img src="{{ url_for('static', path='/images/about/moonlight.png') }}" alt="달빛" style="width: 100%; border-radius: 15px;">
+        </div>
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 다섯 존재 섹션 -->
+<section class="characters-section section">
+    <div class="container">
+        <h2 class="section-title">명월헌을 지키는 다섯 존재</h2>
+
+        <!-- 야광묘 -->
+        <div class="character-card">
+            <div class="character-image">
+                <!-- [이미지] 야광묘 (600x600px) -->
+                <img src="{{ url_for('static', path='/images/about/yagwangmyo.png') }}" alt="야광묘" style="width: 100%; border-radius: 15px;">
+            </div>
+            <div class="character-info">
+                <h3 class="character-name">🐾 야광묘(夜光猫)</h3>
+                <p class="character-role">오늘의 기운을 읽는 자</p>
+                <div class="character-story">
+                    <p>달빛을 머금고 태어난 신비한 고양이.<br>
+                    누각의 처마 끝에 앉아 하늘의 기운을 가장 먼저 감지한다.</p>
+
+                    <p>사람들이 아침에 눈을 뜨기 전,<br>
+                    야광묘는 이미 그들의 하루가 어떤 색을 띨지 알고 있다.</p>
+
+                    <p>장난스러운 눈빛 뒤엔 예리한 직관이 숨어 있으며,<br>
+                    그가 내리는 예측은 가볍지만 놀라울 만큼 정확하다.</p>
+
+                    <blockquote class="character-quote">
+                        "오늘? 글쎄... 달이 네게 장난을 칠지도 모르지."
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider-small"></div>
+
+        <!-- 월하낭자 -->
+        <div class="character-card reverse">
+            <div class="character-image">
+                <!-- [이미지] 월하낭자 (600x600px) -->
+                <img src="{{ url_for('static', path='/images/about/wolhanangja.png') }}" alt="월하낭자" style="width: 100%; border-radius: 15px;">
+            </div>
+            <div class="character-info">
+                <h3 class="character-name">🌙 월하낭자(月下娘子)</h3>
+                <p class="character-role">인연을 엮는 자</p>
+                <div class="character-story">
+                    <p>달빛 아래서만 모습을 드러내는 신비로운 여인.<br>
+                    사람의 마음속 가장 깊은 결을 읽어내는 능력을 지녔다.</p>
+
+                    <p>사랑의 시작과 끝, 만남과 이별,<br>
+                    보이지 않는 인연의 실을 꿰뚫어 보는 그녀 앞에선<br>
+                    어떤 거짓된 감정도 숨을 수 없다.</p>
+
+                    <p>말투는 물결처럼 부드럽지만,<br>
+                    그녀의 조언은 단검처럼 정확하게 핵심을 찌른다.</p>
+
+                    <blockquote class="character-quote">
+                        "인연이란 건 찾는 게 아니라... 마주하는 거예요."
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider-small"></div>
+
+        <!-- 백운선생 -->
+        <div class="character-card">
+            <div class="character-image">
+                <!-- [이미지] 백운선생 (600x600px) -->
+                <img src="{{ url_for('static', path='/images/about/baekwoon.png') }}" alt="백운선생" style="width: 100%; border-radius: 15px;">
+            </div>
+            <div class="character-info">
+                <h3 class="character-name">☁️ 백운선생(白雲先生)</h3>
+                <p class="character-role">꿈의 의미를 해석하는 현자</p>
+                <div class="character-story">
+                    <p>흰 구름을 타고 새벽마다 떠도는 도사.<br>
+                    사람들이 잠든 사이 그들의 꿈속을 거닐며, 무의식이 보내는 신호를 읽어낸다.</p>
+
+                    <p>꿈은 단순한 환상이 아니다.<br>
+                    그것은 영혼이 보내는 편지이며, 미래의 징조이자, 내면의 외침이다.</p>
+
+                    <p>백운선생은 그 모든 상징과 암호를 풀어내어,<br>
+                    사람들이 스스로도 몰랐던 진실과 마주하게 만든다.</p>
+
+                    <blockquote class="character-quote">
+                        "꿈은 거짓말을 하지 않지. 다만... 네가 듣고 싶지 않을 뿐이야."
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider-small"></div>
+
+        <!-- 청운아씨 -->
+        <div class="character-card reverse">
+            <div class="character-image">
+                <!-- [이미지] 청운아씨 (600x600px) -->
+                <img src="{{ url_for('static', path='/images/about/chungwoon.png') }}" alt="청운아씨" style="width: 100%; border-radius: 15px;">
+            </div>
+            <div class="character-info">
+                <h3 class="character-name">🕯 청운아씨(靑雲阿氏)</h3>
+                <p class="character-role">정통 사주의 계승자</p>
+                <div class="character-story">
+                    <p>푸른 구름의 기운을 받고 태어난 여인.<br>
+                    어린 시절부터 음양오행과 천간지지를 통달했으며,<br>
+                    사람의 생년월일시 네 기둥만으로 그 삶의 전체를 꿰뚫어 본다.</p>
+
+                    <p>명월헌에서 가장 학문적이고 정통한 존재.<br>
+                    그녀의 해석은 절대 가볍지 않으며, 한 번 내린 판단엔 흔들림이 없다.</p>
+
+                    <p>차분하고 단아한 외모 뒤엔,<br>
+                    천 년을 이어온 지혜의 무게가 담겨 있다.</p>
+
+                    <blockquote class="character-quote">
+                        "사주란 운명이 아니라, 네가 걸을 길의 지도일 뿐이다."
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider-small"></div>
+
+        <!-- 신월도사 -->
+        <div class="character-card">
+            <div class="character-image">
+                <!-- [이미지] 신월도사 (600x600px) -->
+                <img src="{{ url_for('static', path='/images/about/sinwol.png') }}" alt="신월도사" style="width: 100%; border-radius: 15px;">
+            </div>
+            <div class="character-info">
+                <h3 class="character-name">🔥 신월도사(新月道士)</h3>
+                <p class="character-role">새 운을 여는 자</p>
+                <div class="character-story">
+                    <p>초승달이 뜨는 밤마다 모습을 드러내는 도사.<br>
+                    한 해의 시작과 끝, 재물의 흐름, 운의 큰 방향을 읽어낸다.</p>
+
+                    <p>그는 변화의 순간을 포착하는 자이며,<br>
+                    멈춰 있는 운명에 새로운 바람을 불어넣는 존재다.</p>
+
+                    <p>듬직한 체구와 카리스마 넘치는 눈빛을 지녔지만,<br>
+                    그의 말은 의외로 따뜻하고, 때론 농담 섞인 격려로 사람들을 일으켜 세운다.</p>
+
+                    <blockquote class="character-quote">
+                        "새로운 달이 뜰 때마다, 너에겐 다시 시작할 기회가 있어."
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 미래 섹션 -->
+<section class="future-section section">
+    <div class="container">
+        <h2 class="section-title">🌑 아직 열리지 않은 방들</h2>
+
+        <div class="content-box">
+            <p class="story-text center">
+                명월헌의 복도 끝엔, 아직 문이 닫힌 방들이 있다.
+            </p>
+
+            <p class="story-text">
+                촛불도 닿지 않는 어두운 문틈 사이로<br>
+                누군가의 발소리가 가끔 들려오지만,<br>
+                그 존재가 누구인지는 아직 아무도 모른다.
+            </p>
+
+            <div class="future-rooms">
+                <div class="room-card">
+                    <div class="room-icon">🃏</div>
+                    <p class="room-name">타로의 방</p>
+                    <p class="room-sound">카드를 섞는 소리</p>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-icon">💰</div>
+                    <p class="room-name">금전의 방</p>
+                    <p class="room-sound">동전이 구르는 소리</p>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-icon">📿</div>
+                    <p class="room-name">부적의 방</p>
+                    <p class="room-sound">붓 끝이 종이를 스치는 소리</p>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-icon">🌿</div>
+                    <p class="room-name">건강의 방</p>
+                    <p class="room-sound">깊고 고요한 숨소리</p>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-icon">👁️</div>
+                    <p class="room-name">관상의 방</p>
+                    <p class="room-sound">거울이 흔들리는 소리</p>
+                </div>
+            </div>
+
+            <p class="story-text center">
+                언젠가 때가 되면,<br>
+                그 방의 주인이 스스로 문을 열고 나올 것이다.
+            </p>
+
+            <p class="story-text center">
+                그리고 명월헌은 또 한 번, 새로운 이야기를 품게 될 것이다.
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 결론 섹션 -->
+<section class="conclusion-section section">
+    <div class="container">
+        <h2 class="section-title">🌕 모든 길은 명월헌으로 통한다</h2>
+
+        <div class="content-box">
+            <div class="paths-grid">
+                <div class="path-item">
+                    <span class="path-icon">🐾</span>
+                    <p class="path-text"><strong>야광묘</strong>는 오늘을</p>
+                </div>
+
+                <div class="path-item">
+                    <span class="path-icon">🌙</span>
+                    <p class="path-text"><strong>월하낭자</strong>는 인연을</p>
+                </div>
+
+                <div class="path-item">
+                    <span class="path-icon">☁️</span>
+                    <p class="path-text"><strong>백운선생</strong>은 꿈을</p>
+                </div>
+
+                <div class="path-item">
+                    <span class="path-icon">🕯</span>
+                    <p class="path-text"><strong>청운아씨</strong>는 사주를</p>
+                </div>
+
+                <div class="path-item">
+                    <span class="path-icon">🔥</span>
+                    <p class="path-text"><strong>신월도사</strong>는 미래를 본다</p>
+                </div>
+            </div>
+
+            <p class="story-text center highlight">
+                그들은 각자 다른 달빛을 받았지만,<br>
+                결국 모두 같은 진리를 향해 걷고 있다.
+            </p>
+
+            <blockquote class="quote-box large">
+                "달이 비추는 곳에, 각자의 길이 있다."
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<!-- CTA 섹션 -->
+<section class="cta-section">
+    <div class="container">
+        <h2 class="cta-title">명월헌은 지금도 당신을 기다리고 있습니다</h2>
+        <p class="cta-description">당신의 운명이 궁금하다면, 문을 두드려 보세요</p>
+        <a href="/" class="btn-cta">운세 보러 가기 🌙</a>
+    </div>
+</section>
+
+{% endblock %}
