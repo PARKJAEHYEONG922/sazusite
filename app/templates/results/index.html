@@ -29,7 +29,7 @@
                 </picture>
                 <div class="slide-content">
                     <h2>{{ site_config.banner_title_1 if site_config and site_config.banner_title_1 else '오늘의 운세' }}</h2>
-                    <p>{{ site_config.banner_subtitle_1 if site_config and site_config.banner_subtitle_1 else '야광묘가 알려드려요' }}</p>
+                    <p>{{ site_config.banner_subtitle_1 if site_config and site_config.banner_subtitle_1 else '야광묘가 오늘의 기운을 읽어드립니다' }}</p>
                     {% if site_config and site_config.banner_description_1 %}
                     <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_1 }}</p>
                     {% endif %}
@@ -51,7 +51,7 @@
                 </picture>
                 <div class="slide-content">
                     <h2>{{ site_config.banner_title_2 if site_config and site_config.banner_title_2 else '정통 사주팔자' }}</h2>
-                    <p>{{ site_config.banner_subtitle_2 if site_config and site_config.banner_subtitle_2 else '청월아씨가 풀어드려요' }}</p>
+                    <p>{{ site_config.banner_subtitle_2 if site_config and site_config.banner_subtitle_2 else '청월아씨가 사주 한자 한자 짚어드립니다' }}</p>
                     {% if site_config and site_config.banner_description_2 %}
                     <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_2 }}</p>
                     {% endif %}
@@ -73,7 +73,7 @@
                 </picture>
                 <div class="slide-content">
                     <h2>{{ site_config.banner_title_3 if site_config and site_config.banner_title_3 else '사주궁합' }}</h2>
-                    <p>{{ site_config.banner_subtitle_3 if site_config and site_config.banner_subtitle_3 else '월하낭자가 알려드려요' }}</p>
+                    <p>{{ site_config.banner_subtitle_3 if site_config and site_config.banner_subtitle_3 else '월하낭자가 붉은 실을 찾아드립니다' }}</p>
                     {% if site_config and site_config.banner_description_3 %}
                     <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_3 }}</p>
                     {% endif %}
@@ -95,7 +95,7 @@
                 </picture>
                 <div class="slide-content">
                     <h2>{{ site_config.banner_title_4 if site_config and site_config.banner_title_4 else '꿈해몽' }}</h2>
-                    <p>{{ site_config.banner_subtitle_4 if site_config and site_config.banner_subtitle_4 else '백운선생이 해석해드려요' }}</p>
+                    <p>{{ site_config.banner_subtitle_4 if site_config and site_config.banner_subtitle_4 else '백운선생이 꿈속 메시지를 풀어드립니다' }}</p>
                     {% if site_config and site_config.banner_description_4 %}
                     <p style="font-size: 1.05rem; margin-top: 0.5rem; opacity: 0.95;">{{ site_config.banner_description_4 }}</p>
                     {% endif %}
@@ -131,11 +131,11 @@
                         <span class="service-emoji">{{ site_config.sub_banner_emoji_1 if site_config else '🌙' }}</span>
                     </div>
                     {% endif %}
-                    <h3 class="service-title">{{ site_config.sub_banner_title_1 if site_config else '월하소녀 2026 신년운세' }}</h3>
+                    <h3 class="service-title">{{ site_config.sub_banner_title_1 if site_config else '2026 신년운세' }}</h3>
                 </div>
                 <div class="service-content">
-                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_1 if site_config else '월하소녀 2026 신년운세' }}</p>
-                    <p class="service-description">{{ site_config.sub_banner_description_1 if site_config else '이번 신년, 당신의 운명은?' }}</p>
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_1 if site_config else '야광묘가 펼쳐드려요' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_1 if site_config else '2026년 갑오년(甲午年), 한 해 운세를 미리 살펴보세요' }}</p>
                 </div>
             </a>
 
@@ -155,11 +155,11 @@
                         <span class="service-emoji">{{ site_config.sub_banner_emoji_2 if site_config else '📜' }}</span>
                     </div>
                     {% endif %}
-                    <h3 class="service-title">{{ site_config.sub_banner_title_2 if site_config else '청월아씨 정통사주' }}</h3>
+                    <h3 class="service-title">{{ site_config.sub_banner_title_2 if site_config else '정통 사주팔자' }}</h3>
                 </div>
                 <div class="service-content">
-                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_2 if site_config else '청월아씨 정통사주' }}</p>
-                    <p class="service-description">{{ site_config.sub_banner_description_2 if site_config else '내 앞에 펼쳐진 운명의 길은?' }}</p>
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_2 if site_config else '청월아씨가 짚어드려요' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_2 if site_config else '타고난 운명의 흐름, 인생의 큰 그림을 보세요' }}</p>
                 </div>
             </a>
 
@@ -179,11 +179,11 @@
                         <span class="service-emoji">{{ site_config.sub_banner_emoji_3 if site_config else '💘' }}</span>
                     </div>
                     {% endif %}
-                    <h3 class="service-title">{{ site_config.sub_banner_title_3 if site_config else '홍연아씨 사주궁합' }}</h3>
+                    <h3 class="service-title">{{ site_config.sub_banner_title_3 if site_config else '사주궁합' }}</h3>
                 </div>
                 <div class="service-content">
-                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_3 if site_config else '홍연아씨 사주궁합' }}</p>
-                    <p class="service-description">{{ site_config.sub_banner_description_3 if site_config else '우리는 운명일까, 우연일까?' }}</p>
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_3 if site_config else '월하낭자가 맺어드려요' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_3 if site_config else '두 사람의 팔자가 만나 빚어낼 운명을 살펴보세요' }}</p>
                 </div>
             </a>
 
@@ -203,11 +203,11 @@
                         <span class="service-emoji">{{ site_config.sub_banner_emoji_4 if site_config else '💭' }}</span>
                     </div>
                     {% endif %}
-                    <h3 class="service-title">{{ site_config.sub_banner_title_4 if site_config else '몽월소녀 꿈해몽' }}</h3>
+                    <h3 class="service-title">{{ site_config.sub_banner_title_4 if site_config else '꿈해몽' }}</h3>
                 </div>
                 <div class="service-content">
-                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_4 if site_config else '몽월소녀 꿈해몽' }}</p>
-                    <p class="service-description">{{ site_config.sub_banner_description_4 if site_config else '어젯 밤 꿈, 무슨 의미일까?' }}</p>
+                    <p class="service-subtitle">{{ site_config.sub_banner_subtitle_4 if site_config else '백운선생이 꿈속 메시지를 풀어드립니다' }}</p>
+                    <p class="service-description">{{ site_config.sub_banner_description_4 if site_config else '꿈은 또 다른 세계의 암호, 그 의미를 찾아보세요' }}</p>
                 </div>
             </a>
         </div>
