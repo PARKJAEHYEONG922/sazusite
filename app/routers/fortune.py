@@ -353,12 +353,14 @@ async def fortune_result(
                 else:
                     # 새 에러 레코드 생성
                     from datetime import date as dt_date
+                    # request_data를 JSON 직렬화 가능한 형태로 변환
+                    serializable_data = fortune_service._make_json_serializable(request_data)
                     error_result = FortuneResult(
                         service_code=service_code,
                         user_key="error",  # 임시 키
                         share_code=share_code,
                         date=dt_date.today(),
-                        request_payload=request_data,
+                        request_payload=serializable_data,
                         result_text=None,
                         status="error",
                         error_message=f"AI 분석 중 오류가 발생했습니다: {str(e)}",

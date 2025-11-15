@@ -173,14 +173,18 @@ class SajuCalculator:
 
         # 시간 파싱
         hour = 0
-        if birth_time and birth_time != '미상':
-            if '-' in birth_time:
-                hour = int(birth_time.split('-')[0])
-            elif ':' in birth_time:
-                hour = int(birth_time.split(':')[0])
-            else:
-                # 단순 숫자 형식 (예: "23", "01")
-                hour = int(birth_time)
+        if birth_time and birth_time not in ['미상', '모름', '']:
+            try:
+                if '-' in birth_time:
+                    hour = int(birth_time.split('-')[0])
+                elif ':' in birth_time:
+                    hour = int(birth_time.split(':')[0])
+                else:
+                    # 단순 숫자 형식 (예: "23", "01")
+                    hour = int(birth_time)
+            except (ValueError, AttributeError):
+                # 잘못된 형식의 birth_time은 0시로 처리
+                hour = 0
 
         # 간지 계산
         ganzhi = self.get_ganzhi(year, month, day, hour)
