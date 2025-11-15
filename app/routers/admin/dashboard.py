@@ -121,9 +121,9 @@ async def update_site_settings(
     site_url: Optional[str] = Form(None),
     site_logo_file: Optional[UploadFile] = File(None),
     site_favicon_file: Optional[UploadFile] = File(None),
-    main_title: str = Form(...),
-    main_subtitle: str = Form(...),
-    footer_text: str = Form(...),
+    main_title: Optional[str] = Form(None),
+    main_subtitle: Optional[str] = Form(None),
+    footer_text: Optional[str] = Form(None),
     # 배너 1
     banner_file_1: Optional[UploadFile] = File(None),
     banner_pc_file_1: Optional[UploadFile] = File(None),
@@ -223,7 +223,6 @@ async def update_site_settings(
                     f.write(image_data)
             else:
                 # WebP로 변환하여 저장 (최대 너비 800px)
-                from app.utils.image_utils import convert_to_webp
                 file_path = convert_to_webp(
                     image_data,
                     upload_dir / "site_logo",
@@ -479,9 +478,12 @@ async def update_site_settings(
 
         # AdSense Client ID 자동 포맷팅 (pub-xxx 입력 시 ca-pub-xxx로 변환)
         formatted_adsense_id = None
-        if adsense_client_id:
+        if adsense_client_id is not None:
             adsense_client_id = adsense_client_id.strip()
-            if adsense_client_id.startswith("pub-"):
+            # 빈 문자열이면 None으로 처리 (광고 비활성화)
+            if not adsense_client_id:
+                formatted_adsense_id = None
+            elif adsense_client_id.startswith("pub-"):
                 formatted_adsense_id = f"ca-{adsense_client_id}"
             elif adsense_client_id.startswith("ca-pub-"):
                 formatted_adsense_id = adsense_client_id
@@ -494,9 +496,9 @@ async def update_site_settings(
             "site_url": site_url if site_url else None,
             "site_logo": site_logo_url,
             "site_favicon": site_favicon_url,
-            "main_title": main_title,
-            "main_subtitle": main_subtitle,
-            "footer_text": footer_text,
+            "main_title": main_title.strip() if main_title and main_title.strip() else None,
+            "main_subtitle": main_subtitle.strip() if main_subtitle and main_subtitle.strip() else None,
+            "footer_text": footer_text.strip() if footer_text and footer_text.strip() else None,
             **banner_updates,
             **sub_banner_updates,
             "adsense_client_id": formatted_adsense_id,
@@ -1098,9 +1100,9 @@ async def update_service_settings(
             "character_image": character_image_url,
             "character_form_image": character_form_image_url,
             "loading_media": loading_media_url,
-            "loading_title": loading_title if loading_title else None,
-            "loading_subtitle": loading_subtitle if loading_subtitle else None,
-            "loading_detail": loading_detail if loading_detail else None,
+            "loading_title": loading_title.strip() if loading_title and loading_title.strip() else None,
+            "loading_subtitle": loading_subtitle.strip() if loading_subtitle and loading_subtitle.strip() else None,
+            "loading_detail": loading_detail.strip() if loading_detail and loading_detail.strip() else None,
             "is_active": is_active == "on"
         }
         site_service.update_service_config(service_code, updates)

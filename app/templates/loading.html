@@ -240,6 +240,15 @@
         to { transform: rotate(360deg); }
     }
 
+    .loading-time-info {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #888888;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
     /* 모바일 반응형 */
     @media (max-width: 768px) {
         .loading-container {
@@ -335,6 +344,7 @@
         {% endif %}
 
         <div class="loading-spinner"></div>
+        <p class="loading-time-info">정확한 결과 분석을 위해 최대 30초 정도 소요될 수 있습니다</p>
 
         <!-- 애드센스 광고 영역 -->
         {% if site_config and site_config.adsense_client_id %}
@@ -354,44 +364,8 @@
 </div>
 
 <script>
-    // 서비스별 로딩 메시지
-    const loadingMessages = {
-        'today': {
-            title: '오늘의 운세를 분석하고 있습니다',
-            subtitle: 'AI가 당신의 사주를 깊이 살펴보고 있어요',
-            detail: '음양오행의 기운을 정밀하게 계산 중...'
-        },
-        'saju': {
-            title: '정통 사주팔자를 풀이하고 있습니다',
-            subtitle: 'AI가 천간·지지와 음양오행을 분석하고 있어요',
-            detail: '수천 년 역사의 사주 이론과 AI가 만나는 순간...'
-        },
-        'newyear2026': {
-            title: '2026년 신년운세를 점성하고 있습니다',
-            subtitle: 'AI가 병오년의 기운과 당신의 사주를 분석 중이에요',
-            detail: '새해의 운명을 음양오행으로 풀어내는 중...'
-        },
-        'match': {
-            title: '두 분의 궁합을 분석하고 있습니다',
-            subtitle: 'AI가 사주의 상생상극 관계를 살펴보고 있어요',
-            detail: '천생연분인지 음양오행이 말해줄 거예요...'
-        },
-        'dream': {
-            title: '백운선생께서 꿈을 풀이하고 계십니다',
-            subtitle: '꿈 속 상징과 의미를 해석하고 있어요',
-            detail: '오랜 경험으로 꿈의 길흉화복을 살피는 중...'
-        }
-    };
-
     const serviceCode = '{{ service.code }}';
     const resultUrl = '{{ result_url }}';
-
-    // 서비스별 메시지 설정
-    if (loadingMessages[serviceCode]) {
-        document.getElementById('loadingTitle').textContent = loadingMessages[serviceCode].title;
-        document.getElementById('loadingSubtitle').textContent = loadingMessages[serviceCode].subtitle;
-        document.getElementById('loadingDetail').textContent = loadingMessages[serviceCode].detail;
-    }
 
     // 애드센스 광고 로드 (설정된 경우에만)
     {% if site_config and site_config.adsense_client_id %}
@@ -437,16 +411,19 @@
             } else if (data.status === 'processing' || data.status === 'not_found') {
                 const elapsed = Date.now() - startTime;
 
-                // 10초 이상 경과 시 메시지 변경
-                if (elapsed > 10000) {
-                    document.getElementById('loadingDetail').textContent =
-                        '사주가 복잡하여 정확한 분석을 위해 조금 더 시간이 걸립니다...';
-                }
+                // 10초 이상 경과 시 메시지 변경 (요소가 존재하는 경우에만)
+                const detailEl = document.getElementById('loadingDetail');
+                if (detailEl) {
+                    if (elapsed > 10000) {
+                        detailEl.textContent =
+                            '사주가 복잡하여 정확한 분석을 위해 조금 더 시간이 걸립니다...';
+                    }
 
-                // 20초 이상 경과 시 추가 메시지
-                if (elapsed > 20000) {
-                    document.getElementById('loadingDetail').textContent =
-                        '깊이 있는 분석을 진행하고 있습니다. 잠시만 더 기다려주세요...';
+                    // 20초 이상 경과 시 추가 메시지
+                    if (elapsed > 20000) {
+                        detailEl.textContent =
+                            '깊이 있는 분석을 진행하고 있습니다. 잠시만 더 기다려주세요...';
+                    }
                 }
 
                 // 1초 후 다시 체크

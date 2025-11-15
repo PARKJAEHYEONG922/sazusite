@@ -54,27 +54,27 @@ def init_database():
                 banner_link_4="/fortune/dream",
                 # 서브배너
                 sub_banner_image_1=None,
-                sub_banner_emoji_1="🌙",
-                sub_banner_title_1="월하소녀 2026 신년운세",
-                sub_banner_subtitle_1="월하소녀 2026 신년운세",
-                sub_banner_description_1="이번 신년, 당신의 운명은?",
-                sub_banner_link_1="/fortune/today",
+                sub_banner_emoji_1="🐱✨",
+                sub_banner_title_1="신년운세",
+                sub_banner_subtitle_1="야광묘가 알려드려요",
+                sub_banner_description_1="2026년 새해 운세를 미리 확인하세요",
+                sub_banner_link_1="/fortune/newyear2026",
                 sub_banner_image_2=None,
-                sub_banner_emoji_2="📜",
-                sub_banner_title_2="청월아씨 정통사주",
-                sub_banner_subtitle_2="청월아씨 정통사주",
+                sub_banner_emoji_2="👘",
+                sub_banner_title_2="정통사주",
+                sub_banner_subtitle_2="청월아씨가 알려드려요",
                 sub_banner_description_2="내 앞에 펼쳐진 운명의 길은?",
                 sub_banner_link_2="/fortune/saju",
                 sub_banner_image_3=None,
-                sub_banner_emoji_3="💘",
-                sub_banner_title_3="홍연아씨 사주궁합",
-                sub_banner_subtitle_3="홍연아씨 사주궁합",
+                sub_banner_emoji_3="💕",
+                sub_banner_title_3="사주궁합",
+                sub_banner_subtitle_3="월하낭자가 알려드려요",
                 sub_banner_description_3="우리는 운명일까, 우연일까?",
                 sub_banner_link_3="/fortune/match",
                 sub_banner_image_4=None,
-                sub_banner_emoji_4="💭",
-                sub_banner_title_4="몽월소녀 꿈해몽",
-                sub_banner_subtitle_4="몽월소녀 꿈해몽",
+                sub_banner_emoji_4="☁️",
+                sub_banner_title_4="꿈해몽",
+                sub_banner_subtitle_4="백운선생이 알려드려요",
                 sub_banner_description_4="어젯 밤 꿈, 무슨 의미일까?",
                 sub_banner_link_4="/fortune/dream",
                 quick_fortune_title="빠른 운세 보기",
@@ -90,7 +90,7 @@ def init_database():
         else:
             print("[SKIP] 사이트 설정이 이미 존재합니다.")
 
-        # 2. 서비스 설정 초기화 (4개)
+        # 2. 서비스 설정 초기화 (5개)
         print("\n서비스 설정 초기화 중...")
         services_data = [
             {
@@ -101,7 +101,10 @@ def init_database():
                 "character_name": "야광묘",
                 "character_emoji": "🐱✨",
                 "is_active": True,
-                "prompt_template": None
+                "prompt_template": None,
+                "loading_title": "오늘의 운세를 계산하고 있습니다",
+                "loading_subtitle": "야광묘가 당신의 사주를 깊이 살펴보고 있어요",
+                "loading_detail": "AI가 생년월일 기반 천간지지 데이터로 오늘의 기운을 분석 중..."
             },
             {
                 "code": "saju",
@@ -111,7 +114,10 @@ def init_database():
                 "character_name": "청월아씨",
                 "character_emoji": "👘",
                 "is_active": True,
-                "prompt_template": None
+                "prompt_template": None,
+                "loading_title": "당신의 사주명식을 분석하고 있습니다",
+                "loading_subtitle": "청월아씨가 운명의 흐름을 읽어내고 있어요",
+                "loading_detail": "AI가 계산된 사주팔자를 깊이 분석 중..."
             },
             {
                 "code": "match",
@@ -121,7 +127,10 @@ def init_database():
                 "character_name": "월하낭자",
                 "character_emoji": "💕",
                 "is_active": True,
-                "prompt_template": None
+                "prompt_template": None,
+                "loading_title": "두 분의 궁합을 분석하고 있습니다",
+                "loading_subtitle": "월하낭자가 두 사주의 만남을 살펴보고 있어요",
+                "loading_detail": "AI가 천간지지 기반 데이터로 천생연분을 찾는 중..."
             },
             {
                 "code": "dream",
@@ -131,7 +140,23 @@ def init_database():
                 "character_name": "백운선생",
                 "character_emoji": "☁️",
                 "is_active": True,
-                "prompt_template": None
+                "prompt_template": None,
+                "loading_title": "백운선생께서 꿈을 풀이하고 계십니다",
+                "loading_subtitle": "꿈 속 상징과 의미를 해석하고 있어요",
+                "loading_detail": "AI가 오랜 해몽 지식 기반으로 꿈의 길흉화복을 살피는 중..."
+            },
+            {
+                "code": "newyear2026",
+                "title": "2026 신년운세",
+                "subtitle": "야광묘가 알려드려요",
+                "description": "2026년 새해, 당신의 운명을 미리 살펴보세요",
+                "character_name": "야광묘",
+                "character_emoji": "🐱✨",
+                "is_active": True,
+                "prompt_template": None,
+                "loading_title": "2026년 신년운세를 계산하고 있습니다",
+                "loading_subtitle": "야광묘가 병오년의 기운을 살펴보고 있어요",
+                "loading_detail": "AI가 천간지지 기반 데이터로 새해 운세를 풀어내는 중..."
             }
         ]
 

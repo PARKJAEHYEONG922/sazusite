@@ -110,9 +110,11 @@
     {% block content %}{% endblock %}
 
     <!-- Footer -->
+    {% if site_config and site_config.footer_text %}
     <footer>
-        <p>{{ site_config.footer_text if site_config else "© 2025 명월헌. All rights reserved." }}</p>
+        <p>{{ site_config.footer_text }}</p>
     </footer>
+    {% endif %}
 
     <!-- 모바일 하단 고정 광고 - 로딩 페이지에서만 사용 -->
     <!-- 다른 페이지에서는 광고 제거 (AdSense 에러 방지) -->

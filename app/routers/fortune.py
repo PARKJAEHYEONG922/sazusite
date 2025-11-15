@@ -104,11 +104,12 @@ async def check_fortune_status(
         FortuneResult.share_code == share_code
     ).first()
 
+    # 레코드가 아직 없으면 pending 상태 반환 (404 대신 200 OK)
     if not result:
-        return JSONResponse(
-            status_code=404,
-            content={"status": "not_found", "message": "결과를 찾을 수 없습니다."}
-        )
+        return JSONResponse(content={
+            "status": "pending",
+            "message": "운세 생성을 준비 중입니다..."
+        })
 
     # 상태 반환
     if result.result_text:

@@ -26,9 +26,9 @@ class SiteService:
             config = SiteConfig(**updates)
             self.db.add(config)
         else:
-            # 업데이트
+            # 업데이트 (None 값도 허용하여 필드를 비울 수 있게 함)
             for key, value in updates.items():
-                if value is not None and hasattr(config, key):
+                if hasattr(config, key):
                     setattr(config, key, value)
 
         self.db.commit()
@@ -58,8 +58,9 @@ class SiteService:
         if not service:
             raise ValueError(f"서비스를 찾을 수 없습니다: {code}")
 
+        # 업데이트 (None 값도 허용하여 필드를 비울 수 있게 함)
         for key, value in updates.items():
-            if value is not None and hasattr(service, key):
+            if hasattr(service, key):
                 setattr(service, key, value)
 
         self.db.commit()

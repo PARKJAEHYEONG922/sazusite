@@ -20,6 +20,15 @@ export class FortuneForm {
     }
 
     init() {
+        // 뒤로가기 시 버튼 활성화 (브라우저 캐시 문제 해결)
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+                if (this.submitBtn) {
+                    this.submitBtn.disabled = false;
+                }
+            }
+        });
+
         // 생년월일 포맷팅 설정
         if (this.birthdateInput) {
             this.setupBirthdateFormat(this.birthdateInput);
@@ -156,7 +165,6 @@ export class FortuneForm {
 
             // 버튼 비활성화 (중복 제출 방지)
             this.submitBtn.disabled = true;
-            this.submitBtn.textContent = '조회중...';
 
             // 폼 제출 (서버에서 로딩 페이지로 리디렉션)
             this.form.submit();
