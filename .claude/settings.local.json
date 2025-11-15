@@ -1,30 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(taskkill:*)",
-      "Bash(dir:*)",
-      "Bash(nul)",
-      "Bash(python:*)",
-      "Bash(if [ -f .env ])",
-      "Bash(then cat .env)",
-      "Bash(else echo \"File not found\")",
-      "Bash(fi)",
-      "Bash(if [ -f \"c:\\사주사이트\\myeongwolheon.db\" ])",
-      "Bash(then rm \"c:\\사주사이트\\myeongwolheon.db\")",
-      "Bash(else echo \"DB 파일 없음\")",
-      "Bash(tasklist:*)",
-      "Bash(del myeongwolheon.db)",
-      "Bash(findstr:*)",
-      "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nSNS 공유 기능 추가 및 share_code 시스템 구축\n\n주요 변경사항:\n- share_code 기반 고유 URL 시스템 구축 (랜덤 8자리 영숫자)\n- 모든 운세 결과 페이지에 카카오톡/링크 공유 기능 추가\n- 공용 공유 버튼 컴포넌트 생성 (components/share_buttons.html)\n- POST-Redirect-GET 패턴으로 결과 페이지 URL 개선\n- 관리자 로그 페이지 기본 필터 7일로 설정\n- 사주 결과 페이지 템플릿 변수 통일 (data/request_data)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push:*)",
-      "Bash(cat:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\n보안: API 키 노출 제거\n\nPRODUCTION_CHECKLIST.md와 DEPLOYMENT.md에서 실제 Gemini API 키를 플레이스홀더로 교체하여 GitHub Secret Scanning 경고 해결\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(del \"c:\\사주사이트\\app\\static\\icons\\kakao.png\")",
-      "Bash(curl:*)",
-      "Bash(find:*)",
-      "Bash(timeout /t 3:*)",
-      "Bash(ping:*)"
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

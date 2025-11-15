@@ -180,6 +180,13 @@ async def update_site_settings(
     sub_banner_subtitle_4: Optional[str] = Form(None),
     sub_banner_description_4: Optional[str] = Form(None),
     sub_banner_link_4: Optional[str] = Form(None),
+    # 서브배너 5
+    sub_banner_file_5: Optional[UploadFile] = File(None),
+    sub_banner_emoji_5: Optional[str] = Form(None),
+    sub_banner_title_5: Optional[str] = Form(None),
+    sub_banner_subtitle_5: Optional[str] = Form(None),
+    sub_banner_description_5: Optional[str] = Form(None),
+    sub_banner_link_5: Optional[str] = Form(None),
     # 애드센스
     adsense_client_id: Optional[str] = Form(None),
     adsense_slot_main: Optional[str] = Form(None),
@@ -386,42 +393,48 @@ async def update_site_settings(
             1: sub_banner_file_1,
             2: sub_banner_file_2,
             3: sub_banner_file_3,
-            4: sub_banner_file_4
+            4: sub_banner_file_4,
+            5: sub_banner_file_5
         }
         sub_banner_emojis = {
             1: sub_banner_emoji_1,
             2: sub_banner_emoji_2,
             3: sub_banner_emoji_3,
-            4: sub_banner_emoji_4
+            4: sub_banner_emoji_4,
+            5: sub_banner_emoji_5
         }
         sub_banner_titles = {
             1: sub_banner_title_1,
             2: sub_banner_title_2,
             3: sub_banner_title_3,
-            4: sub_banner_title_4
+            4: sub_banner_title_4,
+            5: sub_banner_title_5
         }
         sub_banner_subtitles = {
             1: sub_banner_subtitle_1,
             2: sub_banner_subtitle_2,
             3: sub_banner_subtitle_3,
-            4: sub_banner_subtitle_4
+            4: sub_banner_subtitle_4,
+            5: sub_banner_subtitle_5
         }
         sub_banner_descriptions = {
             1: sub_banner_description_1,
             2: sub_banner_description_2,
             3: sub_banner_description_3,
-            4: sub_banner_description_4
+            4: sub_banner_description_4,
+            5: sub_banner_description_5
         }
         sub_banner_links = {
             1: sub_banner_link_1,
             2: sub_banner_link_2,
             3: sub_banner_link_3,
-            4: sub_banner_link_4
+            4: sub_banner_link_4,
+            5: sub_banner_link_5
         }
 
         # 서브배너 설정 처리
         sub_banner_updates = {}
-        for i in range(1, 5):
+        for i in range(1, 6):
             # 파일 업로드 처리 (이미지 및 비디오)
             sub_banner_file = sub_banner_files[i]
             if sub_banner_file and sub_banner_file.filename:

@@ -86,6 +86,14 @@ class SiteConfig(Base):
     sub_banner_description_4 = Column(Text, default="어젯 밤 꿈, 무슨 의미일까?")
     sub_banner_link_4 = Column(String(500), default="/fortune/dream")
 
+    # 서브배너 5
+    sub_banner_image_5 = Column(String(500), nullable=True)
+    sub_banner_emoji_5 = Column(String(10), default="🌙")
+    sub_banner_title_5 = Column(String(100), default="오늘의 운세")
+    sub_banner_subtitle_5 = Column(String(200), default="야광묘가 펼쳐드려요")
+    sub_banner_description_5 = Column(Text, default="오늘 하루, 당신에게 펼쳐질 운의 흐름을 봐드려요")
+    sub_banner_link_5 = Column(String(500), default="/fortune/today")
+
     # 빠른 운세
     quick_fortune_title = Column(String(100), default="빠른 운세 보기")
     quick_fortune_description = Column(Text, default="간단한 정보 입력으로 바로 확인하세요")

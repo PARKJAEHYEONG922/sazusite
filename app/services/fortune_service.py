@@ -394,12 +394,25 @@ class FortuneService:
         gender = request_data["gender"]
         birth_time = request_data.get("birth_time")  # 출생시간 추가
 
-        # 궁합일 경우 상대방 생년월일도 포함
+        # 궁합일 경우 상대방 정보 모두 포함
         partner_birthdate = None
-        if service_code == "match" and "partner_birthdate" in request_data:
-            partner_birthdate = datetime.fromisoformat(str(request_data["partner_birthdate"])).date()
+        partner_name = None
+        partner_gender = None
+        partner_birth_time = None
+        partner_calendar = None
 
-        return build_user_key(name, birthdate, gender, partner_birthdate, birth_time)
+        if service_code == "match":
+            if "partner_birthdate" in request_data:
+                partner_birthdate = datetime.fromisoformat(str(request_data["partner_birthdate"])).date()
+            partner_name = request_data.get("partner_name")
+            partner_gender = request_data.get("partner_gender")
+            partner_birth_time = request_data.get("partner_birth_time")
+            partner_calendar = request_data.get("partner_calendar")
+
+        return build_user_key(
+            name, birthdate, gender, partner_birthdate, birth_time,
+            partner_name, partner_gender, partner_birth_time, partner_calendar
+        )
 
     def build_prompt(
         self,

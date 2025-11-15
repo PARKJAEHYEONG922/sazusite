@@ -352,6 +352,11 @@ nav {
     padding: 4rem 0;
 }
 
+.services-section .container {
+    max-width: 2000px;
+    width: 95%;
+}
+
 .section-title {
     text-align: left;
     font-size: 1.625rem;  /* 모바일: 1.5rem + 0.125rem (2px) */
@@ -379,7 +384,7 @@ nav {
 /* PC에서 서브배너 크기 증가 */
 @media (min-width: 768px) {
     .services-grid {
-        max-width: 1200px;  /* PC에서 더 크게 */
+        max-width: 2000px;  /* PC에서 더 크게 */
         gap: 1.5rem;
     }
 }
@@ -394,6 +399,18 @@ nav {
     text-decoration: none;
     display: flex;
     flex-direction: column;
+}
+
+/* 모바일에서 5번째 서브배너 숨김 */
+.service-card-5 {
+    display: none;
+}
+
+/* PC에서 5번째 서브배너 표시 */
+@media (min-width: 1024px) {
+    .service-card-5 {
+        display: flex;
+    }
 }
 
 .service-card:hover {
@@ -456,6 +473,8 @@ nav {
     font-size: 1.3rem;
     color: var(--secondary-color);
     margin-bottom: 0.8rem;
+    word-break: keep-all;
+    overflow-wrap: break-word;
 }
 
 .service-description {
@@ -661,7 +680,7 @@ footer {
 
 @media (min-width: 1024px) {
     .services-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
     }
 }
 

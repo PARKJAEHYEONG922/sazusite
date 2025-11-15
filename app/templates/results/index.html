@@ -211,8 +211,8 @@
                 </div>
             </a>
 
-            <!-- 서브배너 5 -->
-            <a href="{{ site_config.sub_banner_link_5 if site_config and site_config.sub_banner_link_5 else '/fortune/today' }}" class="service-card">
+            <!-- 서브배너 5 (PC만 표시) -->
+            <a href="{{ site_config.sub_banner_link_5 if site_config and site_config.sub_banner_link_5 else '/fortune/today' }}" class="service-card service-card-5">
                 <div class="service-image">
                     {% if site_config and site_config.sub_banner_image_5 %}
                         {% if site_config.sub_banner_image_5.endswith(('.mp4', '.webm')) or '.mp4?' in site_config.sub_banner_image_5 or '.webm?' in site_config.sub_banner_image_5 %}

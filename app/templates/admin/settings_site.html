@@ -215,9 +215,10 @@
             <button type="button" class="tab-button" onclick="switchTab(event, 'sub-2')">서브 2</button>
             <button type="button" class="tab-button" onclick="switchTab(event, 'sub-3')">서브 3</button>
             <button type="button" class="tab-button" onclick="switchTab(event, 'sub-4')">서브 4</button>
+            <button type="button" class="tab-button" onclick="switchTab(event, 'sub-5')">서브 5</button>
         </div>
 
-        {% for i in range(1, 5) %}
+        {% for i in range(1, 6) %}
         <div id="sub-{{ i }}" class="tab-content {% if i == 1 %}active{% endif %}">
             <div class="banner-item">
                 <div class="banner-item-header">

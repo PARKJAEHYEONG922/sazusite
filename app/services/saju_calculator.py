@@ -3,7 +3,7 @@
 """
 from datetime import datetime, date
 from typing import Dict, List, Tuple
-from korean_lunar_calendar import KoreanLunarCalendar
+from app.utils.korean_lunar_calendar import KoreanLunarCalendar
 
 
 class SajuCalculator:
@@ -232,6 +232,12 @@ class SajuCalculator:
         # 용신 계산
         yongsin = self.calculate_yongsin(day_gan, ohang_analysis, strength)
 
+        # 합충형파해 계산
+        hap_chung = self.calculate_hap_chung_hyeong_pa_hae(pillars)
+
+        # 신살 계산
+        sinsals = self.calculate_sinsals(pillars)
+
         return {
             'pillars': {
                 'cheongan': [pillars['hour'][0], pillars['day'][0],
@@ -249,7 +255,9 @@ class SajuCalculator:
             'ohang': ohang_analysis,
             'daeun': daeun,
             'strength': strength,
-            'yongsin': yongsin
+            'yongsin': yongsin,
+            'hap_chung_hyeong_pa_hae': hap_chung,  # 합충형파해 추가
+            'sinsals': sinsals  # 신살 추가
         }
 
     def get_sipsung(self, day_gan: str, target_gan: str) -> str:
@@ -878,3 +886,337 @@ class SajuCalculator:
                     })
 
         return lucky_days
+
+    def calculate_hap_chung_hyeong_pa_hae(self, pillars: Dict) -> Dict:
+        """
+        합충형파해 분석 (사주 내부의 관계)
+
+        Args:
+            pillars: 사주 기둥 정보 {'year': [간, 지], 'month': [간, 지], ...}
+
+        Returns:
+            합충형파해 분석 결과
+        """
+        result = {
+            'cheongan_hap': [],      # 천간합
+            'jiji_yukhap': [],        # 지지 육합
+            'jiji_samhap': [],        # 지지 삼합
+            'jiji_chung': [],         # 지지 충
+            'jiji_hyeong': [],        # 지지 형
+            'jiji_hae': [],           # 지지 해
+            'summary': ''
+        }
+
+        # 천간 추출
+        gans = [pillars['year'][0], pillars['month'][0], pillars['day'][0], pillars['hour'][0]]
+        gan_positions = ['년간', '월간', '일간', '시간']
+
+        # 지지 추출
+        jis = [pillars['year'][1], pillars['month'][1], pillars['day'][1], pillars['hour'][1]]
+        ji_positions = ['년지', '월지', '일지', '시지']
+
+        # === 천간합 체크 ===
+        cheongan_hap_pairs = {
+            ('甲', '己'): '토',
+            ('乙', '庚'): '금',
+            ('丙', '辛'): '수',
+            ('丁', '壬'): '목',
+            ('戊', '癸'): '화'
+        }
+
+        for i in range(len(gans)):
+            for j in range(i + 1, len(gans)):
+                pair = (gans[i], gans[j])
+                reverse_pair = (gans[j], gans[i])
+
+                if pair in cheongan_hap_pairs:
+                    result['cheongan_hap'].append({
+                        'positions': [gan_positions[i], gan_positions[j]],
+                        'gans': [gans[i], gans[j]],
+                        'result': cheongan_hap_pairs[pair],
+                        'description': f'{gan_positions[i]}({gans[i]})과 {gan_positions[j]}({gans[j]})이 합하여 {cheongan_hap_pairs[pair]}으로 화합니다.'
+                    })
+                elif reverse_pair in cheongan_hap_pairs:
+                    result['cheongan_hap'].append({
+                        'positions': [gan_positions[i], gan_positions[j]],
+                        'gans': [gans[i], gans[j]],
+                        'result': cheongan_hap_pairs[reverse_pair],
+                        'description': f'{gan_positions[i]}({gans[i]})과 {gan_positions[j]}({gans[j]})이 합하여 {cheongan_hap_pairs[reverse_pair]}으로 화합니다.'
+                    })
+
+        # === 지지 육합 체크 ===
+        yukhap_pairs = {
+            ('子', '丑'): '토', ('寅', '亥'): '목', ('卯', '戌'): '화',
+            ('辰', '酉'): '금', ('巳', '申'): '수', ('午', '未'): '화'
+        }
+
+        for i in range(len(jis)):
+            for j in range(i + 1, len(jis)):
+                pair = (jis[i], jis[j])
+                reverse_pair = (jis[j], jis[i])
+
+                if pair in yukhap_pairs:
+                    result['jiji_yukhap'].append({
+                        'positions': [ji_positions[i], ji_positions[j]],
+                        'jis': [jis[i], jis[j]],
+                        'result': yukhap_pairs[pair],
+                        'description': f'{ji_positions[i]}({jis[i]})와 {ji_positions[j]}({jis[j]})이 육합을 이룹니다.'
+                    })
+                elif reverse_pair in yukhap_pairs:
+                    result['jiji_yukhap'].append({
+                        'positions': [ji_positions[i], ji_positions[j]],
+                        'jis': [jis[i], jis[j]],
+                        'result': yukhap_pairs[reverse_pair],
+                        'description': f'{ji_positions[i]}({jis[i]})와 {ji_positions[j]}({jis[j]})이 육합을 이룹니다.'
+                    })
+
+        # === 지지 삼합 체크 ===
+        samhap_groups = [
+            (['申', '子', '辰'], '수'),
+            (['寅', '午', '戌'], '화'),
+            (['巳', '酉', '丑'], '금'),
+            (['亥', '卯', '未'], '목')
+        ]
+
+        for group, element in samhap_groups:
+            found_jis = []
+            found_positions = []
+            for i, ji in enumerate(jis):
+                if ji in group:
+                    found_jis.append(ji)
+                    found_positions.append(ji_positions[i])
+
+            if len(found_jis) >= 2:
+                result['jiji_samhap'].append({
+                    'positions': found_positions,
+                    'jis': found_jis,
+                    'result': element,
+                    'complete': len(found_jis) == 3,
+                    'description': f'{", ".join(found_positions)}이 {element} 삼합을 이룹니다.' if len(found_jis) == 3 else f'{", ".join(found_positions)}이 {element} 삼합의 일부를 이룹니다.'
+                })
+
+        # === 지지 충 체크 ===
+        chung_pairs = [
+            ('子', '午'), ('丑', '未'), ('寅', '申'),
+            ('卯', '酉'), ('辰', '戌'), ('巳', '亥')
+        ]
+
+        for i in range(len(jis)):
+            for j in range(i + 1, len(jis)):
+                for c1, c2 in chung_pairs:
+                    if (jis[i] == c1 and jis[j] == c2) or (jis[i] == c2 and jis[j] == c1):
+                        result['jiji_chung'].append({
+                            'positions': [ji_positions[i], ji_positions[j]],
+                            'jis': [jis[i], jis[j]],
+                            'description': f'{ji_positions[i]}({jis[i]})와 {ji_positions[j]}({jis[j]})이 충을 이룹니다. 변동과 충돌이 있을 수 있습니다.'
+                        })
+
+        # === 지지 형 체크 ===
+        hyeong_groups = [
+            (['寅', '巳', '申'], '무은지형'),
+            (['丑', '未', '戌'], '세형'),
+            (['子', '卯'], '무례지형')
+        ]
+
+        for group, hyeong_type in hyeong_groups:
+            found_jis = []
+            found_positions = []
+            for i, ji in enumerate(jis):
+                if ji in group:
+                    found_jis.append(ji)
+                    found_positions.append(ji_positions[i])
+
+            if len(found_jis) >= 2:
+                result['jiji_hyeong'].append({
+                    'positions': found_positions,
+                    'jis': found_jis,
+                    'type': hyeong_type,
+                    'description': f'{", ".join(found_positions)}이 {hyeong_type}을 이룹니다.'
+                })
+
+        # === 지지 해 체크 ===
+        hae_pairs = [
+            ('子', '未'), ('丑', '午'), ('寅', '巳'),
+            ('卯', '辰'), ('申', '亥'), ('酉', '戌')
+        ]
+
+        for i in range(len(jis)):
+            for j in range(i + 1, len(jis)):
+                for h1, h2 in hae_pairs:
+                    if (jis[i] == h1 and jis[j] == h2) or (jis[i] == h2 and jis[j] == h1):
+                        result['jiji_hae'].append({
+                            'positions': [ji_positions[i], ji_positions[j]],
+                            'jis': [jis[i], jis[j]],
+                            'description': f'{ji_positions[i]}({jis[i]})와 {ji_positions[j]}({jis[j]})이 해를 이룹니다.'
+                        })
+
+        # === 종합 요약 ===
+        summary_parts = []
+        if result['cheongan_hap']:
+            summary_parts.append(f"천간합 {len(result['cheongan_hap'])}개")
+        if result['jiji_yukhap']:
+            summary_parts.append(f"육합 {len(result['jiji_yukhap'])}개")
+        if result['jiji_samhap']:
+            summary_parts.append(f"삼합 {len(result['jiji_samhap'])}개")
+        if result['jiji_chung']:
+            summary_parts.append(f"충 {len(result['jiji_chung'])}개")
+        if result['jiji_hyeong']:
+            summary_parts.append(f"형 {len(result['jiji_hyeong'])}개")
+        if result['jiji_hae']:
+            summary_parts.append(f"해 {len(result['jiji_hae'])}개")
+
+        result['summary'] = ', '.join(summary_parts) if summary_parts else '특별한 합충형파해가 없습니다.'
+
+        return result
+
+    def calculate_sinsals(self, pillars: Dict) -> Dict:
+        """
+        주요 신살 계산
+
+        Args:
+            pillars: 사주 기둥 정보
+
+        Returns:
+            신살 목록과 설명
+        """
+        result = {
+            'beneficial': [],  # 길신
+            'harmful': [],     # 흉신
+            'neutral': []      # 중립
+        }
+
+        day_gan = pillars['day'][0]
+        day_ji = pillars['day'][1]
+        year_ji = pillars['year'][1]
+
+        jis = [pillars['year'][1], pillars['month'][1], pillars['day'][1], pillars['hour'][1]]
+
+        # === 천을귀인 (天乙貴人) - 최고의 귀인 ===
+        cheoneur_map = {
+            '甲': ['丑', '未'], '戊': ['丑', '未'],
+            '乙': ['子', '申'], '己': ['子', '申'],
+            '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+            '庚': ['丑', '未'], '辛': ['寅', '午'],
+            '壬': ['卯', '巳'], '癸': ['卯', '巳']
+        }
+
+        if day_gan in cheoneur_map:
+            for ji in jis:
+                if ji in cheoneur_map[day_gan]:
+                    result['beneficial'].append({
+                        'name': '천을귀인',
+                        'position': ji,
+                        'description': '귀인의 도움을 받는 길신입니다. 어려움에서 도움을 받을 수 있습니다.'
+                    })
+                    break
+
+        # === 역마살 (驛馬殺) - 이동수 ===
+        yeokma_map = {
+            '寅': '申', '午': '寅', '戌': '申',
+            '申': '寅', '子': '寅', '辰': '申',
+            '巳': '亥', '酉': '巳', '丑': '亥',
+            '亥': '巳', '卯': '巳', '未': '亥'
+        }
+
+        if year_ji in yeokma_map:
+            target = yeokma_map[year_ji]
+            for ji in jis:
+                if ji == target:
+                    result['neutral'].append({
+                        'name': '역마살',
+                        'position': ji,
+                        'description': '이동과 변화가 많은 삶입니다. 여행, 이사, 직장 이동이 잦을 수 있습니다.'
+                    })
+                    break
+
+        # === 도화살 (桃花殺) - 인기운 ===
+        dohwa_map = {
+            '寅': '卯', '午': '卯', '戌': '卯',
+            '申': '酉', '子': '酉', '辰': '酉',
+            '巳': '午', '酉': '午', '丑': '午',
+            '亥': '子', '卯': '子', '未': '子'
+        }
+
+        if year_ji in dohwa_map:
+            target = dohwa_map[year_ji]
+            for ji in jis:
+                if ji == target:
+                    result['neutral'].append({
+                        'name': '도화살',
+                        'position': ji,
+                        'description': '인기가 많고 이성운이 좋습니다. 예술적 재능이 있을 수 있습니다.'
+                    })
+                    break
+
+        # === 화개살 (華蓋殺) - 예술/종교 ===
+        hwagae_map = {
+            '寅': '戌', '午': '戌', '戌': '戌',
+            '申': '辰', '子': '辰', '辰': '辰',
+            '巳': '丑', '酉': '丑', '丑': '丑',
+            '亥': '未', '卯': '未', '未': '未'
+        }
+
+        if year_ji in hwagae_map:
+            target = hwagae_map[year_ji]
+            for ji in jis:
+                if ji == target:
+                    result['neutral'].append({
+                        'name': '화개살',
+                        'position': ji,
+                        'description': '예술적, 종교적 재능이 있습니다. 학문과 연구에도 뛰어날 수 있습니다.'
+                    })
+                    break
+
+        # === 양인살 (羊刃殺) - 강한 성격 ===
+        yangin_map = {
+            '甲': '卯', '乙': '寅',
+            '丙': '午', '丁': '巳',
+            '戊': '午', '己': '巳',
+            '庚': '酉', '辛': '申',
+            '壬': '子', '癸': '亥'
+        }
+
+        if day_gan in yangin_map:
+            target = yangin_map[day_gan]
+            for ji in jis:
+                if ji == target:
+                    result['harmful'].append({
+                        'name': '양인살',
+                        'position': ji,
+                        'description': '성격이 강하고 극단적일 수 있습니다. 리더십이 있으나 충동적일 수 있습니다.'
+                    })
+                    break
+
+        # === 공망 (空亡) ===
+        # 60갑자별 공망 (간단 버전: 년주 기준)
+        year_gan = pillars['year'][0]
+        year_gan_idx = self.CHEONGAN.index(year_gan)
+
+        # 간단 공망 계산 (10천간 - 12지지 = 2개 공망)
+        gongmang_idx1 = (year_gan_idx + 10) % 12
+        gongmang_idx2 = (year_gan_idx + 11) % 12
+
+        for ji in jis:
+            ji_idx = self.JIJI.index(ji)
+            if ji_idx == gongmang_idx1 or ji_idx == gongmang_idx2:
+                result['harmful'].append({
+                    'name': '공망',
+                    'position': ji,
+                    'description': '허무함이나 공허함을 느낄 수 있습니다. 일이 뜻대로 안 될 때가 있습니다.'
+                })
+                break
+
+        # === 괴강살 (魁罡殺) ===
+        goegang_pairs = [
+            ('庚', '辰'), ('庚', '戌'),
+            ('壬', '辰'), ('戊', '戌')
+        ]
+
+        if (day_gan, day_ji) in goegang_pairs:
+            result['neutral'].append({
+                'name': '괴강살',
+                'position': day_ji,
+                'description': '특별한 성격과 능력을 가졌습니다. 강한 카리스마가 있으나 고집이 셀 수 있습니다.'
+            })
+
+        return result
