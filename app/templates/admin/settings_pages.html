@@ -174,25 +174,22 @@
                     <div class="form-group full-width">
                         <label class="form-label">로딩 페이지 타이틀</label>
                         <input type="text" name="loading_title" class="form-input"
-                               value="{{ service.loading_title or '' }}"
-                               placeholder="예: 사주를 분석하고 있습니다">
-                        <span class="form-hint">비워두면 기본값 사용: "사주를 분석하고 있습니다"</span>
+                               value="{{ service.loading_title or '' }}">
+                        <span class="form-hint">비워두면 해당 영역이 표시되지 않습니다</span>
                     </div>
 
                     <div class="form-group full-width">
                         <label class="form-label">로딩 페이지 서브타이틀</label>
                         <input type="text" name="loading_subtitle" class="form-input"
-                               value="{{ service.loading_subtitle or '' }}"
-                               placeholder="예: AI가 음양오행의 기운을 살피고 있어요">
-                        <span class="form-hint">비워두면 기본값 사용</span>
+                               value="{{ service.loading_subtitle or '' }}">
+                        <span class="form-hint">비워두면 해당 영역이 표시되지 않습니다</span>
                     </div>
 
                     <div class="form-group full-width">
                         <label class="form-label">로딩 페이지 상세 설명</label>
                         <input type="text" name="loading_detail" class="form-input"
-                               value="{{ service.loading_detail or '' }}"
-                               placeholder="예: 수천 년 역사의 사주 이론과 AI가 만나는 순간...">
-                        <span class="form-hint">비워두면 기본값 사용</span>
+                               value="{{ service.loading_detail or '' }}">
+                        <span class="form-hint">비워두면 해당 영역이 표시되지 않습니다</span>
                     </div>
                 </div>
             </div>

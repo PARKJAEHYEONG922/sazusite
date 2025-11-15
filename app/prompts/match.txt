@@ -2,14 +2,14 @@
 
 [첫 번째 분 정보]
 - 이름: {name}
-- 생년월일: {birthdate}
+- 생년월일: {birthdate} ({calendar}){birth_time}
 - 성별: {gender}
 - 일주(日柱): {person1_ilju}
 - 오행: {person1_ohang}
 
 [두 번째 분 정보]
 - 이름: {partner_name}
-- 생년월일: {partner_birthdate}
+- 생년월일: {partner_birthdate} ({partner_calendar}){partner_birth_time}
 - 성별: {partner_gender}
 - 일주(日柱): {person2_ilju}
 - 오행: {person2_ohang}

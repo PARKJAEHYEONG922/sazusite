@@ -40,6 +40,13 @@
         margin: 0 auto 40px;
     }
 
+    /* PC에서 더 큰 크기로 */
+    @media (min-width: 769px) {
+        .fortune-animation {
+            max-width: 720px;
+        }
+    }
+
     /* 배경 미디어 (4:3 비율) */
     .loading-background-media {
         position: absolute;
@@ -317,9 +324,17 @@
             <div class="fortune-center">☯</div>
         </div>
 
-        <h1 class="loading-title" id="loadingTitle">{{ service.loading_title or "사주를 분석하고 있습니다" }}</h1>
-        <p class="loading-subtitle" id="loadingSubtitle">{{ service.loading_subtitle or "AI가 음양오행의 기운을 살피고 있어요" }}</p>
-        <p class="loading-detail" id="loadingDetail">{{ service.loading_detail or "수천 년 역사의 사주 이론과 AI가 만나는 순간..." }}</p>
+        {% if service.loading_title %}
+        <h1 class="loading-title" id="loadingTitle">{{ service.loading_title }}</h1>
+        {% endif %}
+        {% if service.loading_subtitle %}
+        <p class="loading-subtitle" id="loadingSubtitle">{{ service.loading_subtitle }}</p>
+        {% endif %}
+        {% if service.loading_detail %}
+        <p class="loading-detail" id="loadingDetail">{{ service.loading_detail }}</p>
+        {% endif %}
+
+        <div class="loading-spinner"></div>
 
         <!-- 애드센스 광고 영역 -->
         {% if site_config and site_config.adsense_client_id %}
@@ -335,8 +350,6 @@
             </div>
         </div>
         {% endif %}
-
-        <div class="loading-spinner"></div>
     </div>
 </div>
 
@@ -387,7 +400,7 @@
 
     // 비동기 운세 처리 로직
     const shareCode = '{{ share_code }}';
-    const minWaitTime = 5000; // 최소 5초 대기 (광고 vCPM 보장)
+    const minWaitTime = 7000; // 최소 7초 대기 (광고 vCPM 보장)
     const startTime = Date.now();
     let isCompleted = false;
     let pollCount = 0;

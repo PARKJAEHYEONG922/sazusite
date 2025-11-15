@@ -86,6 +86,27 @@
             </div>
             <input type="hidden" id="gender" name="gender" required>
         </div>
+
+        {% if service.code == "match" %}
+        <div class="form-group">
+            <label for="birth_time">태어난 시간 (선택)</label>
+            <select id="birth_time" name="birth_time">
+                <option value="">모름</option>
+                <option value="23">자시 子 (23:00-00:59)</option>
+                <option value="01">축시 丑 (01:00-02:59)</option>
+                <option value="03">인시 寅 (03:00-04:59)</option>
+                <option value="05">묘시 卯 (05:00-06:59)</option>
+                <option value="07">진시 辰 (07:00-08:59)</option>
+                <option value="09">사시 巳 (09:00-10:59)</option>
+                <option value="11">오시 午 (11:00-12:59)</option>
+                <option value="13">미시 未 (13:00-14:59)</option>
+                <option value="15">신시 申 (15:00-16:59)</option>
+                <option value="17">유시 酉 (17:00-18:59)</option>
+                <option value="19">술시 戌 (19:00-20:59)</option>
+                <option value="21">해시 亥 (21:00-22:59)</option>
+            </select>
+        </div>
+        {% endif %}
         {% endif %}
 
         {% if service.code == "today" %}
@@ -153,7 +174,7 @@
 
         {% if service.code == "match" %}
         <div class="section-divider">
-            <h3 class="section-title">상대방 정보</h3>
+            <h3 class="form-section-title">상대방 정보</h3>
         </div>
 
         <div class="form-group">
@@ -196,6 +217,25 @@
                 </button>
             </div>
             <input type="hidden" id="partner_gender" name="partner_gender" required>
+        </div>
+
+        <div class="form-group">
+            <label for="partner_birth_time">상대방 태어난 시간 (선택)</label>
+            <select id="partner_birth_time" name="partner_birth_time">
+                <option value="">모름</option>
+                <option value="23">자시 子 (23:00-00:59)</option>
+                <option value="01">축시 丑 (01:00-02:59)</option>
+                <option value="03">인시 寅 (03:00-04:59)</option>
+                <option value="05">묘시 卯 (05:00-06:59)</option>
+                <option value="07">진시 辰 (07:00-08:59)</option>
+                <option value="09">사시 巳 (09:00-10:59)</option>
+                <option value="11">오시 午 (11:00-12:59)</option>
+                <option value="13">미시 未 (13:00-14:59)</option>
+                <option value="15">신시 申 (15:00-16:59)</option>
+                <option value="17">유시 酉 (17:00-18:59)</option>
+                <option value="19">술시 戌 (19:00-20:59)</option>
+                <option value="21">해시 亥 (21:00-22:59)</option>
+            </select>
         </div>
         {% endif %}
 

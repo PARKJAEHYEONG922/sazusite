@@ -501,10 +501,16 @@ class FortuneService:
         name = data.get("name", "고객")
         birthdate = data["birthdate"]
         gender = "남성" if data["gender"] == "male" else "여성"
+        birth_time = data.get("birth_time")
+        calendar = data.get("calendar", "solar")
+        calendar_text = "양력" if calendar == "solar" else "음력"
 
         partner_name = data.get("partner_name", "상대방")
         partner_birthdate = data["partner_birthdate"]
         partner_gender = "남성" if data["partner_gender"] == "male" else "여성"
+        partner_birth_time = data.get("partner_birth_time")
+        partner_calendar = data.get("partner_calendar", "solar")
+        partner_calendar_text = "양력" if partner_calendar == "solar" else "음력"
 
         # 궁합 분석 계산
         calculator = SajuCalculator()
@@ -519,14 +525,27 @@ class FortuneService:
         # 계산된 데이터를 data에 추가 (결과 화면에서 사용)
         data['compatibility_info'] = compatibility
 
+        # 시간 정보 텍스트 생성
+        birth_time_text = ""
+        if birth_time:
+            birth_time_text = f"\n  - 태어난 시간: {birth_time}시"
+
+        partner_birth_time_text = ""
+        if partner_birth_time:
+            partner_birth_time_text = f"\n  - 태어난 시간: {partner_birth_time}시"
+
         return template.format(
             character_name=config.character_name,
             name=name,
             birthdate=birthdate,
             gender=gender,
+            calendar=calendar_text,
+            birth_time=birth_time_text,
             partner_name=partner_name,
             partner_birthdate=partner_birthdate,
             partner_gender=partner_gender,
+            partner_calendar=partner_calendar_text,
+            partner_birth_time=partner_birth_time_text,
             compatibility_score=compatibility['score'],
             compatibility_level=compatibility['level'],
             person1_ilju=compatibility['person1']['day_pillar'],

@@ -26,9 +26,13 @@ class SajuFortuneRequest(FortuneRequest):
 
 class MatchFortuneRequest(FortuneRequest):
     """사주궁합 요청"""
+    birth_time: Optional[str] = Field(None, description="태어난 시간 (HH:MM)")
+    calendar: str = Field("solar", pattern="^(solar|lunar)$", description="양력/음력")
     partner_name: Optional[str] = Field(None, max_length=50, description="상대방 이름")
     partner_birthdate: date = Field(..., description="상대방 생년월일")
     partner_gender: str = Field(..., pattern="^(male|female)$", description="상대방 성별")
+    partner_birth_time: Optional[str] = Field(None, description="상대방 태어난 시간 (HH:MM)")
+    partner_calendar: str = Field("solar", pattern="^(solar|lunar)$", description="상대방 양력/음력")
 
 
 class DreamFortuneRequest(FortuneRequest):

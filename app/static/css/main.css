@@ -354,16 +354,16 @@ nav {
 
 .section-title {
     text-align: left;
-    font-size: 1.5rem;  /* 모바일에서 줄임 */
+    font-size: 1.625rem;  /* 모바일: 1.5rem + 0.125rem (2px) */
     font-weight: 700;
-    color: var(--primary-color);
+    color: #2c3e50;  /* 신년운세 페이지와 동일한 색상 */
     margin-bottom: 2rem;
 }
 
 /* PC에서 제목 크기 복원 */
 @media (min-width: 768px) {
     .section-title {
-        font-size: 2rem;
+        font-size: 2.125rem;  /* PC: 2rem + 0.125rem (2px) */
         margin-bottom: 3rem;
     }
 }

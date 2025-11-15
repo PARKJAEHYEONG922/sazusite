@@ -30,18 +30,18 @@
 }
 
 .fortune-title {
-    font-size: 36px;
+    font-size: 38px;
     margin-bottom: 10px;
 }
 
 .fortune-subtitle {
-    font-size: 18px;
+    font-size: 20px;
     color: #a0a0a0;
     margin-bottom: 10px;
 }
 
 .fortune-description {
-    font-size: 14px;
+    font-size: 16px;
     color: #d0d0d0;
 }
 
@@ -154,10 +154,10 @@ select {
     padding-top: 32px;
 }
 
-.section-title {
+.form-section-title {
     font-size: 20px;
     margin-bottom: 20px;
-    color: #8e44ad;
+    color: #2d5016;  /* 고급스러운 다크 그린 */
     font-weight: 700;
 }
 
@@ -345,11 +345,11 @@ select {
     }
 
     .fortune-title {
-        font-size: 28px;
+        font-size: 30px;
     }
 
     .fortune-subtitle {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .form-container {
@@ -389,7 +389,7 @@ select {
         font-size: 13px;
     }
 
-    .section-title {
+    .form-section-title {
         font-size: 18px;
     }
 }
